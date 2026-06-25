@@ -35,7 +35,7 @@ class UserControllerTest {
 
         ResponseEntity<User> response = userController.createUser(user);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(user, response.getBody());
     }
 
@@ -48,7 +48,7 @@ class UserControllerTest {
 
         ResponseEntity<List<User>> response = userController.getAllUsers();
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(users, response.getBody());
     }
 
@@ -59,7 +59,7 @@ class UserControllerTest {
 
         ResponseEntity<User> response = userController.getUserById(1L);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(user, response.getBody());
     }
 
@@ -69,7 +69,7 @@ class UserControllerTest {
 
         ResponseEntity<User> response = userController.getUserById(1L);
 
-        assertEquals(404, response.getStatusCodeValue());
+        assertEquals(404, response.getStatusCode().value());
     }
 
     @Test
@@ -79,7 +79,7 @@ class UserControllerTest {
 
         ResponseEntity<User> response = userController.updateUser(1L, user);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(user, response.getBody());
     }
 
@@ -89,6 +89,6 @@ class UserControllerTest {
 
         ResponseEntity<Void> response = userController.deleteUser(1L);
 
-        assertEquals(204, response.getStatusCodeValue());
+        assertEquals(204, response.getStatusCode().value());
     }
 }
