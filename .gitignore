@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### OpenClaw Workspace (not part of project) ###
+.openclaw/workspace-state.json
+SOUL.md
+IDENTITY.md
+USER.md
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+TOOLS.md
