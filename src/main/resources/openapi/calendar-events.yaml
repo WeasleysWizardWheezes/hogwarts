@@ -1,0 +1,310 @@
+openapi: 3.0.3
+info:
+  title: Calendar and Event Management API
+  version: 1.0.0
+  description: API for managing calendars, events and attendance for organization units
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+tags:
+  - name: calendars
+    description: Operations related to calendars
+  - name: events
+    description: Operations related to events
+  - name: attendance
+    description: Operations related to event attendance
+
+paths:
+  /calendars:
+    get:
+      summary: Get all calendars
+      description: Retrieve a list of all calendars
+      tags:
+        - calendars
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Calendar'
+
+  /calendars/{calendarId}/events:
+    get:
+      summary: Get events for a specific calendar
+      description: Retrieve all events for a specific calendar
+      tags:
+        - events
+      parameters:
+        - name: calendarId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '404':
+          description: Calendar not found
+
+  /events:
+    post:
+      summary: Create a new event
+      description: Create a new event with the provided details
+      tags:
+        - events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreateRequest'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid request data
+
+    put:
+      summary: Update an existing event
+      description: Update an existing event with the provided details
+      tags:
+        - events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventUpdateRequest'
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid request data
+        '404':
+          description: Event not found
+
+    delete:
+      summary: Delete an event
+      description: Delete an event by its ID
+      tags:
+        - events
+      parameters:
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Event deleted successfully
+        '404':
+          description: Event not found
+
+  /events/{eventId}/attendees:
+    post:
+      summary: Add an attendee to an event
+      description: Add a user as attendee to a specific event
+      tags:
+        - attendance
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendeeRequest'
+      responses:
+        '201':
+          description: Attendee added successfully
+        '400':
+          description: Invalid request data
+        '404':
+          description: Event not found
+
+    delete:
+      summary: Remove an attendee from an event
+      description: Remove a user as attendee from a specific event
+      tags:
+        - attendance
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Attendee removed successfully
+        '404':
+          description: Event or attendee not found
+
+components:
+  schemas:
+    Calendar:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the calendar
+        name:
+          type: string
+          description: Name of the calendar
+        description:
+          type: string
+          description: Description of the calendar
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the calendar was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the calendar was last updated
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the event
+        title:
+          type: string
+          description: Title of the event
+        description:
+          type: string
+          description: Description of the event
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the event
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the event
+        calendarId:
+          type: string
+          format: uuid
+          description: ID of the calendar this event belongs to
+        recurring:
+          type: boolean
+          description: Whether the event is recurring
+        recurrencePattern:
+          type: string
+          description: Recurrence pattern (e.g., daily, weekly, monthly)
+        attendees:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of attendee IDs
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the event was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the event was last updated
+
+    EventCreateRequest:
+      type: object
+      required:
+        - title
+        - startTime
+        - endTime
+        - calendarId
+      properties:
+        title:
+          type: string
+          description: Title of the event
+        description:
+          type: string
+          description: Description of the event
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the event
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the event
+        calendarId:
+          type: string
+          format: uuid
+          description: ID of the calendar this event belongs to
+        recurring:
+          type: boolean
+          description: Whether the event is recurring
+        recurrencePattern:
+          type: string
+          description: Recurrence pattern (e.g., daily, weekly, monthly)
+
+    EventUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the event
+        description:
+          type: string
+          description: Description of the event
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the event
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the event
+        recurring:
+          type: boolean
+          description: Whether the event is recurring
+        recurrencePattern:
+          type: string
+          description: Recurrence pattern (e.g., daily, weekly, monthly)
+
+    AttendeeRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID of the user to add as attendee
