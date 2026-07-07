@@ -1,0 +1,359 @@
+openapi: 3.1.0
+info:
+  title: Fire Manager - Operations API
+  version: 1.0.0
+  description: API for managing fire department operations and assignments
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+
+paths:
+  /operations:
+    post:
+      summary: Create a new operation
+      description: Creates a new operation with the provided details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOperationRequest'
+      responses:
+        '201':
+          description: Operation created successfully
+          headers:
+            Location:
+              description: URL of the newly created operation
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+        '400':
+          description: Bad request due to validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Operations
+    get:
+      summary: Get all operations
+      description: Retrieves a paginated list of all operations
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sort
+          in: query
+          description: Sort field and direction (e.g., "id,asc")
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationPageResponse'
+        '400':
+          description: Bad request due to invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Operations
+
+  /operations/{operationId}:
+    get:
+      summary: Get operation by ID
+      description: Retrieves a specific operation by its ID
+      parameters:
+        - name: operationId
+          in: path
+          description: ID of the operation to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+        '404':
+          description: Operation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Operations
+
+  /operations/{operationId}/assign:
+    post:
+      summary: Assign equipment to operation
+      description: Assigns equipment (vehicles or devices) to a specific operation
+      parameters:
+        - name: operationId
+          in: path
+          description: ID of the operation to assign equipment to
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignEquipmentRequest'
+      responses:
+        '200':
+          description: Equipment assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResponse'
+        '400':
+          description: Bad request due to validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Operation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Operations
+
+  /operations/available-equipment:
+    get:
+      summary: Get available equipment for operation type
+      description: Retrieves a list of available equipment based on operation type
+      parameters:
+        - name: operationType
+          in: query
+          description: Type of operation to get available equipment for
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableEquipmentResponse'
+        '400':
+          description: Bad request due to missing operation type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Operations
+
+components:
+  schemas:
+    CreateOperationRequest:
+      type: object
+      required:
+        - title
+        - operationType
+        - startTime
+        - endTime
+      properties:
+        title:
+          type: string
+          description: Title of the operation
+          example: "Feuerwehreinsatz"
+        operationType:
+          type: string
+          description: Type of operation (e.g., FIRE, RESCUE, MEDICAL)
+          example: "FIRE"
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the operation
+          example: "2023-10-15T10:00:00Z"
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the operation
+          example: "2023-10-15T12:00:00Z"
+        requiredEquipment:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of required equipment IDs (optional)
+          example: ["123e4567-e89b-12d3-a456-426614174000"]
+        description:
+          type: string
+          description: Description of the operation
+          example: "Einsatz bei Brand in Wohnhaus"
+
+    OperationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the operation
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          description: Title of the operation
+          example: "Feuerwehreinsatz"
+        operationType:
+          type: string
+          description: Type of operation (e.g., FIRE, RESCUE, MEDICAL)
+          example: "FIRE"
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the operation
+          example: "2023-10-15T10:00:00Z"
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the operation
+          example: "2023-10-15T12:00:00Z"
+        requiredEquipment:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of required equipment IDs (optional)
+          example: ["123e4567-e89b-12d3-a456-426614174000"]
+        description:
+          type: string
+          description: Description of the operation
+          example: "Einsatz bei Brand in Wohnhaus"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the operation was created
+          example: "2023-10-15T08:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the operation was last updated
+          example: "2023-10-15T08:00:00Z"
+
+    OperationPageResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationResponse'
+        page:
+          type: integer
+          description: Current page number
+        size:
+          type: integer
+          description: Number of items per page
+        totalElements:
+          type: integer
+          description: Total number of elements
+        totalPages:
+          type: integer
+          description: Total number of pages
+
+    AssignEquipmentRequest:
+      type: object
+      required:
+        - equipmentIds
+      properties:
+        equipmentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of equipment IDs to assign to the operation
+          example: ["123e4567-e89b-12d3-a456-426614174000"]
+
+    AvailableEquipmentResponse:
+      type: object
+      properties:
+        equipment:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipmentSummary'
+    
+    EquipmentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the equipment
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          description: Name of the equipment
+          example: "Feuerwehrwagen"
+        type:
+          type: string
+          description: Type of the equipment (e.g., VEHICLE, DEVICE)
+          example: "VEHICLE"
+        serialNumber:
+          type: string
+          description: Serial number of the equipment
+          example: "FW-12345"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "VALIDATION_FAILED"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Die Anfrage enthält ungültige Felder."
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field name with validation error
+                example: "title"
+              message:
+                type: string
+                description: Error message for the field
+                example: "Der Titel darf nicht leer sein."
+
+tags:
+  - name: Operations
+    description: Operations management endpoints
