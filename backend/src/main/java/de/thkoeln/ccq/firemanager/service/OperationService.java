@@ -18,6 +18,10 @@ public class OperationService {
     @Autowired
     private OperationRepository operationRepository;
     
+    public void setOperationRepository(OperationRepository operationRepository) {
+        this.operationRepository = operationRepository;
+    }
+    
     public OperationResponse createOperation(CreateOperationRequest request) {
         Operation operation = new Operation(
             request.title(),
