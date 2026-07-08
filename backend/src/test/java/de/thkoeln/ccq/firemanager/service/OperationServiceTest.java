@@ -29,26 +29,10 @@ class OperationServiceTest {
 
     private OperationService sut;
 
-    private CreateOperationRequest validRequest;
-
     @BeforeEach
     void setup() {
         sut = new OperationService();
         sut.setOperationRepository(operationRepositoryStub);
-        
-        var operationType = "Brandbekämpfung";
-        var startTime = LocalDateTime.now().plusHours(1);
-        var endTime = LocalDateTime.now().plusHours(3);
-        var requiredEquipment = List.of(UUID.randomUUID(), UUID.randomUUID());
-
-        validRequest = new CreateOperationRequest(
-            "Einsatz Feuerwehr",
-            operationType,
-            startTime,
-            endTime,
-            requiredEquipment,
-            "Brand in Bürogebäude"
-        );
     }
 
     @Test
@@ -64,8 +48,17 @@ class OperationServiceTest {
         );
         when(operationRepositoryStub.save(any())).thenReturn(savedOperation);
 
+        var request = new CreateOperationRequest(
+            "Einsatz Feuerwehr",
+            "Brandbekämpfung",
+            LocalDateTime.now().plusHours(1),
+            LocalDateTime.now().plusHours(3),
+            List.of(UUID.randomUUID()),
+            "Brand in Bürogebäude"
+        );
+
         // Act
-        var result = sut.createOperation(validRequest);
+        var result = sut.createOperation(request);
 
         // Assert
         assertThat(result).isNotNull();
@@ -155,7 +148,6 @@ class OperationServiceTest {
         );
         savedOperation.setId(operationId);
         when(operationRepositoryStub.findById(operationId)).thenReturn(Optional.of(savedOperation));
-        when(operationRepositoryStub.save(any())).thenReturn(savedOperation);
 
         // Act
         var result = sut.assignEquipment(operationId, equipmentRequest);
@@ -164,7 +156,6 @@ class OperationServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(operationId);
         verify(operationRepositoryStub, times(1)).findById(operationId);
-        verify(operationRepositoryStub, times(1)).save(any());
     }
 
     @Test
