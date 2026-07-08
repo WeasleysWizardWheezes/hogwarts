@@ -2,8 +2,8 @@ package de.thkoeln.ccq.firemanager;
 
 import de.thkoeln.ccq.firemanager.dto.AssignEquipmentRequest;
 import de.thkoeln.ccq.firemanager.dto.CreateOperationRequest;
-import de.thkoeln.ccq.firemanager.dto.EquipmentSummary;
 import de.thkoeln.ccq.firemanager.dto.OperationResponse;
+import de.thkoeln.ccq.firemanager.repository.OperationRepository;
 import de.thkoeln.ccq.firemanager.service.OperationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ class OperationServiceTest {
 
     @BeforeEach
     void setup() {
-        sut = new OperationService(null);
+        sut = new OperationService();
         
         var operationType = "Brandbekämpfung";
         var startTime = LocalDateTime.now().plusHours(1);
