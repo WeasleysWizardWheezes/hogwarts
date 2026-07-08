@@ -3,6 +3,7 @@ package de.thkoeln.ccq.firemanager.service;
 import de.thkoeln.ccq.firemanager.dto.AssignEquipmentRequest;
 import de.thkoeln.ccq.firemanager.dto.CreateOperationRequest;
 import de.thkoeln.ccq.firemanager.dto.OperationResponse;
+import de.thkoeln.ccq.firemanager.model.Operation;
 import de.thkoeln.ccq.firemanager.repository.OperationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

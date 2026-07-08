@@ -1,47 +1,28 @@
 package de.thkoeln.ccq.firemanager;
 
-import de.thkoeln.ccq.firemanager.dto.AssignEquipmentRequest;
-import de.thkoeln.ccq.firemanager.dto.CreateOperationRequest;
 import de.thkoeln.ccq.firemanager.repository.OperationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-@Testcontainers
 class OperationE2ETest {
 
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:16"));
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
+    @LocalServerPort
+    private int port;
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate restTemplate;
 
     @Autowired
     private OperationRepository operationRepository;
@@ -52,7 +33,7 @@ class OperationE2ETest {
     }
 
     @Test
-    void shouldCreateOperationAndReturn201() throws Exception {
+    void shouldCreateOperationAndReturn201() {
         // Arrange
         var requestBody = """
                 {
@@ -65,16 +46,22 @@ class OperationE2ETest {
                 }
                 """;
 
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/operations")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isCreated())
-                .andExpect(header().exists("Location"));
+        // Act
+        var response = restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/v1/operations",
+            requestBody,
+            OperationResponse.class
+        );
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getHeaders().getLocation()).isNotNull();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().title()).isEqualTo("Einsatz Feuerwehr");
     }
 
     @Test
-    void shouldReturn400WhenValidationFails() throws Exception {
+    void shouldReturn400WhenValidationFails() {
         // Arrange
         var requestBody = """
                 {
@@ -85,24 +72,32 @@ class OperationE2ETest {
                 }
                 """;
 
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/operations")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest());
+        // Act
+        var response = restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/v1/operations",
+            requestBody,
+            String.class
+        );
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    void shouldGetAllOperationsWhenEmpty() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/operations"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
+    void shouldGetAllOperationsWhenEmpty() {
+        // Act
+        var response = restTemplate.getForEntity(
+            "http://localhost:" + port + "/api/v1/operations",
+            OperationResponse[].class
+        );
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEmpty();
     }
 
     @Test
-    void shouldGetAllOperationsWithCreatedOperations() throws Exception {
+    void shouldGetAllOperationsWithCreatedOperations() {
         // Arrange
         var createRequest = """
                 {
@@ -113,10 +108,11 @@ class OperationE2ETest {
                     "description": "Erster Einsatz"
                 }
                 """;
-        mockMvc.perform(post("/api/v1/operations")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createRequest))
-                .andExpect(status().isCreated());
+        restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/v1/operations",
+            createRequest,
+            Object.class
+        );
 
         var createRequest2 = """
                 {
@@ -127,22 +123,27 @@ class OperationE2ETest {
                     "description": "Zweiter Einsatz"
                 }
                 """;
-        mockMvc.perform(post("/api/v1/operations")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createRequest2))
-                .andExpect(status().isCreated());
+        restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/v1/operations",
+            createRequest2,
+            Object.class
+        );
 
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/operations"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$[0].title").value("Einsatz 1"))
-                .andExpect(jsonPath("$[1].title").value("Einsatz 2"));
+        // Act
+        var response = restTemplate.getForEntity(
+            "http://localhost:" + port + "/api/v1/operations",
+            OperationResponse[].class
+        );
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(2);
+        assertThat(response.getBody()[0].title()).isEqualTo("Einsatz 1");
+        assertThat(response.getBody()[1].title()).isEqualTo("Einsatz 2");
     }
 
     @Test
-    void shouldAssignEquipmentToOperation() throws Exception {
+    void shouldAssignEquipmentToOperation() {
         // Arrange
         var createRequest = """
                 {
@@ -153,42 +154,42 @@ class OperationE2ETest {
                     "description": "Brand in Bürogebäude"
                 }
                 """;
-        var response = mockMvc.perform(post("/api/v1/operations")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createRequest))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        var operationId = extractOperationId(response.getResponse().getContentAsString());
+        var response = restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/v1/operations",
+            createRequest,
+            OperationResponse.class
+        );
+        var operationId = response.getBody().id();
 
         var assignRequest = """
                 {
                     "equipmentIds": ["550e8400-e29b-41d4-a716-446655440000"]
                 }
                 """;
+        var assignUrl = "http://localhost:" + port + "/api/v1/operations/" + operationId + "/assign";
 
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/operations/{id}/assign", operationId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(assignRequest))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Einsatz Feuerwehr"));
+        // Act
+        var assignResponse = restTemplate.postForEntity(
+            assignUrl,
+            assignRequest,
+            OperationResponse.class
+        );
+
+        // Assert
+        assertThat(assignResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(assignResponse.getBody().title()).isEqualTo("Einsatz Feuerwehr");
     }
 
     @Test
-    void shouldGetAvailableEquipment() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/operations/available-equipment")
-                        .param("operationType", "Brandbekämpfung"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
-    }
+    void shouldGetAvailableEquipment() {
+        // Act
+        var response = restTemplate.getForEntity(
+            "http://localhost:" + port + "/api/v1/operations/available-equipment?operationType=Brandbekämpfung",
+            EquipmentSummary[].class
+        );
 
-    private UUID extractOperationId(String responseBody) {
-        // Extract ID from JSON response
-        // Format: {"id":"uuid","title":...}
-        var start = responseBody.indexOf("\"id\":\"") + 6;
-        var end = responseBody.indexOf("\"", start);
-        return UUID.fromString(responseBody.substring(start, end));
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
     }
 }
