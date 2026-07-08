@@ -54,7 +54,15 @@ class OperationServiceTest {
     @Test
     void shouldCreateOperationSuccessfully() {
         // Arrange
-        when(operationRepositoryStub.save(any())).thenReturn(mapToEntity(validResponse()));
+        var savedOperation = new Operation(
+            "Einsatz Feuerwehr",
+            "Brandbekämpfung",
+            LocalDateTime.now().plusHours(1),
+            LocalDateTime.now().plusHours(3),
+            List.of(UUID.randomUUID()),
+            "Brand in Bürogebäude"
+        );
+        when(operationRepositoryStub.save(any())).thenReturn(savedOperation);
 
         // Act
         var result = sut.createOperation(validRequest);
@@ -70,9 +78,16 @@ class OperationServiceTest {
     void shouldGetOperationByIdWhenExists() {
         // Arrange
         var operationId = UUID.randomUUID();
-        var response = validResponse();
-        response.id(operationId);
-        when(operationRepositoryStub.findById(operationId)).thenReturn(Optional.of(mapToEntity(response)));
+        var savedOperation = new Operation(
+            "Einsatz Feuerwehr",
+            "Brandbekämpfung",
+            LocalDateTime.now().plusHours(1),
+            LocalDateTime.now().plusHours(3),
+            List.of(UUID.randomUUID()),
+            "Brand in Bürogebäude"
+        );
+        savedOperation.setId(operationId);
+        when(operationRepositoryStub.findById(operationId)).thenReturn(Optional.of(savedOperation));
 
         // Act
         var result = sut.getOperationById(operationId);
@@ -98,17 +113,30 @@ class OperationServiceTest {
     @Test
     void shouldGetAllOperations() {
         // Arrange
-        var operation1 = validResponse();
-        var operation2 = validResponse();
-        operation2.title("Einsatz 2");
-        when(operationRepositoryStub.findAll()).thenReturn(List.of(mapToEntity(operation1), mapToEntity(operation2)));
+        var operation1 = new Operation(
+            "Einsatz 1",
+            "Brandbekämpfung",
+            LocalDateTime.now(),
+            LocalDateTime.now(),
+            List.of(),
+            ""
+        );
+        var operation2 = new Operation(
+            "Einsatz 2",
+            "Hilfeleistung",
+            LocalDateTime.now(),
+            LocalDateTime.now(),
+            List.of(),
+            ""
+        );
+        when(operationRepositoryStub.findAll()).thenReturn(List.of(operation1, operation2));
 
         // Act
         var result = sut.getAllOperations();
 
         // Assert
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).title()).isEqualTo("Einsatz Feuerwehr");
+        assertThat(result.get(0).title()).isEqualTo("Einsatz 1");
         assertThat(result.get(1).title()).isEqualTo("Einsatz 2");
     }
 
@@ -117,9 +145,17 @@ class OperationServiceTest {
         // Arrange
         var operationId = UUID.randomUUID();
         var equipmentRequest = new AssignEquipmentRequest(List.of(UUID.randomUUID()));
-        var updatedResponse = validResponse();
-        when(operationRepositoryStub.findById(operationId)).thenReturn(Optional.of(mapToEntity(updatedResponse)));
-        when(operationRepositoryStub.save(any())).thenReturn(mapToEntity(updatedResponse));
+        var savedOperation = new Operation(
+            "Einsatz Feuerwehr",
+            "Brandbekämpfung",
+            LocalDateTime.now(),
+            LocalDateTime.now(),
+            List.of(),
+            "Brand in Bürogebäude"
+        );
+        savedOperation.setId(operationId);
+        when(operationRepositoryStub.findById(operationId)).thenReturn(Optional.of(savedOperation));
+        when(operationRepositoryStub.save(any())).thenReturn(savedOperation);
 
         // Act
         var result = sut.assignEquipment(operationId, equipmentRequest);
@@ -141,33 +177,5 @@ class OperationServiceTest {
 
         // Assert
         assertThat(result).isEmpty();
-    }
-
-    private OperationResponse validResponse() {
-        return new OperationResponse(
-            UUID.randomUUID(),
-            "Einsatz Feuerwehr",
-            "Brandbekämpfung",
-            LocalDateTime.now().plusHours(1),
-            LocalDateTime.now().plusHours(3),
-            List.of(UUID.randomUUID()),
-            "Brand in Bürogebäude",
-            LocalDateTime.now(),
-            LocalDateTime.now()
-        );
-    }
-
-    private Operation mapToEntity(OperationResponse response) {
-        var entity = new Operation();
-        entity.setId(response.id());
-        entity.setTitle(response.title());
-        entity.setOperationType(response.operationType());
-        entity.setStartTime(response.startTime());
-        entity.setEndTime(response.endTime());
-        entity.setRequiredEquipment(response.requiredEquipment());
-        entity.setDescription(response.description());
-        entity.setCreatedAt(response.createdAt());
-        entity.setUpdatedAt(response.updatedAt());
-        return entity;
     }
 }
