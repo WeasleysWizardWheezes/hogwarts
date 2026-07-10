@@ -1,0 +1,433 @@
+name: CICD Pipeline
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  schedule:
+    # Tägliche Prüfung der Git-Konventionen auf main
+    - cron: '0 6 * * *'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  packages: write
+  security-events: write
+
+env:
+  JAVA_VERSION: '25'
+  JAVA_DISTRIBUTION: 'oracle'
+
+jobs:
+  # ═══════════════════════════════════════════════
+  # Stage 1: Git-Konventionen
+  # ═══════════════════════════════════════════════
+  git-conventions:
+    name: Git Conventions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Commit Messages
+        run: |
+          echo "::group::Checking commit messages"
+          ERRORS=0
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git log --format="%H %s" origin/${{ github.base_ref }}..HEAD)
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            COMMITS=$(git log --format="%H %s" --since="24 hours ago")
+          else
+            COMMITS=$(git log --format="%H %s" -1)
+          fi
+
+          PATTERN='^[a-f0-9]+ (feat|fix|docs|style|refactor|test|chore|perf|revert)(\([a-z0-9_-]+\))?(!)?: .{1,72}$'
+
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            if ! echo "$line" | grep -qE "$PATTERN"; then
+              echo "::error::Invalid commit message: ${line#* }"
+              ERRORS=$((ERRORS + 1))
+            elif echo "${line#* }" | grep -qE '\.$'; then
+              echo "::error::Commit message must not end with a dot: ${line#* }"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done <<< "$COMMITS"
+
+          echo "::endgroup::"
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::$ERRORS commit(s) violate Conventional Commits format"
+            echo ""
+            echo "Expected format: <type>[(<scope>)][!]: <beschreibung>"
+            echo "Types: feat|fix|docs|style|refactor|test|chore|perf|revert"
+            echo "Max 72 chars, imperative, no trailing dot"
+            exit 1
+          fi
+
+      - name: Validate Branch Name
+        if: github.event_name == 'push' && github.ref_name != 'main'
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          PATTERN='^(feat|fix|docs|style|refactor|test|chore|perf|revert)/[0-9]+-[a-z0-9-]+$'
+
+          if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
+            echo "::error::Branch name '$BRANCH' does not match convention"
+            echo ""
+            echo "Expected: <type>/<issue-nr>-<kurzbeschreibung>"
+            echo "Example:  feat/42-add-equipment-status-endpoint"
+            exit 1
+          fi
+
+      - name: Validate PR Title
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          PATTERN='^(feat|fix|docs|style|refactor|test|chore|perf|revert)(\([a-z0-9_-]+\))?(!)?: .{1,72}$'
+
+          if ! echo "$PR_TITLE" | grep -qE "$PATTERN"; then
+            echo "::error::PR title does not follow Conventional Commits: $PR_TITLE"
+            exit 1
+          fi
+
+          if echo "$PR_TITLE" | grep -qE '\.$'; then
+            echo "::error::PR title must not end with a dot: $PR_TITLE"
+            exit 1
+          fi
+
+      - name: Validate PR Body (Closes #issue)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if ! echo "$PR_BODY" | grep -qiE "(closes|fixes|resolves) #[0-9]+"; then
+            echo "::error::PR body must contain 'Closes #<issue-nr>'"
+            exit 1
+          fi
+
+      - name: Check no direct push to main
+        if: github.event_name == 'push' && github.ref_name == 'main'
+        run: |
+          MERGE_COMMIT=$(git log -1 --format="%P" | wc -w)
+          if [ "$MERGE_COMMIT" -lt 2 ]; then
+            echo "::warning::Direct push to main detected (not a merge commit)"
+          fi
+
+      - name: Check for forbidden files
+        run: |
+          ERRORS=0
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            FILES=$(git diff --name-only origin/${{ github.base_ref }}..HEAD)
+          else
+            FILES=$(git diff --name-only HEAD~1..HEAD 2>/dev/null || git ls-tree --name-only -r HEAD)
+          fi
+
+          # Keine OpenClaw-Dateien (SOUL.md, Skills, Agent-Configs, .openclaw)
+          FORBIDDEN_PATTERNS="SOUL\.md|/Skills/|/Agent-Configs/|\.openclaw|/\.openclaw/"
+
+          # Erlaubte Pfade (Projekt-Code)
+          ALLOWED_PATTERNS="^(backend/|frontend/|\.github/|docs/|README\.md|\.gitignore|\.gitattributes)"
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if echo "$file" | grep -qE "$FORBIDDEN_PATTERNS"; then
+              echo "::error::Forbidden file committed: $file"
+              ERRORS=$((ERRORS + 1))
+            elif ! echo "$file" | grep -qE "$ALLOWED_PATTERNS"; then
+              echo "::error::File outside allowed paths: $file"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done <<< "$FILES"
+
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::$ERRORS forbidden/misplaced file(s) found. Only project code should be committed."
+            echo "Allowed paths: backend/, frontend/, .github/, docs/, README.md, .gitignore, .gitattributes"
+            exit 1
+          fi
+
+  # ═══════════════════════════════════════════════
+  # Stage 2a: Backend – Unit Tests + Coverage
+  # ═══════════════════════════════════════════════
+  test:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    needs: git-conventions
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+
+      - name: Run Unit Tests
+        working-directory: backend
+        run: chmod +x mvnw && ./mvnw test --batch-mode --no-transfer-progress
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            backend/target/surefire-reports/
+            backend/target/site/jacoco/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════
+  # Stage 2b: Frontend – Lint + Build
+  # ═══════════════════════════════════════════════
+  frontend:
+    name: Frontend (Lint + Build)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    needs: git-conventions
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint (oxlint)
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build (TypeScript + Vite)
+        working-directory: frontend
+        run: npm run build
+
+  # ═══════════════════════════════════════════════
+  # Stage 3: Quality (Checkstyle + JaCoCo + PITest)
+  # ═══════════════════════════════════════════════
+  quality:
+    name: Code Quality (Checkstyle + JaCoCo)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+
+      - name: Verify Quality Gates (Checkstyle + JaCoCo)
+        working-directory: backend
+        run: chmod +x mvnw && ./mvnw verify -DskipTests --batch-mode --no-transfer-progress
+
+      - name: Upload Checkstyle Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: backend/target/checkstyle-result.xml
+          retention-days: 7
+
+      - name: Upload JaCoCo Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+          retention-days: 7
+
+  mutation-testing:
+    name: Mutation Testing (PITest)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+
+      - name: Run PITest
+        working-directory: backend
+        run: chmod +x mvnw && ./mvnw pitest:mutationCoverage --batch-mode --no-transfer-progress
+
+      - name: Check Mutation Score Threshold
+        working-directory: backend
+        run: |
+          REPORT=$(find target/pit-reports -name "mutations.xml" -type f | head -1)
+
+          if [ -z "$REPORT" ]; then
+            echo "::error::PITest report not found"
+            exit 1
+          fi
+
+          TOTAL=$(grep -c '<mutation ' "$REPORT" || echo 0)
+          KILLED=$(grep -c 'status="KILLED"' "$REPORT" || echo 0)
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "::warning::No mutations generated"
+            exit 0
+          fi
+
+          SCORE=$((KILLED * 100 / TOTAL))
+          echo "Mutation Score: $SCORE% ($KILLED/$TOTAL killed)"
+
+          if [ "$SCORE" -lt 70 ]; then
+            echo "::error::Mutation Score $SCORE% is below threshold of 70%"
+            exit 1
+          fi
+
+      - name: Upload PITest Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitest-report
+          path: backend/target/pit-reports/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════
+  # Stage 4: E2E Tests (Testcontainers)
+  # ═══════════════════════════════════════════════
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+
+      - name: Run E2E Tests (Testcontainers)
+        working-directory: backend
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: 'true'
+        run: |
+          chmod +x mvnw
+          ./mvnw verify -Dsurefire.skip=true --batch-mode --no-transfer-progress
+
+      - name: Upload E2E Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: backend/target/failsafe-reports/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════
+  # Stage 5: Security Scan (CodeQL)
+  # ═══════════════════════════════════════════════
+  security-scan:
+    name: Security Scan (CodeQL)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    needs: git-conventions
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+
+      - name: Build for CodeQL
+        working-directory: backend
+        run: chmod +x mvnw && ./mvnw compile --batch-mode --no-transfer-progress -DskipTests
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  # ═══════════════════════════════════════════════
+  # Stage 6: Package (Docker Image)
+  # ═══════════════════════════════════════════════
+  package:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    needs: [quality, e2e-tests, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Spring Boot Image
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw spring-boot:build-image \
+            -Dspring-boot.build-image.imageName=ghcr.io/${{ github.repository }}:latest \
+            -Dspring-boot.build-image.publish=true \
+            -Ddocker.publishRegistry.username=${{ github.actor }} \
+            -Ddocker.publishRegistry.password=${{ secrets.GITHUB_TOKEN }} \
+            -Ddocker.publishRegistry.url=ghcr.io \
+            -DskipTests \
+            --batch-mode --no-transfer-progress
+
+  # ═══════════════════════════════════════════════
+  # Stage 7: Deploy
+  # ═══════════════════════════════════════════════
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    needs: package
+    environment:
+      name: production
+      url: ${{ vars.DEPLOY_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd ~/deployments/${{ github.event.repository.name }}
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+            docker compose pull
+            docker compose up -d
+>
