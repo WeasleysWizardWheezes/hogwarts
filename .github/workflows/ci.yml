@@ -202,7 +202,7 @@ jobs:
 
       - name: Install Dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Lint (oxlint)
         working-directory: frontend
