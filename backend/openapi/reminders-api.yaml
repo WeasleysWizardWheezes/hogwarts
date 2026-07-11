@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: Reminder API
+  description: API for managing reminders for appointments and operations
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+  - url: https://api.hogwarts.com/api/v1
+    description: Production server
+paths:
+  /reminders:
+    get:
+      tags:
+        - reminders
+      summary: Get all reminders for a user
+      description: Returns all reminders for the authenticated user
+      operationId: getAllReminders
+      parameters:
+        - name: userId
+          in: query
+          description: Filter reminders by user ID
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: channel
+          in: query
+          description: Filter reminders by channel (EMAIL, PUSH)
+          required: false
+          schema:
+            type: string
+            enum: [EMAIL, PUSH]
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReminderDto'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /reminders/{reminderId}:
+    patch:
+      tags:
+        - reminders
+      summary: Update a reminder
+      description: Updates the lead time of a reminder
+      operationId: updateReminder
+      parameters:
+        - name: reminderId
+          in: path
+          description: ID of the reminder to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Reminder update data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReminderUpdateDto'
+      responses:
+        '200':
+          description: Reminder updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderDto'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Reminder not found
+components:
+  schemas:
+    ReminderDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the reminder
+        eventId:
+          type: string
+          format: uuid
+          description: ID of the associated event or operation
+        eventType:
+          type: string
+          enum: [APPOINTMENT, OPERATION]
+          description: Type of the associated event
+        title:
+          type: string
+          description: Title of the reminder
+        description:
+          type: string
+          description: Description of the reminder
+        reminderTime:
+          type: string
+          format: date-time
+          description: Time when the reminder should be sent
+        leadTimeMinutes:
+          type: integer
+          description: Lead time in minutes before the event
+        channel:
+          type: string
+          enum: [EMAIL, PUSH]
+          description: Channel for sending the reminder
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - id
+        - eventId
+        - eventType
+        - title
+        - reminderTime
+        - leadTimeMinutes
+        - channel
+        - createdAt
+        - updatedAt
+    ReminderUpdateDto:
+      type: object
+      properties:
+        leadTimeMinutes:
+          type: integer
+          description: New lead time in minutes before the event
+          minimum: 1
+        channel:
+          type: string
+          enum: [EMAIL, PUSH]
+          description: New channel for sending the reminder
+      required:
+        - leadTimeMinutes
