@@ -308,8 +308,8 @@ jobs:
   # ═══════════════════════════════════════════════
   # Stage 5: Security Scan (CodeQL)
   # ═══════════════════════════════════════════════
-  security-scan:
-    name: Security Scan (CodeQL)
+  security-scan-backend:
+    name: Security Scan – Backend (CodeQL)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -329,6 +329,21 @@ jobs:
       - name: Build for CodeQL
         working-directory: backend
         run: chmod +x mvnw && ./mvnw compile --batch-mode --no-transfer-progress -DskipTests
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+
+  security-scan-frontend:
+    name: Security Scan – Frontend (CodeQL)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          source-root: frontend/
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
