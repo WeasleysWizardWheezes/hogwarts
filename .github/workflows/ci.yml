@@ -124,7 +124,9 @@ jobs:
           git add frontend/src/shared/api/schema.json frontend/src/shared/api/schema.d.ts
           if ! git diff --cached --quiet; then
             git commit -m "chore: sync OpenAPI schema"
+            git stash --include-untracked
             git pull --rebase
+            git stash pop || true
             git push
           fi
 
