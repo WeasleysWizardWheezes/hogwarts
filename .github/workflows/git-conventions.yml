@@ -1,0 +1,141 @@
+name: Git Conventions
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  schedule:
+    # Tägliche Prüfung der Git-Konventionen auf main
+    - cron: '0 6 * * *'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  git-conventions:
+    name: Git Conventions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate Commit Messages
+        run: |
+          echo "::group::Checking commit messages"
+          ERRORS=0
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git log --format="%H %s" origin/${{ github.base_ref }}..HEAD)
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            COMMITS=$(git log --format="%H %s" --since="24 hours ago")
+          else
+            COMMITS=$(git log --format="%H %s" -1)
+          fi
+
+          PATTERN='^[a-f0-9]+ (feat|fix|docs|style|refactor|test|chore|perf|revert|ci|build)(\([a-z0-9_-]+\))?(!)?: .{1,72}$'
+
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            if ! echo "$line" | grep -qE "$PATTERN"; then
+              echo "::error::Invalid commit message: ${line#* }"
+              ERRORS=$((ERRORS + 1))
+            elif echo "${line#* }" | grep -qE '\.$'; then
+              echo "::error::Commit message must not end with a dot: ${line#* }"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done <<< "$COMMITS"
+
+          echo "::endgroup::"
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::$ERRORS commit(s) violate Conventional Commits format"
+            echo ""
+            echo "Expected format: <type>[(<scope>)][!]: <beschreibung>"
+            echo "Types: feat|fix|docs|style|refactor|test|chore|perf|revert|ci|build"
+            echo "Max 72 chars, imperative, no trailing dot"
+            exit 1
+          fi
+
+      - name: Validate Branch Name
+        if: github.event_name == 'push' && github.ref_name != 'main'
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          PATTERN='^(feat|fix|docs|style|refactor|test|chore|perf|revert|ci|build)/[0-9]+-[a-z0-9-]+$'
+
+          if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
+            echo "::error::Branch name '$BRANCH' does not match convention"
+            echo ""
+            echo "Expected: <type>/<issue-nr>-<kurzbeschreibung>"
+            echo "Example:  feat/42-add-equipment-status-endpoint"
+            exit 1
+          fi
+
+      - name: Validate PR Title
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          PATTERN='^(feat|fix|docs|style|refactor|test|chore|perf|revert|ci|build)(\([a-z0-9_-]+\))?(!)?: .{1,72}$'
+
+          if ! echo "$PR_TITLE" | grep -qE "$PATTERN"; then
+            echo "::error::PR title does not follow Conventional Commits: $PR_TITLE"
+            exit 1
+          fi
+
+          if echo "$PR_TITLE" | grep -qE '\.$'; then
+            echo "::error::PR title must not end with a dot: $PR_TITLE"
+            exit 1
+          fi
+
+      - name: Validate PR Body (Closes #issue)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if ! echo "$PR_BODY" | grep -qiE "(closes|fixes|resolves) #[0-9]+"; then
+            echo "::error::PR body must contain 'Closes #<issue-nr>'"
+            exit 1
+          fi
+
+      - name: Check no direct push to main
+        if: github.event_name == 'push' && github.ref_name == 'main'
+        run: |
+          MERGE_COMMIT=$(git log -1 --format="%P" | wc -w)
+          if [ "$MERGE_COMMIT" -lt 2 ]; then
+            echo "::warning::Direct push to main detected (not a merge commit)"
+          fi
+
+      - name: Check for forbidden files
+        run: |
+          ERRORS=0
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            FILES=$(git diff --name-only origin/${{ github.base_ref }}..HEAD)
+          else
+            FILES=$(git diff --name-only HEAD~1..HEAD 2>/dev/null || git ls-tree --name-only -r HEAD)
+          fi
+
+          # Keine OpenClaw-Dateien (SOUL.md, Skills, Agent-Configs, .openclaw)
+          FORBIDDEN_PATTERNS="SOUL\.md|/Skills/|/Agent-Configs/|\.openclaw|/\.openclaw/"
+
+          # Erlaubte Pfade (Projekt-Code)
+          ALLOWED_PATTERNS="^(backend/|frontend/|\.github/|docs/|README\.md|\.gitignore|\.gitattributes)"
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if echo "$file" | grep -qE "$FORBIDDEN_PATTERNS"; then
+              echo "::error::Forbidden file committed: $file"
+              ERRORS=$((ERRORS + 1))
+            elif ! echo "$file" | grep -qE "$ALLOWED_PATTERNS"; then
+              echo "::error::File outside allowed paths: $file"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done <<< "$FILES"
+
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::$ERRORS forbidden/misplaced file(s) found. Only project code should be committed."
+            echo "Allowed paths: backend/, frontend/, .github/, docs/, README.md, .gitignore, .gitattributes"
+            exit 1
+          fi

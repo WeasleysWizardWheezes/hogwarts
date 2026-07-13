@@ -28,3 +28,8 @@ dist-ssr
 .env
 .env.local
 .env.production
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
