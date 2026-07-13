@@ -1,11 +1,1 @@
-{
-  "openapi": "3.1.0",
-  "info": {
-    "title": "Fire Manager API",
-    "version": "0.0.1-SNAPSHOT"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {}
-  }
-}
+{"openapi":"3.1.0","info":{"title":"OpenAPI definition","version":"v0"},"servers":[{"url":"http://localhost:8080","description":"Generated server url"}],"paths":{"/api/health":{"get":{"tags":["health-controller"],"operationId":"check","responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/HealthResponse"}}}}}}},"/api/health/{component}":{"get":{"tags":["health-controller"],"operationId":"checkComponent","parameters":[{"name":"component","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ComponentHealth"}}}}}}}},"components":{"schemas":{"HealthResponse":{"type":"object","properties":{"status":{"type":"string"},"timestamp":{"type":"integer","format":"int64"},"version":{"type":"string"}}},"ComponentHealth":{"type":"object","properties":{"component":{"type":"string"},"status":{"type":"string"}}}}}}
