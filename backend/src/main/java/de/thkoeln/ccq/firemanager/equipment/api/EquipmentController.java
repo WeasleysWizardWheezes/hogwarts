@@ -85,7 +85,7 @@ public class EquipmentController {
     @GetMapping("/{equipmentId}")
     public ResponseEntity<EquipmentResponse> getEquipment(@PathVariable UUID equipmentId) {
         var equipment = equipmentService.getEquipment(EquipmentId.from(equipmentId))
-            .orElseThrow(() -> new EquipmentNotFoundException(EquipmentId.from(equipmentId)));
+                .orElseThrow(() -> new EquipmentNotFoundException(EquipmentId.from(equipmentId)));
         
         return ResponseEntity.ok(mapper.toResponse(equipment));
     }
