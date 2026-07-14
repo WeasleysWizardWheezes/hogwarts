@@ -1,0 +1,203 @@
+openapi: 3.0.3
+info:
+  title: Material and Equipment Inventory API
+  description: API for managing material and equipment inventory for fire department
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+  - url: https://api.firemanager.de/api/v1
+    description: Production server
+paths:
+  /inventory/equipment:
+    get:
+      tags:
+        - equipment
+      summary: Get all equipment
+      description: Returns a list of all equipment items
+      operationId: getAllEquipment
+      parameters:
+        - name: search
+          in: query
+          description: Search term for equipment name or serial number
+          required: false
+          schema:
+            type: string
+        - name: location
+          in: query
+          description: Filter by storage location
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Equipment'
+        '400':
+          description: Invalid request parameters
+    post:
+      tags:
+        - equipment
+      summary: Create new equipment
+      description: Creates a new equipment item
+      operationId: createEquipment
+      requestBody:
+        description: Equipment object to be created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipmentCreate'
+        required: true
+      responses:
+        '201':
+          description: Equipment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '400':
+          description: Invalid equipment data
+  /inventory/equipment/{id}:
+    get:
+      tags:
+        - equipment
+      summary: Get equipment by ID
+      description: Returns a single equipment item by ID
+      operationId: getEquipmentById
+      parameters:
+        - name: id
+          in: path
+          description: ID of equipment to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '404':
+          description: Equipment not found
+    put:
+      tags:
+        - equipment
+      summary: Update equipment
+      description: Updates an existing equipment item
+      operationId: updateEquipment
+      parameters:
+        - name: id
+          in: path
+          description: ID of equipment to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Equipment object with updated data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipmentUpdate'
+        required: true
+      responses:
+        '200':
+          description: Equipment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '400':
+          description: Invalid equipment data
+        '404':
+          description: Equipment not found
+    delete:
+      tags:
+        - equipment
+      summary: Delete equipment
+      description: Deletes an equipment item
+      operationId: deleteEquipment
+      parameters:
+        - name: id
+          in: path
+          description: ID of equipment to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Equipment deleted successfully
+        '404':
+          description: Equipment not found
+components:
+  schemas:
+    Equipment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "Fire Extinguisher"
+        serialNumber:
+          type: string
+          example: "FE-2023-001"
+        type:
+          type: string
+          example: "Fire Extinguisher"
+        location:
+          type: string
+          example: "Station 1"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+    EquipmentCreate:
+      type: object
+      required:
+        - name
+        - serialNumber
+        - type
+        - location
+      properties:
+        name:
+          type: string
+          example: "Fire Extinguisher"
+        serialNumber:
+          type: string
+          example: "FE-2023-001"
+        type:
+          type: string
+          example: "Fire Extinguisher"
+        location:
+          type: string
+          example: "Station 1"
+    EquipmentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Fire Extinguisher"
+        serialNumber:
+          type: string
+          example: "FE-2023-001"
+        type:
+          type: string
+          example: "Fire Extinguisher"
+        location:
+          type: string
+          example: "Station 1"
