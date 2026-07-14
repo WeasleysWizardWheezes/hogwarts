@@ -14,6 +14,22 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
+
+import de.thkoeln.ccq.firemanager.equipment.application.EquipmentApplicationService;
+import de.thkoeln.ccq.firemanager.equipment.application.EquipmentAlreadyExistsException;
+import de.thkoeln.ccq.firemanager.equipment.application.EquipmentNotFoundException;
+import de.thkoeln.ccq.firemanager.equipment.domain.EquipmentId;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/equipment")
