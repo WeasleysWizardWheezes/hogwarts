@@ -8,4 +8,4 @@ paths:
       summary: Dummy endpoint to trigger generation
       responses:
         '200':
-          description: OK
+          description: Dummy OK
