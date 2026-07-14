@@ -4,7 +4,7 @@ import type { components } from "@/shared/api/schema";
 export async function getAllEquipment() {
   const { data, error } = await api.GET("/api/material-geraete");
   if (error) throw error;
-  return data;
+  return data as components["schemas"]["EquipmentResponse"][];
 }
 
 export async function getEquipmentById(id: string) {
@@ -12,7 +12,7 @@ export async function getEquipmentById(id: string) {
     params: { path: { id: id } },
   });
   if (error) throw error;
-  return data;
+  return data as components["schemas"]["EquipmentResponse"];
 }
 
 export async function createEquipment(
@@ -22,7 +22,7 @@ export async function createEquipment(
     body: body,
   });
   if (error) throw error;
-  return data;
+  return data as components["schemas"]["EquipmentResponse"];
 }
 
 export async function deleteEquipment(id: string) {
@@ -43,5 +43,5 @@ export async function searchEquipment(
     params: { query: { name: params.name, serialNumber: params.serialNumber, storageLocation: params.storageLocation } },
   });
   if (error) throw error;
-  return data;
+  return data as components["schemas"]["EquipmentResponse"][];
 }

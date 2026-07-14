@@ -7,10 +7,9 @@ import { Textarea } from "@/shared/components/ui/textarea";
 
 type EquipmentFormProps = {
   onSubmit: (data: any) => void;
-  isSubmitting: boolean;
 };
 
-export function EquipmentForm({ onSubmit, isSubmitting }: EquipmentFormProps) {
+export function EquipmentForm({ onSubmit }: EquipmentFormProps) {
   const form = useForm({
     defaultValues: {
       name: "",

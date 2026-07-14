@@ -19,7 +19,7 @@ export function EquipmentListPage() {
       </div>
 
       <EquipmentTable
-        equipment={equipmentQuery.data ?? []}
+        equipment={equipmentQuery.data || []}
         isLoading={equipmentQuery.isLoading}
         error={equipmentQuery.error}
       />
