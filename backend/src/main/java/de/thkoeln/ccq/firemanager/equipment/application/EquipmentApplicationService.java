@@ -3,10 +3,9 @@ package de.thkoeln.ccq.firemanager.equipment.application;
 import de.thkoeln.ccq.firemanager.equipment.domain.Equipment;
 import de.thkoeln.ccq.firemanager.equipment.domain.EquipmentId;
 import de.thkoeln.ccq.firemanager.equipment.domain.EquipmentRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional as SpringTransactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,17 +33,17 @@ public class EquipmentApplicationService {
         );
     }
 
-    @SpringTransactional(readOnly = true)
+    @Transactional(readOnly = true)
     public Optional<Equipment> getEquipment(EquipmentId id) {
         return equipmentRepository.findById(id);
     }
 
-    @SpringTransactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<Equipment> getAllEquipment() {
         return equipmentRepository.findAll();
     }
 
-    @SpringTransactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<Equipment> searchEquipment(String searchTerm, String location) {
         if (searchTerm != null && !searchTerm.isBlank()) {
             return equipmentRepository.searchByNameOrSerialNumber(searchTerm);
