@@ -29,7 +29,14 @@
 	<properties>
 		<java.version>25</java.version>
         <lombok.version>1.18.40</lombok.version>
+        <hogwarts.api.version>1.0.0-SNAPSHOT</hogwarts.api.version>
 	</properties>
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/WeasleysWizardWheezes/hogwarts</url>
+        </repository>
+    </repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -105,6 +112,12 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>3.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>hogwarts-api</artifactId>
+            <version>${hogwarts.api.version}</version>
         </dependency>
 
     </dependencies>

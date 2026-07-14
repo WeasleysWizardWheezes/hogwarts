@@ -1,0 +1,13 @@
+name: Setup Java
+description: Setup Java with Maven cache and GitHub Packages configuration
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        distribution: 'oracle'
+        cache: 'maven'
+        server-id: github
+        settings-path: ${{ github.workspace }}
