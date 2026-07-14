@@ -16,9 +16,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EquipmentNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEquipmentNotFound(EquipmentNotFoundException ex) {
         var errorResponse = new ErrorResponse(
-            ex.getErrorCode(),
-            ex.getMessage(),
-            List.of()
+                ex.getErrorCode(),
+                ex.getMessage(),
+                List.of()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
@@ -26,9 +26,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EquipmentAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEquipmentAlreadyExists(EquipmentAlreadyExistsException ex) {
         var errorResponse = new ErrorResponse(
-            ex.getErrorCode(),
-            ex.getMessage(),
-            List.of()
+                ex.getErrorCode(),
+                ex.getMessage(),
+                List.of()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
@@ -36,13 +36,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         var details = ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> new ErrorDetail(error.getField(), error.getDefaultMessage()))
-            .toList();
+                .map(error -> new ErrorDetail(error.getField(), error.getDefaultMessage()))
+                .toList();
         
         var errorResponse = new ErrorResponse(
-            "VALIDATION_FAILED",
-            "The request contains invalid fields.",
-            details
+                "VALIDATION_FAILED",
+                "The request contains invalid fields.",
+                details
         );
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -51,9 +51,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         var errorResponse = new ErrorResponse(
-            "INTERNAL_SERVER_ERROR",
-            "An unexpected error occurred.",
-            List.of()
+                "INTERNAL_SERVER_ERROR",
+                "An unexpected error occurred.",
+                List.of()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }

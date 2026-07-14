@@ -18,18 +18,18 @@ public class EquipmentApplicationService {
 
     @Transactional
     public Equipment createEquipment(
-        String name,
-        String serialNumber,
-        String type,
-        String location,
-        String description
+            String name,
+            String serialNumber,
+            String type,
+            String location,
+            String description
     ) {
         if (equipmentRepository.existsBySerialNumber(serialNumber)) {
             throw new EquipmentAlreadyExistsException(serialNumber);
         }
         
         return equipmentRepository.save(
-            Equipment.create(name, serialNumber, type, location, description)
+                Equipment.create(name, serialNumber, type, location, description)
         );
     }
 
@@ -58,24 +58,24 @@ public class EquipmentApplicationService {
 
     @Transactional
     public Equipment updateEquipment(
-        EquipmentId id,
-        String name,
-        String serialNumber,
-        String type,
-        String location,
-        String description
+            EquipmentId id,
+            String name,
+            String serialNumber,
+            String type,
+            String location,
+            String description
     ) {
         var existingEquipment = equipmentRepository.findById(id)
-            .orElseThrow(() -> new EquipmentNotFoundException(id));
+                .orElseThrow(() -> new EquipmentNotFoundException(id));
         
         // Check if serial number is being changed to an existing one
         if (!existingEquipment.serialNumber().equals(serialNumber) && 
-            equipmentRepository.existsBySerialNumber(serialNumber)) {
+                equipmentRepository.existsBySerialNumber(serialNumber)) {
             throw new EquipmentAlreadyExistsException(serialNumber);
         }
         
         var updatedEquipment = existingEquipment.withUpdatedFields(
-            name, serialNumber, type, location, description
+                name, serialNumber, type, location, description
         );
         
         return equipmentRepository.save(updatedEquipment);

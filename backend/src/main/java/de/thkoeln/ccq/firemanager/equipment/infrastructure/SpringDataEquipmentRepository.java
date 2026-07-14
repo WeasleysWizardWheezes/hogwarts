@@ -14,8 +14,8 @@ public interface SpringDataEquipmentRepository extends JpaRepository<EquipmentJp
     List<EquipmentJpaEntity> findByLocation(String location);
 
     @Query("SELECT e FROM EquipmentJpaEntity e WHERE " +
-           "LOWER(e.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(e.serialNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+            "LOWER(e.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(e.serialNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<EquipmentJpaEntity> searchByNameOrSerialNumber(String searchTerm);
 
     boolean existsBySerialNumber(String serialNumber);

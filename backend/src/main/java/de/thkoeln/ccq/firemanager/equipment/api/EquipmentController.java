@@ -9,27 +9,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-
-import de.thkoeln.ccq.firemanager.equipment.application.EquipmentApplicationService;
-import de.thkoeln.ccq.firemanager.equipment.application.EquipmentAlreadyExistsException;
-import de.thkoeln.ccq.firemanager.equipment.application.EquipmentNotFoundException;
-import de.thkoeln.ccq.firemanager.equipment.domain.EquipmentId;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/equipment")
@@ -41,17 +34,17 @@ public class EquipmentController {
 
     @GetMapping
     public ResponseEntity<EquipmentPageResponse> getAllEquipment(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size,
-        @RequestParam(required = false) String q,
-        @RequestParam(required = false) String location,
-        @RequestParam(required = false) String sort
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String sort
     ) {
         Pageable pageable = PageRequest.of(page, size);
         
         List<EquipmentResponse> equipmentList = equipmentService.searchEquipment(q, location).stream()
-            .map(mapper::toResponse)
-            .toList();
+                .map(mapper::toResponse)
+                .toList();
         
         // Simple pagination for now - in a real scenario, we'd use proper pagination
         int start = (int) pageable.getOffset();
@@ -59,11 +52,11 @@ public class EquipmentController {
         List<EquipmentResponse> pageContent = equipmentList.subList(start, end);
         
         var response = new EquipmentPageResponse(
-            pageContent,
-            page,
-            size,
-            equipmentList.size(),
-            (int) Math.ceil((double) equipmentList.size() / size)
+                pageContent,
+                page,
+                size,
+                equipmentList.size(),
+                (int) Math.ceil((double) equipmentList.size() / size)
         );
         
         return ResponseEntity.ok(response);
@@ -71,20 +64,20 @@ public class EquipmentController {
 
     @PostMapping
     public ResponseEntity<EquipmentResponse> createEquipment(
-        @Valid @RequestBody CreateEquipmentRequest request
+            @Valid @RequestBody CreateEquipmentRequest request
     ) {
         var equipment = equipmentService.createEquipment(
-            request.name(),
-            request.serialNumber(),
-            request.type(),
-            request.location(),
-            request.description()
+                request.name(),
+                request.serialNumber(),
+                request.type(),
+                request.location(),
+                request.description()
         );
         
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-            .path("/{id}")
-            .buildAndExpand(equipment.id().value())
-            .toUri();
+                .path("/{id}")
+                .buildAndExpand(equipment.id().value())
+                .toUri();
         
         return ResponseEntity.created(location).body(mapper.toResponse(equipment));
     }
@@ -99,16 +92,16 @@ public class EquipmentController {
 
     @PutMapping("/{equipmentId}")
     public ResponseEntity<EquipmentResponse> updateEquipment(
-        @PathVariable UUID equipmentId,
-        @Valid @RequestBody UpdateEquipmentRequest request
+            @PathVariable UUID equipmentId,
+            @Valid @RequestBody UpdateEquipmentRequest request
     ) {
         var equipment = equipmentService.updateEquipment(
-            EquipmentId.from(equipmentId),
-            request.name(),
-            request.serialNumber(),
-            request.type(),
-            request.location(),
-            request.description()
+                EquipmentId.from(equipmentId),
+                request.name(),
+                request.serialNumber(),
+                request.type(),
+                request.location(),
+                request.description()
         );
         
         return ResponseEntity.ok(mapper.toResponse(equipment));
