@@ -2,7 +2,7 @@ package com.hogwarts.reminder;
 
 import com.hogwarts.reminder.dto.ReminderDto;
 import com.hogwarts.reminder.dto.ReminderUpdateDto;
-import jakarta.persistence.EntityNotFoundException;
+import com.hogwarts.reminder.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
