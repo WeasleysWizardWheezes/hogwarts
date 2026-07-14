@@ -1,5 +1,4 @@
 import { useForm } from "@tanstack/react-form";
-import { valibotValidator } from "@tanstack/valibot-form-adapter";
 import { createEquipmentSchema } from "../schemas/equipment-schema";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -22,7 +21,6 @@ export function EquipmentForm({ onSubmit, isSubmitting }: EquipmentFormProps) {
       acquisitionDate: "",
       manufacturer: "",
     },
-    validatorAdapter: valibotValidator,
     validators: {
       onBlur: createEquipmentSchema,
     },

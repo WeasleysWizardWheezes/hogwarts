@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Equipment } from "../types";
+import type { Equipment } from "../types";
 import { useDeleteEquipment } from "../hooks/use-delete-equipment";
 import { useNavigate } from "react-router-dom";
 

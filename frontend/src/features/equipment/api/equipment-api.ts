@@ -1,5 +1,5 @@
 import { api } from "@/shared/api";
-import type { components, operations } from "@/shared/api/schema";
+import type { components } from "@/shared/api/schema";
 
 export async function getAllEquipment() {
   const { data, error } = await api.GET("/api/material-geraete");
@@ -9,7 +9,7 @@ export async function getAllEquipment() {
 
 export async function getEquipmentById(id: string) {
   const { data, error } = await api.GET("/api/material-geraete/{id}", {
-    params: { path: { id } },
+    params: { path: { id: id } },
   });
   if (error) throw error;
   return data;
@@ -19,7 +19,7 @@ export async function createEquipment(
   body: components["schemas"]["CreateEquipmentRequest"]
 ) {
   const { data, error } = await api.POST("/api/material-geraete", {
-    body,
+    body: body,
   });
   if (error) throw error;
   return data;
@@ -27,7 +27,7 @@ export async function createEquipment(
 
 export async function deleteEquipment(id: string) {
   const { error } = await api.DELETE("/api/material-geraete/{id}", {
-    params: { path: { id } },
+    params: { path: { id: id } },
   });
   if (error) throw error;
 }
@@ -40,7 +40,7 @@ export async function searchEquipment(
   }
 ) {
   const { data, error } = await api.GET("/api/material-geraete/search", {
-    params: { query: params },
+    params: { query: { name: params.name, serialNumber: params.serialNumber, storageLocation: params.storageLocation } },
   });
   if (error) throw error;
   return data;
