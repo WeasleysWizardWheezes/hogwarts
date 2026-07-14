@@ -64,11 +64,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set static version (0)
+      - name: Set static version (0.0.0)
         id: issue
         run: |
-          # Hier setzen wir fest die Version "0" für deinen ersten Testlauf
-          echo "version=0" >> "$GITHUB_OUTPUT"
+          echo "version=0.0.0" >> "$GITHUB_OUTPUT"
 
       - uses: ./.github/actions/setup-openapi
       - uses: ./.github/actions/setup-java
