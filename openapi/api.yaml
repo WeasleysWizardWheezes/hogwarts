@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Hogwarts API Dummy
-  version: issue-00
+  version: 0.1.0-SNAPSHOT
 paths:
   /dummy:
     get:

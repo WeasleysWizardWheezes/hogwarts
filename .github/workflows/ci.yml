@@ -64,10 +64,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set static version (0.0.0-SNAPSHOT)
+      - name: Extract version from OpenAPI Spec
         id: issue
         run: |
-          echo "version=0.0.0-SNAPSHOT" >> "$GITHUB_OUTPUT"
+          # yq liest den Pfad .info.version aus deiner api.yaml
+          VERSION=$(yq eval '.info.version' openapi/api.yaml)
+          echo "Version aus OpenAPI ermittelt: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - uses: ./.github/actions/setup-openapi
       - uses: ./.github/actions/setup-java
@@ -100,10 +103,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set dynamic unique version
+      - name: Extract and format version for Frontend
         id: issue
         run: |
-          echo "version=0.0.0-build${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          RAW_VERSION=$(yq eval '.info.version' openapi/api.yaml)
+          CLEAN_VERSION=$(echo "$RAW_VERSION" | sed 's/-SNAPSHOT//g')
+          FINAL_VERSION="${CLEAN_VERSION}-build${{ github.run_number }}"
+          
+          echo "Formatierte Frontend-Version: $FINAL_VERSION"
+          echo "version=$FINAL_VERSION" >> "$GITHUB_OUTPUT"
 
       - uses: ./.github/actions/setup-node
 
@@ -116,16 +124,16 @@ jobs:
         working-directory: generated/frontend-api
         run: |
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-
+          
           cat <<EOF > package.json
           {
-            "name": "@${OWNER_LOWER}/hogwarts-api",
+            "name": "@${OWNER_LOWER}/hogwarts-api-types",
             "version": "${{ steps.issue.outputs.version }}",
             "main": "schema.d.ts",
             "types": "schema.d.ts"
           }
           EOF
-
+          
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
