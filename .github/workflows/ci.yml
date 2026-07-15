@@ -81,7 +81,7 @@ jobs:
             -i openapi/api.yaml \
             -g spring \
             -o generated/backend-api \
-            --additional-properties=interfaceOnly=true,useSpringBoot3=true,useTags=true \
+            --additional-properties=interfaceOnly=true,useSpringBoot3=true,useTags=true,artifactId=hogwarts-api-client \
             --artifact-version=${{ steps.issue.outputs.version }}
 
       - name: Publish Backend API Lib to GitHub Packages
@@ -127,7 +127,7 @@ jobs:
           
           cat <<EOF > package.json
           {
-            "name": "@${OWNER_LOWER}/hogwarts-api-types",
+            "name": "@${OWNER_LOWER}/hogwarts-api-client",
             "version": "${{ steps.issue.outputs.version }}",
             "main": "schema.d.ts",
             "types": "schema.d.ts"
