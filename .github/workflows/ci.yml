@@ -457,6 +457,7 @@ jobs:
     needs: [ detect-changes, openapi-publish-backend ]
     if: |
       always() &&
+      (github.ref_name == 'main' || github.event_name == 'pull_request') &&
       needs.detect-changes.outputs.backend == 'true' &&
       (needs.openapi-publish-backend.result == 'success' || needs.openapi-publish-backend.result == 'skipped')
     steps:
@@ -486,6 +487,10 @@ jobs:
   security-scan-frontend:
     name: Security Scan – Frontend (CodeQL)
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      (github.ref_name == 'main' || github.event_name == 'pull_request') &&
+      needs.detect-changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@v7
 
