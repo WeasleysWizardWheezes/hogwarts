@@ -1,11 +1,11 @@
 openapi: 3.0.3
 info:
   title: Hogwarts API Dummy
-  version: issue-42
+  version: issue-00
 paths:
   /dummy:
     get:
-      summary: Dummy endpoint to trigger generation
+      summary: Dummy endpoint to trigger generation. Remove in the future.
       responses:
         '200':
           description: Dummy OK
