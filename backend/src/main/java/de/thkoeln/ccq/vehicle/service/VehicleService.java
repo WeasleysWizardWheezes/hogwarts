@@ -23,7 +23,8 @@ public class VehicleService {
     public Vehicle createVehicle(VehicleRequest request) {
         VehicleGroup gruppe = vehicleGroupService.getVehicleGroupById(request.getGruppeId());
 
-        if (request.getKennzeichen() != null && vehicleRepository.existsByKennzeichenAndArchiviertFalse(request.getKennzeichen())) {
+        if (request.getKennzeichen() != null && vehicleRepository
+                .existsByKennzeichenAndArchiviertFalse(request.getKennzeichen())) {
             throw new VehicleLicensePlateAlreadyExistsException(request.getKennzeichen());
         }
 
@@ -63,8 +64,9 @@ public class VehicleService {
     public Vehicle updateVehicle(UUID id, VehicleRequest request) {
         Vehicle existingVehicle = getVehicleById(id);
 
-        if (request.getKennzeichen() != null && !request.getKennzeichen().equals(existingVehicle.getKennzeichen()) && 
-                vehicleRepository.existsByKennzeichenAndArchiviertFalse(request.getKennzeichen())) {
+        if (request.getKennzeichen() != null && !request.getKennzeichen().equals(
+                existingVehicle.getKennzeichen()) && vehicleRepository
+                .existsByKennzeichenAndArchiviertFalse(request.getKennzeichen())) {
             throw new VehicleLicensePlateAlreadyExistsException(request.getKennzeichen());
         }
 
