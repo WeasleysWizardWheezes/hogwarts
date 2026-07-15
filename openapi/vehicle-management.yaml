@@ -1,0 +1,505 @@
+openapi: 3.0.1
+info:
+  title: Fahrzeugverwaltung API
+  description: API für die Verwaltung von Fahrzeuggruppen und Fahrzeugen
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Lokale Entwicklungsumgebung
+  - url: https://api.hogwarts.example.com
+    description: Produktionsumgebung
+paths:
+  /api/vehicle-groups:
+    post:
+      tags:
+        - vehicle-groups
+      summary: Erstellt eine neue Fahrzeuggruppe
+      operationId: createVehicleGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleGroupRequest'
+      responses:
+        '201':
+          description: Fahrzeuggruppe erfolgreich erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleGroupResponse'
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+    get:
+      tags:
+        - vehicle-groups
+      summary: Listet alle Fahrzeuggruppen auf
+      operationId: getAllVehicleGroups
+      parameters:
+        - name: name
+          in: query
+          description: Filter nach Name der Fahrzeuggruppe
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Seitenzahl für die Paginierung
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: Anzahl der Elemente pro Seite
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: sort
+          in: query
+          description: Sortierung der Ergebnisse
+          required: false
+          schema:
+            type: string
+            default: name,asc
+      responses:
+        '200':
+          description: Liste der Fahrzeuggruppen
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleGroupResponse'
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+  /api/vehicle-groups/{id}:
+    get:
+      tags:
+        - vehicle-groups
+      summary: Ruft eine bestimmte Fahrzeuggruppe ab
+      operationId: getVehicleGroupById
+      parameters:
+        - name: id
+          in: path
+          description: ID der Fahrzeuggruppe
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Fahrzeuggruppe erfolgreich abgerufen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleGroupResponse'
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+    patch:
+      tags:
+        - vehicle-groups
+      summary: Aktualisiert eine Fahrzeuggruppe
+      operationId: updateVehicleGroup
+      parameters:
+        - name: id
+          in: path
+          description: ID der Fahrzeuggruppe
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleGroupRequest'
+      responses:
+        '200':
+          description: Fahrzeuggruppe erfolgreich aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleGroupResponse'
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+    delete:
+      tags:
+        - vehicle-groups
+      summary: Löscht eine Fahrzeuggruppe (Soft Delete)
+      operationId: deleteVehicleGroup
+      parameters:
+        - name: id
+          in: path
+          description: ID der Fahrzeuggruppe
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Fahrzeuggruppe erfolgreich gelöscht
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+  /api/vehicles:
+    post:
+      tags:
+        - vehicles
+      summary: Erstellt ein neues Fahrzeug
+      operationId: createVehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+      responses:
+        '201':
+          description: Fahrzeug erfolgreich erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+    get:
+      tags:
+        - vehicles
+      summary: Listet alle Fahrzeuge auf
+      operationId: getAllVehicles
+      parameters:
+        - name: name
+          in: query
+          description: Filter nach Name des Fahrzeugs
+          required: false
+          schema:
+            type: string
+        - name: vehicleGroupId
+          in: query
+          description: Filter nach Fahrzeuggruppen-ID
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: status
+          in: query
+          description: Filter nach Status des Fahrzeugs
+          required: false
+          schema:
+            type: string
+            enum:
+              - VERFUEGBAR
+              - IM_EINSATZ
+              - WARTUNG
+              - DEFEKT
+        - name: page
+          in: query
+          description: Seitenzahl für die Paginierung
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          description: Anzahl der Elemente pro Seite
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: sort
+          in: query
+          description: Sortierung der Ergebnisse
+          required: false
+          schema:
+            type: string
+            default: name,asc
+      responses:
+        '200':
+          description: Liste der Fahrzeuge
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+  /api/vehicles/{id}:
+    get:
+      tags:
+        - vehicles
+      summary: Ruft ein bestimmtes Fahrzeug ab
+      operationId: getVehicleById
+      parameters:
+        - name: id
+          in: path
+          description: ID des Fahrzeugs
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Fahrzeug erfolgreich abgerufen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+    patch:
+      tags:
+        - vehicles
+      summary: Aktualisiert ein Fahrzeug
+      operationId: updateVehicle
+      parameters:
+        - name: id
+          in: path
+          description: ID des Fahrzeugs
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+      responses:
+        '200':
+          description: Fahrzeug erfolgreich aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+    delete:
+      tags:
+        - vehicles
+      summary: Löscht ein Fahrzeug (Soft Delete)
+      operationId: deleteVehicle
+      parameters:
+        - name: id
+          in: path
+          description: ID des Fahrzeugs
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Fahrzeug erfolgreich gelöscht
+        '400':
+          description: Ungültige Anfrage
+        '401':
+          description: Nicht autorisiert
+        '403':
+          description: Zugriff verboten
+        '404':
+          description: Nicht gefunden
+components:
+  schemas:
+    VehicleGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name der Fahrzeuggruppe
+          example: Löschfahrzeuge
+        description:
+          type: string
+          description: Beschreibung der Fahrzeuggruppe
+          example: Fahrzeuge für die Brandbekämpfung
+    VehicleGroupResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Eindeutige ID der Fahrzeuggruppe
+          example: 1
+        name:
+          type: string
+          description: Name der Fahrzeuggruppe
+          example: Löschfahrzeuge
+        description:
+          type: string
+          description: Beschreibung der Fahrzeuggruppe
+          example: Fahrzeuge für die Brandbekämpfung
+        createdAt:
+          type: string
+          format: date-time
+          description: Zeitpunkt der Erstellung
+          example: 2023-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Zeitpunkt der letzten Aktualisierung
+          example: 2023-01-01T00:00:00Z
+        deleted:
+          type: boolean
+          description: Gibt an, ob die Fahrzeuggruppe archiviert wurde
+          example: false
+    VehicleRequest:
+      type: object
+      required:
+        - name
+        - vehicleGroupId
+        - status
+      properties:
+        name:
+          type: string
+          description: Name des Fahrzeugs
+          example: 01-HLF20-01
+        radioCallName:
+          type: string
+          description: Funkrufname des Fahrzeugs
+          example: Florian Monheim 01-HLF20-01
+        licensePlate:
+          type: string
+          description: Kennzeichen des Fahrzeugs
+          example: MH-01
+        year:
+          type: integer
+          format: int32
+          description: Baujahr des Fahrzeugs
+          example: 2020
+        description:
+          type: string
+          description: Beschreibung des Fahrzeugs
+          example: Löschfahrzeug mit 2000 Liter Wasser
+        vehicleGroupId:
+          type: integer
+          format: int64
+          description: ID der Fahrzeuggruppe
+          example: 1
+        status:
+          type: string
+          description: Status des Fahrzeugs
+          enum:
+            - VERFUEGBAR
+            - IM_EINSATZ
+            - WARTUNG
+            - DEFEKT
+          example: VERFUEGBAR
+    VehicleResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Eindeutige ID des Fahrzeugs
+          example: 1
+        name:
+          type: string
+          description: Name des Fahrzeugs
+          example: 01-HLF20-01
+        radioCallName:
+          type: string
+          description: Funkrufname des Fahrzeugs
+          example: Florian Monheim 01-HLF20-01
+        licensePlate:
+          type: string
+          description: Kennzeichen des Fahrzeugs
+          example: MH-01
+        year:
+          type: integer
+          format: int32
+          description: Baujahr des Fahrzeugs
+          example: 2020
+        description:
+          type: string
+          description: Beschreibung des Fahrzeugs
+          example: Löschfahrzeug mit 2000 Liter Wasser
+        vehicleGroupId:
+          type: integer
+          format: int64
+          description: ID der Fahrzeuggruppe
+          example: 1
+        status:
+          type: string
+          description: Status des Fahrzeugs
+          enum:
+            - VERFUEGBAR
+            - IM_EINSATZ
+            - WARTUNG
+            - DEFEKT
+          example: VERFUEGBAR
+        createdAt:
+          type: string
+          format: date-time
+          description: Zeitpunkt der Erstellung
+          example: 2023-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Zeitpunkt der letzten Aktualisierung
+          example: 2023-01-01T00:00:00Z
+        deleted:
+          type: boolean
+          description: Gibt an, ob das Fahrzeug archiviert wurde
+          example: false
