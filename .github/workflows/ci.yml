@@ -267,6 +267,8 @@ jobs:
       - name: Install Dependencies
         working-directory: frontend
         run: npm ci --legacy-peer-deps
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Lint (oxlint)
         working-directory: frontend
@@ -295,6 +297,8 @@ jobs:
       - name: Install Dependencies
         working-directory: frontend
         run: npm ci --legacy-peer-deps
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Unit Tests with Coverage
         working-directory: frontend
@@ -329,6 +333,8 @@ jobs:
       - name: Install Dependencies
         working-directory: frontend
         run: npm ci --legacy-peer-deps
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Playwright Browsers
         uses: actions/cache@v4
