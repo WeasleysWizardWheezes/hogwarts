@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: FireManager API
+  description: Comprehensive API for managing fire department resources and operations
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.firemanager.example.com
+    description: Production server
+paths:
+  /api/v1/equipment/devices:
+    $ref: './equipment-api.yaml#/paths/~1api~1v1~1equipment~1devices'
+  /api/v1/equipment/devices/{id}:
+    $ref: './equipment-api.yaml#/paths/~1api~1v1~1equipment~1devices~1{id}'
+  /api/v1/equipment/devices/serial-number/{serialNumber}:
+    $ref: './equipment-api.yaml#/paths/~1api~1v1~1equipment~1devices~1serial-number~1{serialNumber}'
+components:
+  schemas:
+    DeviceDto:
+      $ref: './equipment-api.yaml#/components/schemas/DeviceDto'
