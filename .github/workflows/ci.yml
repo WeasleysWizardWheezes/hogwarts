@@ -201,7 +201,11 @@ jobs:
 
       - name: Install Dependencies
         working-directory: frontend
-        run: npm ci --legacy-peer-deps
+        run: |
+          WANTED_VERSION=$(node -p "require('./package.json').dependencies['@weasleyswizardwheezes/hogwarts-api-client']")
+          echo "Geforderte API-Version laut package.json: $WANTED_VERSION"
+          npm install "@weasleyswizardwheezes/hogwarts-api-client@$WANTED_VERSION" --package-lock-only --legacy-peer-deps
+          npm ci --legacy-peer-deps
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -227,7 +231,11 @@ jobs:
 
       - name: Install Dependencies
         working-directory: frontend
-        run: npm ci --legacy-peer-deps
+        run: |
+          WANTED_VERSION=$(node -p "require('./package.json').dependencies['@weasleyswizardwheezes/hogwarts-api-client']")
+          echo "Geforderte API-Version laut package.json: $WANTED_VERSION"
+          npm install "@weasleyswizardwheezes/hogwarts-api-client@$WANTED_VERSION" --package-lock-only --legacy-peer-deps
+          npm ci --legacy-peer-deps
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -258,7 +266,11 @@ jobs:
 
       - name: Install Dependencies
         working-directory: frontend
-        run: npm ci --legacy-peer-deps
+        run: |
+          WANTED_VERSION=$(node -p "require('./package.json').dependencies['@weasleyswizardwheezes/hogwarts-api-client']")
+          echo "Geforderte API-Version laut package.json: $WANTED_VERSION"
+          npm install "@weasleyswizardwheezes/hogwarts-api-client@$WANTED_VERSION" --package-lock-only --legacy-peer-deps
+          npm ci --legacy-peer-deps
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
