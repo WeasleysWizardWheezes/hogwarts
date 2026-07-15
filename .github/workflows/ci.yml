@@ -130,7 +130,10 @@ jobs:
             "name": "@${OWNER_LOWER}/hogwarts-api-client",
             "version": "${{ steps.issue.outputs.version }}",
             "main": "schema.d.ts",
-            "types": "schema.d.ts"
+            "types": "schema.d.ts",
+            "publishConfig": {
+              "registry": "https://npm.pkg.github.com"
+            }
           }
           EOF
           
