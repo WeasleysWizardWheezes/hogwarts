@@ -261,6 +261,13 @@
 	<profiles>
 		<profile>
 			<id>openapi-generate</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-testcontainers</artifactId>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
 			<build>
 				<plugins>
 					<plugin>
