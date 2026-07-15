@@ -137,6 +137,11 @@ jobs:
           }
           EOF
           
+          cat <<EOF > .npmrc
+          @${OWNER_LOWER}:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}
+          EOF
+          
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
