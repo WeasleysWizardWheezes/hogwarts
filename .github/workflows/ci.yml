@@ -63,7 +63,8 @@ jobs:
     name: Sync OpenAPI Schema
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'pull_request'
+    # TODO: Temporarily disabled – re-enable when needed
+    if: false # github.event_name == 'pull_request'
     concurrency:
       group: openapi-sync-${{ github.head_ref }}
       cancel-in-progress: true
