@@ -7,12 +7,18 @@ runs:
     - uses: actions/setup-node@v4
       with:
         node-version: 20
-        registry-url: 'https://npm.pkg.github.com'
 
-    - name: Configure .npmrc with lowercase scope
+    - name: Configure .npmrc for Frontend project
       shell: bash
       run: |
         OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-      
-        echo "@${OWNER_LOWER}:registry=https://npm.pkg.github.com" >> $NPM_CONFIG_USERCONFIG
-        echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> $NPM_CONFIG_USERCONFIG
+        
+        cat <<EOF > .npmrc
+        @${OWNER_LOWER}:registry=https://npm.pkg.github.com
+        //npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}
+        EOF
+        
+        if [ -d "frontend" ]; then
+          cp .npmrc frontend/.npmrc
+          echo "Erfolgreich frontend/.npmrc erstellt"
+        fi

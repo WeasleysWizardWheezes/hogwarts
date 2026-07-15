@@ -178,8 +178,8 @@ jobs:
   frontend:
     name: Frontend (Lint + Build)
     runs-on: ubuntu-latest
-    needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
+    needs: [ detect-changes, openapi-publish-frontend ]
+    if: needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.openapi == 'true'
     steps:
       - uses: actions/checkout@v7
 
@@ -205,6 +205,7 @@ jobs:
   frontend-test:
     name: Frontend Unit Tests
     runs-on: ubuntu-latest
+    needs: [ detect-changes, openapi-publish-frontend ]
     steps:
       - uses: actions/checkout@v7
 
