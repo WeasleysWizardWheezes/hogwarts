@@ -138,38 +138,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ═══════════════════════════════════════════════
-      # FRONTEND GENERATION & PUBLISH (TypeScript Types)
-      # ═══════════════════════════════════════════════
-      - name: Generate Frontend TS Types (openapi-typescript)
-        run: |
-          # Wir legen einen sauberen, minimalen NPM-Paketordner an
-          mkdir -p generated/frontend-api
-          
-          # openapi-typescript löst dein Multi-File-YAML vollautomatisch auf 
-          # und schreibt das fertige Typsystem in eine einzige Datei.
-          npx openapi-typescript openapi/api.yaml -o generated/frontend-api/schema.d.ts
-
-      - name: Publish Frontend API Client to GitHub Packages
-        working-directory: generated/frontend-api
-        run: |
-          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          
-          # Wir generieren on-the-fly eine package.json für das Typen-Paket
-          cat <<EOF > package.json
-          {
-            "name": "@${OWNER_LOWER}/hogwarts-api",
-            "version": "${{ steps.issue.outputs.version }}",
-            "main": "schema.d.ts",
-            "types": "schema.d.ts"
-          }
-          EOF
-          
-          # npm publish nutzt die automatische Authentifizierung aus deiner 'setup-node'-Action
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   # ═══════════════════════════════════════════════
   # Stage 1: Backend – Unit Tests + Coverage
   # ═══════════════════════════════════════════════
