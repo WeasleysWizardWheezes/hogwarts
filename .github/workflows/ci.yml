@@ -87,6 +87,7 @@ jobs:
           mvn deploy \
             -s ${{ github.workspace }}/settings.xml \
             -DaltDeploymentRepository=github::https://maven.pkg.github.com/${{ github.repository }} \
+            -Dmaven.deploy.skip=false \
             -DskipTests \
             --batch-mode --no-transfer-progress
         env:
@@ -99,10 +100,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set static version (0.0.0-SNAPSHOT)
+      - name: Set dynamic unique version
         id: issue
         run: |
-          echo "version=0.0.0-SNAPSHOT" >> "$GITHUB_OUTPUT"
+          echo "version=0.0.0-build${{ github.run_number }}" >> "$GITHUB_OUTPUT"
 
       - uses: ./.github/actions/setup-node
 
