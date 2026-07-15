@@ -1,13 +1,7 @@
 name: Git Conventions
 
 on:
-  push:
-    branches: ['**']
-  pull_request:
-    branches: [main]
-  schedule:
-    # Tägliche Prüfung der Git-Konventionen auf main
-    - cron: '0 6 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
