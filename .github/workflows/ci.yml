@@ -13,10 +13,6 @@ permissions:
   packages: write
   security-events: write
 
-env:
-  JAVA_VERSION: '25'
-  JAVA_DISTRIBUTION: 'oracle'
-
 jobs:
   # ═══════════════════════════════════════════════
   # Stage 0: Detect Changes (paths-filter)
@@ -191,147 +187,130 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # ═══════════════════════════════════════════════
-  # Stage 2a: Frontend – Lint + Build
-  # ═══════════════════════════════════════════════
+   # ═══════════════════════════════════════════════
+   # Stage 2a: Frontend – Lint + Build
+   # ═══════════════════════════════════════════════
   frontend:
-    name: Frontend (Lint + Build)
-    runs-on: ubuntu-latest
-    needs: [ detect-changes, openapi-publish-frontend ]
-    if: |
-      always() &&
-      needs.detect-changes.outputs.frontend == 'true' &&
-      (needs.openapi-publish-frontend.result == 'success' || needs.openapi-publish-frontend.result == 'skipped')
-    steps:
-      - uses: actions/checkout@v7
+     name: Frontend (Lint + Build)
+     runs-on: ubuntu-latest
+     needs: [ detect-changes, openapi-publish-frontend ]
+     if: |
+       always() &&
+       needs.detect-changes.outputs.frontend == 'true' &&
+       (needs.openapi-publish-frontend.result == 'success' || needs.openapi-publish-frontend.result == 'skipped')
+     steps:
+       - uses: actions/checkout@v7
 
-      - uses: ./.github/actions/setup-node
+       - uses: ./.github/actions/setup-frontend-deps
+         env:
+           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Dependencies
-        working-directory: frontend
-        run: |
-          WANTED_VERSION=$(node -p "require('./package.json').dependencies['@weasleyswizardwheezes/hogwarts-api-client']")
-          echo "Geforderte API-Version laut package.json: $WANTED_VERSION"
-          npm install "@weasleyswizardwheezes/hogwarts-api-client@$WANTED_VERSION" --package-lock-only --legacy-peer-deps
-          npm ci --legacy-peer-deps
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       - name: Lint (oxlint)
+         working-directory: frontend
+         run: npm run lint
 
-      - name: Lint (oxlint)
-        working-directory: frontend
-        run: npm run lint
+       - name: Build (TypeScript + Vite)
+         working-directory: frontend
+         run: npm run build
 
-      - name: Build (TypeScript + Vite)
-        working-directory: frontend
-        run: npm run build
-
-  # ═══════════════════════════════════════════════
-  # Stage 2b: Frontend – Unit Tests (Vitest)
-  # ═══════════════════════════════════════════════
+   # ═══════════════════════════════════════════════
+   # Stage 2b: Frontend – Unit Tests (Vitest)
+   # ═══════════════════════════════════════════════
   frontend-test:
-    name: Frontend Unit Tests
-    runs-on: ubuntu-latest
-    needs: [ detect-changes, openapi-publish-frontend ]
-    if: |
-      always() &&
-      needs.detect-changes.outputs.frontend == 'true' &&
-      (needs.openapi-publish-frontend.result == 'success' || needs.openapi-publish-frontend.result == 'skipped')
-    steps:
-      - uses: actions/checkout@v7
+     name: Frontend Unit Tests
+     runs-on: ubuntu-latest
+     needs: [ detect-changes, openapi-publish-frontend ]
+     if: |
+       always() &&
+       needs.detect-changes.outputs.frontend == 'true' &&
+       (needs.openapi-publish-frontend.result == 'success' || needs.openapi-publish-frontend.result == 'skipped')
+     steps:
+       - uses: actions/checkout@v7
 
-      - uses: ./.github/actions/setup-node
+       - uses: ./.github/actions/setup-frontend-deps
+         env:
+           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Dependencies
-        working-directory: frontend
-        run: |
-          WANTED_VERSION=$(node -p "require('./package.json').dependencies['@weasleyswizardwheezes/hogwarts-api-client']")
-          echo "Geforderte API-Version laut package.json: $WANTED_VERSION"
-          npm install "@weasleyswizardwheezes/hogwarts-api-client@$WANTED_VERSION" --package-lock-only --legacy-peer-deps
-          npm ci --legacy-peer-deps
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       - name: Run Unit Tests with Coverage
+         working-directory: frontend
+         run: npm run test:coverage
 
-      - name: Run Unit Tests with Coverage
-        working-directory: frontend
-        run: npm run test:coverage
+       - name: Upload Coverage Report
+         if: always()
+         uses: actions/upload-artifact@v7
+         with:
+           name: frontend-coverage
+           path: frontend/coverage/
+           if-no-files-found: ignore
+           retention-days: 7
 
-      - name: Upload Coverage Report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: frontend-coverage
-          path: frontend/coverage/
-          if-no-files-found: ignore
-          retention-days: 7
-
-  # ═══════════════════════════════════════════════
-  # Stage 2c: Frontend – E2E Tests (Playwright)
-  # ═══════════════════════════════════════════════
+   # ═══════════════════════════════════════════════
+   # Stage 2c: Frontend – E2E Tests (Playwright)
+   # ═══════════════════════════════════════════════
   frontend-e2e:
-    name: Frontend E2E Tests
-    runs-on: ubuntu-latest
-    needs: frontend
-    steps:
-      - uses: actions/checkout@v7
+     name: Frontend E2E Tests
+     runs-on: ubuntu-latest
+     needs: [ detect-changes, frontend ]
+     if: |
+       always() &&
+       needs.detect-changes.outputs.frontend == 'true' &&
+       (needs.frontend.result == 'success' || needs.frontend.result == 'skipped')
+     steps:
+       - uses: actions/checkout@v7
 
-      - uses: ./.github/actions/setup-node
+       - uses: ./.github/actions/setup-frontend-deps
+         env:
+           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Dependencies
-        working-directory: frontend
-        run: |
-          WANTED_VERSION=$(node -p "require('./package.json').dependencies['@weasleyswizardwheezes/hogwarts-api-client']")
-          echo "Geforderte API-Version laut package.json: $WANTED_VERSION"
-          npm install "@weasleyswizardwheezes/hogwarts-api-client@$WANTED_VERSION" --package-lock-only --legacy-peer-deps
-          npm ci --legacy-peer-deps
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       - name: Cache Playwright Browsers
+         uses: actions/cache@v4
+         with:
+           path: ~/.cache/ms-playwright
+           key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
 
-      - name: Cache Playwright Browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+       - name: Install Playwright Browsers
+         working-directory: frontend
+         run: npx playwright install --with-deps chromium
 
-      - name: Install Playwright Browsers
-        working-directory: frontend
-        run: npx playwright install --with-deps chromium
+       - name: Run E2E Tests
+         working-directory: frontend
+         run: npm run test:e2e
 
-      - name: Run E2E Tests
-        working-directory: frontend
-        run: npm run test:e2e
+       - name: Upload Playwright Report
+         if: always()
+         uses: actions/upload-artifact@v7
+         with:
+           name: frontend-e2e-report
+           path: frontend/playwright-report/
+           if-no-files-found: ignore
+           retention-days: 7
 
-      - name: Upload Playwright Report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: frontend-e2e-report
-          path: frontend/playwright-report/
-          if-no-files-found: ignore
-          retention-days: 7
+       - name: Upload Test Traces
+         if: failure()
+         uses: actions/upload-artifact@v7
+         with:
+           name: frontend-e2e-traces
+           path: frontend/test-results/
+           if-no-files-found: ignore
+           retention-days: 7
 
-      - name: Upload Test Traces
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: frontend-e2e-traces
-          path: frontend/test-results/
-          if-no-files-found: ignore
-          retention-days: 7
-
-  # ═══════════════════════════════════════════════
-  # Stage 3: Quality (Checkstyle + JaCoCo + PITest)
-  # ═══════════════════════════════════════════════
+   # ═══════════════════════════════════════════════
+   # Stage 3: Quality (Checkstyle + JaCoCo + PITest)
+   # ═══════════════════════════════════════════════
   quality:
-    name: Code Quality (Checkstyle + JaCoCo)
-    runs-on: ubuntu-latest
-    needs: test
-    # TODO: Remove continue-on-error once real tests achieve 80% coverage
-    continue-on-error: true
-    steps:
+     name: Code Quality (Checkstyle + JaCoCo)
+     runs-on: ubuntu-latest
+     needs: [ detect-changes, test ]
+     if: |
+       always() &&
+       needs.detect-changes.outputs.backend == 'true' &&
+       (needs.test.result == 'success' || needs.test.result == 'skipped')
+     # TODO: Remove continue-on-error once real tests achieve 80% coverage
+     continue-on-error: true
+     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Java
-        uses: ./.github/actions/setup-java
+      - uses: ./.github/actions/setup-java
 
       - name: Verify Quality Gates (Checkstyle + JaCoCo)
         working-directory: backend
@@ -370,16 +349,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
+      - uses: ./.github/actions/setup-java
 
       - name: Run PITest
         working-directory: backend
-        run: chmod +x mvnw && ./mvnw pitest:mutationCoverage --batch-mode --no-transfer-progress
+        run: |
+          chmod +x mvnw
+          ./mvnw pitest:mutationCoverage \
+            -s ${{ github.workspace }}/settings.xml \
+            --batch-mode --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Mutation Score Threshold
         working-directory: backend
@@ -416,14 +396,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # ═══════════════════════════════════════════════
-  # Stage 4: E2E Tests (Testcontainers)
-  # ═══════════════════════════════════════════════
+   # ═══════════════════════════════════════════════
+   # Stage 4: E2E Tests (Testcontainers)
+   # ═══════════════════════════════════════════════
   e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
+     name: E2E Tests
+     runs-on: ubuntu-latest
+     needs: [ detect-changes, test ]
+     if: |
+       always() &&
+       needs.detect-changes.outputs.backend == 'true' &&
+       (needs.test.result == 'success' || needs.test.result == 'skipped')
+     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-java
 
@@ -507,41 +491,38 @@ jobs:
   # Stage 6: Package (Docker Images)
   # ═══════════════════════════════════════════════
   package-backend:
-    name: Package – Backend
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref_name == 'main'
-    needs: [quality, e2e-tests]
-    steps:
-      - uses: actions/checkout@v7
+     name: Package – Backend
+     runs-on: ubuntu-latest
+     if: github.event_name == 'push' && github.ref_name == 'main'
+     needs: [quality, e2e-tests]
+     steps:
+       - uses: actions/checkout@v7
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
+       - uses: ./.github/actions/setup-java
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+       - name: Log in to GitHub Container Registry
+         uses: docker/login-action@v3
+         with:
+           registry: ghcr.io
+           username: ${{ github.actor }}
+           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push Spring Boot Image
-        working-directory: backend
-        env:
-          IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/firemanager-backend
-        run: |
-          chmod +x mvnw
-          ./mvnw spring-boot:build-image \
-            -Dspring-boot.build-image.imageName=${IMAGE_NAME,,}:latest \
-            -Dspring-boot.build-image.publish=true \
-            -Ddocker.publishRegistry.username=${{ github.actor }} \
-            -Ddocker.publishRegistry.password=${{ secrets.GITHUB_TOKEN }} \
-            -Ddocker.publishRegistry.url=ghcr.io \
-            -DskipTests \
-            --batch-mode --no-transfer-progress
+       - name: Build & Push Spring Boot Image
+         working-directory: backend
+         env:
+           IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/firemanager-backend
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         run: |
+           chmod +x mvnw
+           ./mvnw spring-boot:build-image \
+             -s ${{ github.workspace }}/settings.xml \
+             -Dspring-boot.build-image.imageName=${IMAGE_NAME,,}:latest \
+             -Dspring-boot.build-image.publish=true \
+             -Ddocker.publishRegistry.username=${{ github.actor }} \
+             -Ddocker.publishRegistry.password=${{ secrets.GITHUB_TOKEN }} \
+             -Ddocker.publishRegistry.url=ghcr.io \
+             -DskipTests \
+             --batch-mode --no-transfer-progress
 
   package-frontend:
     name: Package – Frontend
