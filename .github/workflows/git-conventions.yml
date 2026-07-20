@@ -2,9 +2,9 @@ name: Git Conventions
 
 on:
   push:
-    branches: ['**']
+    branches: [ '**' ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
   schedule:
     # Tägliche Prüfung der Git-Konventionen auf main
     - cron: '0 6 * * *'
@@ -121,7 +121,7 @@ jobs:
           FORBIDDEN_PATTERNS="SOUL\.md|/Skills/|/Agent-Configs/|\.openclaw|/\.openclaw/"
 
           # Erlaubte Pfade (Projekt-Code)
-          ALLOWED_PATTERNS="^(backend/|frontend/|\.github/|docs/|README\.md|\.gitignore|\.gitattributes|docker-compose\.yml)"
+          ALLOWED_PATTERNS="^(openapi/|backend/|frontend/|\.github/|docs/|README\.md|\.gitignore|\.gitattributes|docker-compose\.yml)"
 
           while IFS= read -r file; do
             [ -z "$file" ] && continue
