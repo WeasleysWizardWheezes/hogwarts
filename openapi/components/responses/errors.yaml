@@ -1,0 +1,41 @@
+BadRequest:
+  description: Ungültige Anfrage oder Validierungsfehler
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+
+Unauthorized:
+  description: Authentifizierung fehlt oder ist ungültig
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+
+Forbidden:
+  description: Nutzer ist authentifiziert, aber nicht berechtigt
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+
+NotFound:
+  description: Ressource nicht gefunden
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+
+Conflict:
+  description: Konflikt mit aktuellem Systemzustand
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+
+InternalServerError:
+  description: Unerwarteter Serverfehler
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'

@@ -1,0 +1,36 @@
+MemberLocationAssignment:
+  type: object
+  description: "Zuordnung eines Mitglieds zu einem Standort"
+  required:
+    - locationId
+  properties:
+    locationId:
+      type: string
+      format: uuid
+      description: "ID des Standorts"
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    isPrimary:
+      type: boolean
+      description: "Ist dies der primäre Standort des Mitglieds?"
+      example: true
+
+MemberWithLocationsResponse:
+  type: object
+  description: "Mitglied mit zugeordneten Standorten"
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "660e8400-e29b-41d4-a716-446655440001"
+    firstName:
+      type: string
+      example: "Max"
+    lastName:
+      type: string
+      example: "Mustermann"
+    locations:
+      type: array
+      items:
+        $ref: './common.yaml#/LocationReference'
+    primaryLocation:
+      $ref: './common.yaml#/LocationReference'

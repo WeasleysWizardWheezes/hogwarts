@@ -1,0 +1,23 @@
+PageParam:
+  name: page
+  in: query
+  required: false
+  schema:
+    type: integer
+    default: 0
+
+SizeParam:
+  name: size
+  in: query
+  required: false
+  schema:
+    type: integer
+    default: 20
+
+LocationTypeParam:
+  name: type
+  in: query
+  required: false
+  description: "Filter nach Standort-Typ"
+  schema:
+    $ref: '../schemas/common.yaml#/LocationType'

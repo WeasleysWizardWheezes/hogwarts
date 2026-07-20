@@ -1,0 +1,125 @@
+paths:
+  /api/v1/members/{memberId}/locations:
+    get:
+      tags: [Members]
+      summary: Standorte eines Mitglieds auflisten
+      operationId: getMemberLocations
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste der Standorte des Mitglieds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../components/schemas/common.yaml#/LocationReference'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    post:
+      tags: [Members]
+      summary: Mitglied einem Standort zuordnen
+      operationId: assignMemberToLocation
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/member.yaml#/MemberLocationAssignment'
+      responses:
+        '201':
+          description: Zuordnung erstellt
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../components/schemas/common.yaml#/LocationReference'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/members/{memberId}/locations/{locationId}:
+    delete:
+      tags: [Members]
+      summary: Standort-Zuordnung eines Mitglieds entfernen
+      operationId: removeMemberFromLocation
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Zuordnung entfernt
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+  /api/v1/members:
+    get:
+      tags: [Members]
+      summary: Mitglieder auflisten (optional nach Standort filtern)
+      operationId: listMembers
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+        - name: locationId
+          in: query
+          required: false
+          description: "Filter nach Standort-ID"
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste aller Mitglieder (optional gefiltert)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/member.yaml#/MemberWithLocationsResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
