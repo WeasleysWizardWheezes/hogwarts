@@ -12,6 +12,7 @@ permissions:
   pull-requests: write
   packages: write
   security-events: write
+  issues: write
 
 jobs:
   # ═══════════════════════════════════════════════
@@ -554,3 +555,404 @@ jobs:
           tags: ${{ steps.meta.outputs.image }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ═══════════════════════════════════════════════
+  # Final Stage: Board Automation
+  # ═══════════════════════════════════════════════
+  board-automation:
+    name: Board Automation
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'push' && github.ref_name != 'main'
+    needs:
+      - test
+      - frontend
+      - frontend-test
+      - frontend-e2e
+      - quality
+      - e2e-tests
+      - security-scan-backend
+      - security-scan-frontend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Extract issue number from branch
+        id: issue
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          if [[ "$BRANCH" =~ ^[a-z]+/([0-9]+)- ]]; then
+            echo "number=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+            echo "Found issue #${BASH_REMATCH[1]} from branch $BRANCH"
+          else
+            echo "number=" >> "$GITHUB_OUTPUT"
+            echo "No issue number found in branch: $BRANCH"
+          fi
+
+      - name: Check for awaiting-pipeline label
+        if: steps.issue.outputs.number != ''
+        id: label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LABELS=$(gh issue view ${{ steps.issue.outputs.number }} --json labels --jq '.labels[].name')
+          if echo "$LABELS" | grep -q "awaiting-pipeline"; then
+            echo "has_label=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_label=false" >> "$GITHUB_OUTPUT"
+            echo "Issue #${{ steps.issue.outputs.number }} does not have awaiting-pipeline label – skipping"
+          fi
+
+      - name: Determine changed paths
+        if: steps.label.outputs.has_label == 'true'
+        id: paths
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          BACKEND_MAIN=false
+          BACKEND_TEST=false
+          FRONTEND_MAIN=false
+          FRONTEND_TEST=false
+
+          while IFS= read -r file; do
+            if [[ "$file" == backend/src/main/* ]]; then
+              BACKEND_MAIN=true
+            elif [[ "$file" == backend/src/test/* ]]; then
+              BACKEND_TEST=true
+            elif [[ "$file" == frontend/e2e/* ]] || [[ "$file" == frontend/src/test/* ]] || [[ "$file" == *.test.* ]] || [[ "$file" == *.spec.* ]]; then
+              FRONTEND_TEST=true
+            elif [[ "$file" == frontend/src/* ]]; then
+              FRONTEND_MAIN=true
+            fi
+          done <<< "$CHANGED"
+
+          # Determine role: testers take priority if test files changed
+          if [[ "$BACKEND_TEST" == "true" ]]; then
+            echo "role=backend-tester" >> "$GITHUB_OUTPUT"
+            echo "current_column=Test" >> "$GITHUB_OUTPUT"
+            echo "target_column=Needs Review" >> "$GITHUB_OUTPUT"
+          elif [[ "$FRONTEND_TEST" == "true" ]]; then
+            echo "role=frontend-tester" >> "$GITHUB_OUTPUT"
+            echo "current_column=Test" >> "$GITHUB_OUTPUT"
+            echo "target_column=Needs Review" >> "$GITHUB_OUTPUT"
+          elif [[ "$BACKEND_MAIN" == "true" ]]; then
+            echo "role=backend-dev" >> "$GITHUB_OUTPUT"
+            echo "current_column=Dev" >> "$GITHUB_OUTPUT"
+            echo "target_column=Ready Test" >> "$GITHUB_OUTPUT"
+          elif [[ "$FRONTEND_MAIN" == "true" ]]; then
+            echo "role=frontend-dev" >> "$GITHUB_OUTPUT"
+            echo "current_column=Dev" >> "$GITHUB_OUTPUT"
+            echo "target_column=Ready Test" >> "$GITHUB_OUTPUT"
+          else
+            echo "role=" >> "$GITHUB_OUTPUT"
+            echo "No relevant path changes detected"
+          fi
+
+      - name: Determine pipeline result
+        if: steps.paths.outputs.role != ''
+        id: result
+        run: |
+          # Check if all relevant jobs succeeded
+          FAILED=false
+
+          # Backend roles: check backend-relevant jobs
+          if [[ "${{ steps.paths.outputs.role }}" == backend-* ]]; then
+            if [[ "${{ needs.test.result }}" != "success" ]] || \
+               [[ "${{ needs.quality.result }}" != "success" ]] || \
+               [[ "${{ needs.e2e-tests.result }}" != "success" ]]; then
+              FAILED=true
+            fi
+          fi
+
+          # Frontend roles: check frontend-relevant jobs
+          if [[ "${{ steps.paths.outputs.role }}" == frontend-* ]]; then
+            if [[ "${{ needs.frontend.result }}" != "success" ]] || \
+               [[ "${{ needs.frontend-test.result }}" != "success" ]] || \
+               [[ "${{ needs.frontend-e2e.result }}" != "success" ]]; then
+              FAILED=true
+            fi
+          fi
+
+          # Security scans are relevant for all
+          if [[ "${{ needs.security-scan-backend.result }}" != "success" ]] || \
+             [[ "${{ needs.security-scan-frontend.result }}" != "success" ]]; then
+            FAILED=true
+          fi
+
+          if [[ "$FAILED" == "true" ]]; then
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+            echo "Pipeline FAILED for role ${{ steps.paths.outputs.role }}"
+          else
+            echo "status=success" >> "$GITHUB_OUTPUT"
+            echo "Pipeline SUCCEEDED for role ${{ steps.paths.outputs.role }}"
+          fi
+
+      - name: Remove awaiting-pipeline label
+        if: steps.paths.outputs.role != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit ${{ steps.issue.outputs.number }} --remove-label "awaiting-pipeline"
+          echo "Removed awaiting-pipeline label from issue #${{ steps.issue.outputs.number }}"
+
+      - name: Move issue on project board
+        if: steps.result.outputs.status == 'success' && steps.paths.outputs.role != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ORG="WeasleysWizardWheezes"
+          PROJECT_NUMBER=1
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          TARGET_STATUS="${{ steps.paths.outputs.target_column }}"
+
+          # Get project ID
+          PROJECT_ID=$(gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
+
+          echo "Project ID: $PROJECT_ID"
+
+          # Get the issue node ID
+          REPO="${{ github.repository }}"
+          ISSUE_ID=$(gh api graphql -f query='
+            query($owner: String!, $repo: String!, $number: Int!) {
+              repository(owner: $owner, name: $repo) {
+                issue(number: $number) {
+                  id
+                }
+              }
+            }' -f owner="$ORG" -f repo="${REPO#*/}" -F number=$ISSUE_NUMBER --jq '.data.repository.issue.id')
+
+          echo "Issue ID: $ISSUE_ID"
+
+          # Get the project item ID for this issue
+          ITEM_ID=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      content {
+                        ... on Issue {
+                          number
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id")
+
+          echo "Item ID: $ITEM_ID"
+
+          # Get the Status field ID and target option ID
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          STATUS_FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          OPTION_ID=$(echo "$FIELD_DATA" | jq -r ".data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"$TARGET_STATUS\") | .id")
+
+          echo "Status Field ID: $STATUS_FIELD_ID"
+          echo "Target Option ID: $OPTION_ID (for status: $TARGET_STATUS)"
+
+          # Update the item status
+          gh api graphql -f query='
+            mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $projectId
+                itemId: $itemId
+                fieldId: $fieldId
+                value: { singleSelectOptionId: $optionId }
+              }) {
+                projectV2Item {
+                  id
+                }
+              }
+            }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$OPTION_ID"
+
+          echo "✅ Moved issue #$ISSUE_NUMBER to '$TARGET_STATUS'"
+
+  # ═══════════════════════════════════════════════
+  # Sonderfall: PR Merge → Done + Unblock
+  # ═══════════════════════════════════════════════
+  board-automation-merge:
+    name: Board Automation (PR Merge)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract closed issue numbers from PR body
+        id: issues
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # Extract issue numbers from "Closes #<nr>" patterns
+          NUMBERS=$(echo "$PR_BODY" | grep -oiP '(?:closes|fixes|resolves)\s+#\K[0-9]+' || true)
+          echo "numbers<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NUMBERS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "Found issues: $NUMBERS"
+
+      - name: Move issues to Done and unblock dependents
+        if: steps.issues.outputs.numbers != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ORG="WeasleysWizardWheezes"
+          PROJECT_NUMBER=1
+          REPO="${{ github.repository }}"
+
+          # Get project ID
+          PROJECT_ID=$(gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
+
+          # Get Status field and option IDs
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          STATUS_FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          DONE_OPTION_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "Done") | .id')
+          READY_DEV_OPTION_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "Ready Dev") | .id')
+
+          while IFS= read -r ISSUE_NUMBER; do
+            [ -z "$ISSUE_NUMBER" ] && continue
+            echo "Processing issue #$ISSUE_NUMBER..."
+
+            # Get item ID on project board
+            ITEM_ID=$(gh api graphql -f query='
+              query($projectId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    items(first: 100) {
+                      nodes {
+                        id
+                        content {
+                          ... on Issue {
+                            number
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id")
+
+            if [ -z "$ITEM_ID" ]; then
+              echo "Issue #$ISSUE_NUMBER not found on project board – skipping"
+              continue
+            fi
+
+            # Move to Done
+            gh api graphql -f query='
+              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: { singleSelectOptionId: $optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$DONE_OPTION_ID"
+
+            echo "✅ Moved issue #$ISSUE_NUMBER to 'Done'"
+
+            # Find dependent issues that reference "waiting on issue #<nr>"
+            REPO_NAME="${REPO#*/}"
+            DEPENDENTS=$(gh api "repos/$ORG/$REPO_NAME/issues?state=open&per_page=100" --jq ".[].number")
+
+            for DEP_NUMBER in $DEPENDENTS; do
+              DEP_BODY=$(gh api "repos/$ORG/$REPO_NAME/issues/$DEP_NUMBER" --jq '.body // ""')
+
+              if echo "$DEP_BODY" | grep -qi "waiting on issue #$ISSUE_NUMBER"; then
+                echo "Found dependent issue #$DEP_NUMBER – unblocking..."
+
+                # Remove blocked label if present
+                gh issue edit "$DEP_NUMBER" --remove-label "blocked" 2>/dev/null || true
+
+                # Move to Ready Dev on project board
+                DEP_ITEM_ID=$(gh api graphql -f query='
+                  query($projectId: ID!) {
+                    node(id: $projectId) {
+                      ... on ProjectV2 {
+                        items(first: 100) {
+                          nodes {
+                            id
+                            content {
+                              ... on Issue {
+                                number
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $DEP_NUMBER) | .id")
+
+                if [ -n "$DEP_ITEM_ID" ]; then
+                  gh api graphql -f query='
+                    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                      updateProjectV2ItemFieldValue(input: {
+                        projectId: $projectId
+                        itemId: $itemId
+                        fieldId: $fieldId
+                        value: { singleSelectOptionId: $optionId }
+                      }) {
+                        projectV2Item { id }
+                      }
+                    }' -f projectId="$PROJECT_ID" -f itemId="$DEP_ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$READY_DEV_OPTION_ID"
+
+                  echo "✅ Moved dependent issue #$DEP_NUMBER to 'Ready Dev'"
+                fi
+              fi
+            done
+          done <<< "${{ steps.issues.outputs.numbers }}"

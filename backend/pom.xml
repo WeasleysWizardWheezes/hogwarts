@@ -293,6 +293,13 @@
 	<profiles>
 		<profile>
 			<id>openapi-generate</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-testcontainers</artifactId>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
 			<build>
 				<plugins>
 					<plugin>
@@ -305,6 +312,9 @@
 									<goal>start</goal>
 								</goals>
 								<configuration>
+									<jmxPort>19001</jmxPort>
+									<wait>500</wait>
+									<maxAttempts>120</maxAttempts>
 									<jvmArguments>-Dspring.application.admin.enabled=true</jvmArguments>
 									<profiles>
 										<profile>openapi</profile>
@@ -316,6 +326,9 @@
 								<goals>
 									<goal>stop</goal>
 								</goals>
+								<configuration>
+									<jmxPort>19001</jmxPort>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>
