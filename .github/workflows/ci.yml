@@ -2,9 +2,9 @@ name: CICD Pipeline
 
 on:
   push:
-    branches: ['**']
+    branches: [ '**' ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -14,30 +14,161 @@ permissions:
   security-events: write
   issues: write
 
-env:
-  JAVA_VERSION: '25'
-  JAVA_DISTRIBUTION: 'oracle'
-
 jobs:
+  # ═══════════════════════════════════════════════
+  # Stage 0: Detect Changes (paths-filter)
+  # ═══════════════════════════════════════════════
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      openapi: ${{ steps.filter.outputs.openapi }}
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            openapi:
+              - 'openapi/**'
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+
+  # ═══════════════════════════════════════════════
+  # Stage 0.5: OpenAPI – Validate + Generate + Publish
+  # ═══════════════════════════════════════════════
+  openapi-validate:
+    name: OpenAPI Validate
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.openapi == 'true'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-openapi
+
+      - name: Validate OpenAPI Spec
+        run: openapi-generator-cli validate -i openapi/api.yaml
+
+  openapi-publish-backend:
+    name: OpenAPI Publish Backend (Java/Spring)
+    runs-on: ubuntu-latest
+    needs: [ detect-changes, openapi-validate ]
+    if: needs.detect-changes.outputs.openapi == 'true'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract version from OpenAPI Spec
+        id: issue
+        run: |
+          # yq liest den Pfad .info.version aus deiner api.yaml
+          VERSION=$(yq eval '.info.version' openapi/api.yaml)
+          echo "Version aus OpenAPI ermittelt: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-openapi
+      - uses: ./.github/actions/setup-java
+
+      - name: Generate Backend API Lib (Java/Spring)
+        run: |
+          openapi-generator-cli generate \
+            -i openapi/api.yaml \
+            -g spring \
+            -o generated/backend-api \
+            --additional-properties=interfaceOnly=true,useSpringBoot3=true,useTags=true,artifactId=hogwarts-api-client \
+            --artifact-version=${{ steps.issue.outputs.version }}
+
+      - name: Publish Backend API Lib to GitHub Packages
+        working-directory: generated/backend-api
+        run: |
+          mvn deploy \
+            -s ${{ github.workspace }}/settings.xml \
+            -DaltDeploymentRepository=github::https://maven.pkg.github.com/${{ github.repository }} \
+            -Dmaven.deploy.skip=false \
+            -DskipTests \
+            --batch-mode --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  openapi-publish-frontend:
+    name: OpenAPI Publish Frontend (TS Types)
+    runs-on: ubuntu-latest
+    needs: [ detect-changes, openapi-validate ]
+    if: needs.detect-changes.outputs.openapi == 'true'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract and format version for Frontend
+        id: issue
+        run: |
+          RAW_VERSION=$(yq eval '.info.version' openapi/api.yaml)
+          CLEAN_VERSION=$(echo "$RAW_VERSION" | sed 's/-SNAPSHOT//g')
+          FINAL_VERSION="${CLEAN_VERSION}-build${{ github.run_number }}"
+          
+          echo "Formatierte Frontend-Version: $FINAL_VERSION"
+          echo "version=$FINAL_VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Generate Frontend TS Types (openapi-typescript)
+        run: |
+          mkdir -p generated/frontend-api
+          npx openapi-typescript openapi/api.yaml -o generated/frontend-api/schema.d.ts
+
+      - name: Publish Frontend API Client to GitHub Packages
+        working-directory: generated/frontend-api
+        run: |
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          
+          cat <<EOF > package.json
+          {
+            "name": "@${OWNER_LOWER}/hogwarts-api-client",
+            "version": "${{ steps.issue.outputs.version }}",
+            "main": "schema.d.ts",
+            "types": "schema.d.ts",
+            "publishConfig": {
+              "registry": "https://npm.pkg.github.com"
+            }
+          }
+          EOF
+          
+          cat <<EOF > .npmrc
+          @${OWNER_LOWER}:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}
+          EOF
+          
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # ═══════════════════════════════════════════════
   # Stage 1: Backend – Unit Tests + Coverage
   # ═══════════════════════════════════════════════
   test:
     name: Backend Unit Tests
     runs-on: ubuntu-latest
+    needs: [ detect-changes, openapi-publish-backend ]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.backend == 'true' &&
+      (needs.openapi-publish-backend.result == 'success' || needs.openapi-publish-backend.result == 'skipped')
     steps:
       - uses: actions/checkout@v7
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
+      - uses: ./.github/actions/setup-java
 
       - name: Run Unit Tests
         working-directory: backend
-        run: chmod +x mvnw && ./mvnw test --batch-mode --no-transfer-progress
+        run: |
+          chmod +x mvnw
+          ./mvnw test \
+            -s ${{ github.workspace }}/settings.xml \
+            --batch-mode --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload target directory
         uses: actions/upload-artifact@v7
@@ -57,100 +188,23 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # ═══════════════════════════════════════════════
-  # Stage 1b: OpenAPI Schema Sync
-  # ═══════════════════════════════════════════════
-  openapi-sync:
-    name: Sync OpenAPI Schema
-    runs-on: ubuntu-latest
-    needs: test
-    # TODO: Temporarily disabled – re-enable when needed
-    if: false # github.event_name == 'pull_request'
-    concurrency:
-      group: openapi-sync-${{ github.head_ref }}
-      cancel-in-progress: true
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 50
-
-      - name: Check for backend changes
-        id: changes
-        run: |
-          git fetch origin main --depth=1
-          if git diff --name-only origin/main...HEAD | grep -q '^backend/src/main/'; then
-            echo "backend=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "backend=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Set up Java
-        if: steps.changes.outputs.backend == 'true'
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
-
-      - name: Generate OpenAPI Spec
-        if: steps.changes.outputs.backend == 'true'
-        working-directory: backend
-        run: |
-          chmod +x mvnw
-          ./mvnw verify -P openapi-generate -DskipTests --batch-mode --no-transfer-progress
-
-      - name: Set up Node.js
-        if: steps.changes.outputs.backend == 'true'
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Generate TypeScript Types
-        if: steps.changes.outputs.backend == 'true'
-        working-directory: frontend
-        run: |
-          npm ci --legacy-peer-deps
-          cp ../backend/target/openapi.json src/shared/api/schema.json
-          npx openapi-typescript src/shared/api/schema.json -o src/shared/api/schema.d.ts
-
-      - name: Commit if changed
-        if: steps.changes.outputs.backend == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/src/shared/api/schema.json frontend/src/shared/api/schema.d.ts
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: sync OpenAPI schema"
-            git stash --include-untracked
-            git pull --rebase
-            git stash pop || true
-            git push
-          fi
-
-  # ═══════════════════════════════════════════════
-  # Stage 2a: Frontend – Lint + Build
-  # ═══════════════════════════════════════════════
+    # ═══════════════════════════════════════════════
+    # Stage 2a: Frontend – Lint + Build
+    # ═══════════════════════════════════════════════
   frontend:
     name: Frontend (Lint + Build)
     runs-on: ubuntu-latest
+    needs: [ detect-changes, openapi-publish-frontend ]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.frontend == 'true' &&
+      (needs.openapi-publish-frontend.result == 'success' || needs.openapi-publish-frontend.result == 'skipped')
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install Dependencies
-        working-directory: frontend
-        run: npm ci --legacy-peer-deps
+      - uses: ./.github/actions/setup-frontend-deps
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Lint (oxlint)
         working-directory: frontend
@@ -160,25 +214,23 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-  # ═══════════════════════════════════════════════
-  # Stage 2b: Frontend – Unit Tests (Vitest)
-  # ═══════════════════════════════════════════════
+    # ═══════════════════════════════════════════════
+    # Stage 2b: Frontend – Unit Tests (Vitest)
+    # ═══════════════════════════════════════════════
   frontend-test:
     name: Frontend Unit Tests
     runs-on: ubuntu-latest
+    needs: [ detect-changes, openapi-publish-frontend ]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.frontend == 'true' &&
+      (needs.openapi-publish-frontend.result == 'success' || needs.openapi-publish-frontend.result == 'skipped')
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install Dependencies
-        working-directory: frontend
-        run: npm ci --legacy-peer-deps
+      - uses: ./.github/actions/setup-frontend-deps
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Unit Tests with Coverage
         working-directory: frontend
@@ -193,26 +245,23 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # ═══════════════════════════════════════════════
-  # Stage 2c: Frontend – E2E Tests (Playwright)
-  # ═══════════════════════════════════════════════
+    # ═══════════════════════════════════════════════
+    # Stage 2c: Frontend – E2E Tests (Playwright)
+    # ═══════════════════════════════════════════════
   frontend-e2e:
     name: Frontend E2E Tests
     runs-on: ubuntu-latest
-    needs: frontend
+    needs: [ detect-changes, frontend ]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.frontend == 'true' &&
+      (needs.frontend.result == 'success' || needs.frontend.result == 'skipped')
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install Dependencies
-        working-directory: frontend
-        run: npm ci --legacy-peer-deps
+      - uses: ./.github/actions/setup-frontend-deps
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Playwright Browsers
         uses: actions/cache@v4
@@ -246,34 +295,34 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # ═══════════════════════════════════════════════
-  # Stage 3: Quality (Checkstyle + JaCoCo + PITest)
-  # ═══════════════════════════════════════════════
+    # ═══════════════════════════════════════════════
+    # Stage 3: Quality (Checkstyle + JaCoCo + PITest)
+    # ═══════════════════════════════════════════════
   quality:
     name: Code Quality (Checkstyle + JaCoCo)
     runs-on: ubuntu-latest
-    needs: test
+    needs: [ detect-changes, test ]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.backend == 'true' &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
     # TODO: Remove continue-on-error once real tests achieve 80% coverage
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
-
-      - name: Download target from test job
-        uses: actions/download-artifact@v8
-        with:
-          name: backend-target
-          path: backend/target/
+      - uses: ./.github/actions/setup-java
 
       - name: Verify Quality Gates (Checkstyle + JaCoCo)
         working-directory: backend
-        run: chmod +x mvnw && ./mvnw verify -DskipTests --batch-mode --no-transfer-progress
+        run: |
+          chmod +x mvnw
+          ./mvnw verify \
+            -s ${{ github.workspace }}/settings.xml \
+            -DskipTests \
+            --batch-mode --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Checkstyle Report
         if: always()
@@ -301,16 +350,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
+      - uses: ./.github/actions/setup-java
 
       - name: Run PITest
         working-directory: backend
-        run: chmod +x mvnw && ./mvnw pitest:mutationCoverage --batch-mode --no-transfer-progress
+        run: |
+          chmod +x mvnw
+          ./mvnw pitest:mutationCoverage \
+            -s ${{ github.workspace }}/settings.xml \
+            --batch-mode --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Mutation Score Threshold
         working-directory: backend
@@ -347,30 +397,32 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # ═══════════════════════════════════════════════
-  # Stage 4: E2E Tests (Testcontainers)
-  # ═══════════════════════════════════════════════
+    # ═══════════════════════════════════════════════
+    # Stage 4: E2E Tests (Testcontainers)
+    # ═══════════════════════════════════════════════
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    needs: test
+    needs: [ detect-changes, test ]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.backend == 'true' &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
     steps:
       - uses: actions/checkout@v7
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
+      - uses: ./.github/actions/setup-java
 
       - name: Run E2E Tests (Testcontainers)
         working-directory: backend
         env:
           TESTCONTAINERS_RYUK_DISABLED: 'true'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x mvnw
-          ./mvnw verify -Dsurefire.skip=true --batch-mode --no-transfer-progress
+          ./mvnw verify \
+            -s ${{ github.workspace }}/settings.xml \
+            -Dsurefire.skip=true \
+            --batch-mode --no-transfer-progress
 
       - name: Upload E2E Test Results
         if: always()
@@ -387,6 +439,12 @@ jobs:
   security-scan-backend:
     name: Security Scan – Backend (CodeQL)
     runs-on: ubuntu-latest
+    needs: [ detect-changes, openapi-publish-backend ]
+    if: |
+      always() &&
+      (github.ref_name == 'main' || github.event_name == 'pull_request') &&
+      needs.detect-changes.outputs.backend == 'true' &&
+      (needs.openapi-publish-backend.result == 'success' || needs.openapi-publish-backend.result == 'skipped')
     steps:
       - uses: actions/checkout@v7
 
@@ -395,16 +453,18 @@ jobs:
         with:
           languages: java-kotlin
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
+      - uses: ./.github/actions/setup-java
 
       - name: Build for CodeQL
         working-directory: backend
-        run: chmod +x mvnw && ./mvnw compile --batch-mode --no-transfer-progress -DskipTests
+        run: |
+          chmod +x mvnw
+          ./mvnw compile \
+            -s ${{ github.workspace }}/settings.xml \
+            --batch-mode --no-transfer-progress \
+            -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
@@ -412,6 +472,10 @@ jobs:
   security-scan-frontend:
     name: Security Scan – Frontend (CodeQL)
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      (github.ref_name == 'main' || github.event_name == 'pull_request') &&
+      needs.detect-changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@v7
 
@@ -431,16 +495,11 @@ jobs:
     name: Package – Backend
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref_name == 'main'
-    needs: [quality, e2e-tests]
+    needs: [ quality, e2e-tests ]
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: 'maven'
+      - uses: ./.github/actions/setup-java
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -453,9 +512,11 @@ jobs:
         working-directory: backend
         env:
           IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/firemanager-backend
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x mvnw
           ./mvnw spring-boot:build-image \
+            -s ${{ github.workspace }}/settings.xml \
             -Dspring-boot.build-image.imageName=${IMAGE_NAME,,}:latest \
             -Dspring-boot.build-image.publish=true \
             -Ddocker.publishRegistry.username=${{ github.actor }} \
@@ -468,7 +529,7 @@ jobs:
     name: Package – Frontend
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref_name == 'main'
-    needs: [frontend, frontend-test, frontend-e2e]
+    needs: [ frontend, frontend-test, frontend-e2e ]
     steps:
       - uses: actions/checkout@v7
 
@@ -503,6 +564,9 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && github.event_name == 'push' && github.ref_name != 'main'
     needs:
+      - openapi-validate
+      - openapi-publish-backend
+      - openapi-publish-frontend
       - test
       - frontend
       - frontend-test
@@ -554,9 +618,12 @@ jobs:
           BACKEND_TEST=false
           FRONTEND_MAIN=false
           FRONTEND_TEST=false
+          OPENAPI=false
 
           while IFS= read -r file; do
-            if [[ "$file" == backend/src/main/* ]]; then
+            if [[ "$file" == openapi/* ]]; then
+              OPENAPI=true
+            elif [[ "$file" == backend/src/main/* ]]; then
               BACKEND_MAIN=true
             elif [[ "$file" == backend/src/test/* ]]; then
               BACKEND_TEST=true
@@ -567,8 +634,12 @@ jobs:
             fi
           done <<< "$CHANGED"
 
-          # Determine role: testers take priority if test files changed
-          if [[ "$BACKEND_TEST" == "true" ]]; then
+          # Determine role: openapi takes priority, then testers, then devs
+          if [[ "$OPENAPI" == "true" ]]; then
+            echo "role=planner" >> "$GITHUB_OUTPUT"
+            echo "current_column=Backlog" >> "$GITHUB_OUTPUT"
+            echo "target_column=Ready Dev" >> "$GITHUB_OUTPUT"
+          elif [[ "$BACKEND_TEST" == "true" ]]; then
             echo "role=backend-tester" >> "$GITHUB_OUTPUT"
             echo "current_column=Test" >> "$GITHUB_OUTPUT"
             echo "target_column=Needs Review" >> "$GITHUB_OUTPUT"
@@ -593,30 +664,39 @@ jobs:
         if: steps.paths.outputs.role != ''
         id: result
         run: |
-          # Check if all relevant jobs succeeded
+          # Check if all relevant jobs succeeded (skipped counts as okay)
           FAILED=false
+
+          # Planner role: check openapi-specific jobs
+          if [[ "${{ steps.paths.outputs.role }}" == "planner" ]]; then
+            if [[ "${{ needs.openapi-validate.result }}" == "failure" ]] || \
+               [[ "${{ needs.openapi-publish-backend.result }}" == "failure" ]] || \
+               [[ "${{ needs.openapi-publish-frontend.result }}" == "failure" ]]; then
+              FAILED=true
+            fi
+          fi
 
           # Backend roles: check backend-relevant jobs
           if [[ "${{ steps.paths.outputs.role }}" == backend-* ]]; then
-            if [[ "${{ needs.test.result }}" != "success" ]] || \
-               [[ "${{ needs.quality.result }}" != "success" ]] || \
-               [[ "${{ needs.e2e-tests.result }}" != "success" ]]; then
+            if [[ "${{ needs.test.result }}" == "failure" ]] || \
+               [[ "${{ needs.quality.result }}" == "failure" ]] || \
+               [[ "${{ needs.e2e-tests.result }}" == "failure" ]]; then
               FAILED=true
             fi
           fi
 
           # Frontend roles: check frontend-relevant jobs
           if [[ "${{ steps.paths.outputs.role }}" == frontend-* ]]; then
-            if [[ "${{ needs.frontend.result }}" != "success" ]] || \
-               [[ "${{ needs.frontend-test.result }}" != "success" ]] || \
-               [[ "${{ needs.frontend-e2e.result }}" != "success" ]]; then
+            if [[ "${{ needs.frontend.result }}" == "failure" ]] || \
+               [[ "${{ needs.frontend-test.result }}" == "failure" ]] || \
+               [[ "${{ needs.frontend-e2e.result }}" == "failure" ]]; then
               FAILED=true
             fi
           fi
 
-          # Security scans are relevant for all
-          if [[ "${{ needs.security-scan-backend.result }}" != "success" ]] || \
-             [[ "${{ needs.security-scan-frontend.result }}" != "success" ]]; then
+          # Security scans: only fail if they actually ran and failed (skipped is okay)
+          if [[ "${{ needs.security-scan-backend.result }}" == "failure" ]] || \
+             [[ "${{ needs.security-scan-frontend.result }}" == "failure" ]]; then
             FAILED=true
           fi
 
@@ -629,7 +709,7 @@ jobs:
           fi
 
       - name: Remove awaiting-pipeline label
-        if: steps.paths.outputs.role != ''
+        if: steps.label.outputs.has_label == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -637,7 +717,7 @@ jobs:
           echo "Removed awaiting-pipeline label from issue #${{ steps.issue.outputs.number }}"
 
       - name: Move issue on project board
-        if: steps.result.outputs.status == 'success' && steps.paths.outputs.role != ''
+        if: steps.result.outputs.status == 'success' && steps.paths.outputs.role != '' && steps.paths.outputs.role != 'planner'
         env:
           GH_TOKEN: ${{ secrets.PROJECT_PAT }}
         run: |
@@ -657,19 +737,6 @@ jobs:
             }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
 
           echo "Project ID: $PROJECT_ID"
-
-          # Get the issue node ID
-          REPO="${{ github.repository }}"
-          ISSUE_ID=$(gh api graphql -f query='
-            query($owner: String!, $repo: String!, $number: Int!) {
-              repository(owner: $owner, name: $repo) {
-                issue(number: $number) {
-                  id
-                }
-              }
-            }' -f owner="$ORG" -f repo="${REPO#*/}" -F number=$ISSUE_NUMBER --jq '.data.repository.issue.id')
-
-          echo "Issue ID: $ISSUE_ID"
 
           # Get the project item ID for this issue
           ITEM_ID=$(gh api graphql -f query='
@@ -735,6 +802,102 @@ jobs:
             }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$OPTION_ID"
 
           echo "✅ Moved issue #$ISSUE_NUMBER to '$TARGET_STATUS'"
+
+      - name: Planner – Move dev tickets to Ready Dev and close origin ticket
+        if: steps.result.outputs.status == 'success' && steps.paths.outputs.role == 'planner'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ORG="WeasleysWizardWheezes"
+          PROJECT_NUMBER=1
+          REPO="${{ github.repository }}"
+          REPO_NAME="${REPO#*/}"
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+
+          echo "Planner pipeline succeeded for issue #$ISSUE_NUMBER"
+
+          # Get project ID
+          PROJECT_ID=$(gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
+
+          # Get Status field and Ready Dev option ID
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          STATUS_FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          READY_DEV_OPTION_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "Ready Dev") | .id')
+
+          # Find dev tickets with label "waiting on issue #<nr>"
+          DEPENDENTS=$(gh issue list --repo "$ORG/$REPO_NAME" --label "waiting on issue #$ISSUE_NUMBER" --state open --json number --jq '.[].number')
+
+          for DEP_NUMBER in $DEPENDENTS; do
+            echo "Moving dependent issue #$DEP_NUMBER to Ready Dev..."
+
+            # Remove the waiting label
+            gh issue edit "$DEP_NUMBER" --repo "$ORG/$REPO_NAME" --remove-label "waiting on issue #$ISSUE_NUMBER"
+
+            # Get project item ID
+            DEP_ITEM_ID=$(gh api graphql -f query='
+              query($projectId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    items(first: 100) {
+                      nodes {
+                        id
+                        content {
+                          ... on Issue {
+                            number
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $DEP_NUMBER) | .id")
+
+            if [ -n "$DEP_ITEM_ID" ]; then
+              gh api graphql -f query='
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: { singleSelectOptionId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }' -f projectId="$PROJECT_ID" -f itemId="$DEP_ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$READY_DEV_OPTION_ID"
+
+              echo "✅ Moved issue #$DEP_NUMBER to 'Ready Dev'"
+            fi
+          done
+
+          # Close the origin ticket
+          gh issue close "$ISSUE_NUMBER" --repo "$ORG/$REPO_NAME"
+          echo "✅ Closed origin issue #$ISSUE_NUMBER"
 
   # ═══════════════════════════════════════════════
   # Sonderfall: PR Merge → Done + Unblock
@@ -845,53 +1008,49 @@ jobs:
 
             echo "✅ Moved issue #$ISSUE_NUMBER to 'Done'"
 
-            # Find dependent issues that reference "waiting on issue #<nr>"
+            # Find dependent issues via label "waiting on issue #<nr>"
             REPO_NAME="${REPO#*/}"
-            DEPENDENTS=$(gh api "repos/$ORG/$REPO_NAME/issues?state=open&per_page=100" --jq ".[].number")
+            DEPENDENTS=$(gh issue list --repo "$ORG/$REPO_NAME" --label "waiting on issue #$ISSUE_NUMBER" --state open --json number --jq '.[].number')
 
             for DEP_NUMBER in $DEPENDENTS; do
-              DEP_BODY=$(gh api "repos/$ORG/$REPO_NAME/issues/$DEP_NUMBER" --jq '.body // ""')
+              echo "Found dependent issue #$DEP_NUMBER – unblocking..."
 
-              if echo "$DEP_BODY" | grep -qi "waiting on issue #$ISSUE_NUMBER"; then
-                echo "Found dependent issue #$DEP_NUMBER – unblocking..."
+              # Remove the waiting label
+              gh issue edit "$DEP_NUMBER" --repo "$ORG/$REPO_NAME" --remove-label "waiting on issue #$ISSUE_NUMBER"
 
-                # Remove blocked label if present
-                gh issue edit "$DEP_NUMBER" --remove-label "blocked" 2>/dev/null || true
-
-                # Move to Ready Dev on project board
-                DEP_ITEM_ID=$(gh api graphql -f query='
-                  query($projectId: ID!) {
-                    node(id: $projectId) {
-                      ... on ProjectV2 {
-                        items(first: 100) {
-                          nodes {
-                            id
-                            content {
-                              ... on Issue {
-                                number
-                              }
+              # Move to Ready Dev on project board
+              DEP_ITEM_ID=$(gh api graphql -f query='
+                query($projectId: ID!) {
+                  node(id: $projectId) {
+                    ... on ProjectV2 {
+                      items(first: 100) {
+                        nodes {
+                          id
+                          content {
+                            ... on Issue {
+                              number
                             }
                           }
                         }
                       }
                     }
-                  }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $DEP_NUMBER) | .id")
+                  }
+                }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $DEP_NUMBER) | .id")
 
-                if [ -n "$DEP_ITEM_ID" ]; then
-                  gh api graphql -f query='
-                    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                      updateProjectV2ItemFieldValue(input: {
-                        projectId: $projectId
-                        itemId: $itemId
-                        fieldId: $fieldId
-                        value: { singleSelectOptionId: $optionId }
-                      }) {
-                        projectV2Item { id }
-                      }
-                    }' -f projectId="$PROJECT_ID" -f itemId="$DEP_ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$READY_DEV_OPTION_ID"
+              if [ -n "$DEP_ITEM_ID" ]; then
+                gh api graphql -f query='
+                  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                    updateProjectV2ItemFieldValue(input: {
+                      projectId: $projectId
+                      itemId: $itemId
+                      fieldId: $fieldId
+                      value: { singleSelectOptionId: $optionId }
+                    }) {
+                      projectV2Item { id }
+                    }
+                  }' -f projectId="$PROJECT_ID" -f itemId="$DEP_ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$READY_DEV_OPTION_ID"
 
-                  echo "✅ Moved dependent issue #$DEP_NUMBER to 'Ready Dev'"
-                fi
+                echo "✅ Moved dependent issue #$DEP_NUMBER to 'Ready Dev'"
               fi
             done
           done <<< "${{ steps.issues.outputs.numbers }}"
