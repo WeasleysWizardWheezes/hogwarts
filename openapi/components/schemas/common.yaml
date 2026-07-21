@@ -1,0 +1,56 @@
+ErrorResponse:
+  type: object
+  properties:
+    error:
+      type: string
+      description: Maschinenlesbarer Error-Code
+      example: "VALIDATION_FAILED"
+    message:
+      type: string
+      description: Menschenlesbare Beschreibung
+      example: "Die Anfrage enthält ungültige Felder."
+    details:
+      type: array
+      items:
+        type: object
+        properties:
+          field:
+            type: string
+          message:
+            type: string
+
+PaginationMeta:
+  type: object
+  properties:
+    page:
+      type: integer
+      example: 0
+    size:
+      type: integer
+      example: 20
+    totalElements:
+      type: integer
+      example: 100
+    totalPages:
+      type: integer
+      example: 5
+
+LocationType:
+  type: string
+  description: "Art des Standorts: LOESCHZUG oder LOESCHGRUPPE"
+  enum:
+    - LOESCHZUG
+    - LOESCHGRUPPE
+  example: "LOESCHZUG"
+
+LocationReference:
+  type: object
+  description: "Referenz auf einen Standort für die Zuordnung zu Mitgliedern"
+  properties:
+    locationId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    locationName:
+      type: string
+      example: "Hauptwache"

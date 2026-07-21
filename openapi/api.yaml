@@ -1,11 +1,61 @@
-openapi: 3.0.3
+openapi: "3.0.3"
 info:
-  title: Hogwarts API Dummy
-  version: 0.1.0-SNAPSHOT
+  title: Hogwarts Firemanager API
+  version: "1.0.0"
+  description: REST-API für die Feuerwehr-Verwaltung mit Standort- und Mitgliedermanagement
+
+servers:
+  - url: http://localhost:8080
+    description: Lokale Entwicklung
+
+tags:
+  - name: Locations
+    description: Verwaltung von Feuerwehr-Standorten (Löschzüge, Löschgruppen)
+  - name: Members
+    description: Verwaltung von Feuerwehrmitgliedern und Standort-Zuordnungen
+
 paths:
-  /dummy:
-    get:
-      summary: Dummy endpoint to trigger generation. Remove in the future.
-      responses:
-        '200':
-          description: Dummy OK
+  /api/v1/locations:
+    $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations'
+  /api/v1/locations/{locationId}:
+    $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations~1{locationId}'
+  /api/v1/members/{memberId}/locations:
+    $ref: './paths/members-locations.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations'
+  /api/v1/members/{memberId}/locations/{locationId}:
+    $ref: './paths/members-locations.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations~1{locationId}'
+  /api/v1/members:
+    $ref: './paths/members-locations.yaml#/paths/~1api~1v1~1members'
+
+components:
+  schemas:
+    ErrorResponse:
+      $ref: './components/schemas/common.yaml#/ErrorResponse'
+    PaginationMeta:
+      $ref: './components/schemas/common.yaml#/PaginationMeta'
+    LocationType:
+      $ref: './components/schemas/common.yaml#/LocationType'
+    LocationReference:
+      $ref: './components/schemas/common.yaml#/LocationReference'
+    CreateLocationRequest:
+      $ref: './components/schemas/location.yaml#/CreateLocationRequest'
+    UpdateLocationRequest:
+      $ref: './components/schemas/location.yaml#/UpdateLocationRequest'
+    LocationResponse:
+      $ref: './components/schemas/location.yaml#/LocationResponse'
+    MemberLocationAssignment:
+      $ref: './components/schemas/member.yaml#/MemberLocationAssignment'
+    MemberWithLocationsResponse:
+      $ref: './components/schemas/member.yaml#/MemberWithLocationsResponse'
+  responses:
+    BadRequest:
+      $ref: './components/responses/errors.yaml#/BadRequest'
+    Unauthorized:
+      $ref: './components/responses/errors.yaml#/Unauthorized'
+    Forbidden:
+      $ref: './components/responses/errors.yaml#/Forbidden'
+    NotFound:
+      $ref: './components/responses/errors.yaml#/NotFound'
+    Conflict:
+      $ref: './components/responses/errors.yaml#/Conflict'
+    InternalServerError:
+      $ref: './components/responses/errors.yaml#/InternalServerError'
