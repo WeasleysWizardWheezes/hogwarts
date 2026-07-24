@@ -29,8 +29,18 @@
 	<properties>
 		<java.version>25</java.version>
         <lombok.version>1.18.40</lombok.version>
+
         <hogwarts.api.version>issue-51</hogwarts.api.version>
+
+        <hogwarts.api.version>0.1.0-SNAPSHOT</hogwarts.api.version>
+
 	</properties>
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/WeasleysWizardWheezes/hogwarts</url>
+        </repository>
+    </repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -108,10 +118,35 @@
             <version>3.0.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>hogwarts-api-client</artifactId>
+            <version>${hogwarts.api.version}</version>
+        </dependency>
+
     </dependencies>
 
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${project.basedir}/../.env</file>
+                            </files>
+                            <quiet>true</quiet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
