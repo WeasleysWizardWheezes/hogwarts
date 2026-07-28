@@ -8,6 +8,8 @@ import java.util.UUID;
 
 @Repository
 public interface VehicleGroupRepository extends JpaRepository<VehicleGroup, UUID> {
+
     List<VehicleGroup> findByIsArchivedFalse();
+
     List<VehicleGroup> findByIsArchived(boolean isArchived);
 }

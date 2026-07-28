@@ -8,10 +8,18 @@ import java.util.UUID;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
+
     List<Vehicle> findByIsArchivedFalse();
+
     List<Vehicle> findByIsArchived(boolean isArchived);
+
     List<Vehicle> findByVehicleGroupIdAndIsArchivedFalse(UUID vehicleGroupId);
+
     List<Vehicle> findByStatusAndIsArchivedFalse(VehicleStatus status);
-    List<Vehicle> findByVehicleGroupIdAndIsArchived(UUID vehicleGroupId, boolean isArchived);
-    List<Vehicle> findByStatusAndIsArchived(VehicleStatus status, boolean isArchived);
+
+    List<Vehicle> findByVehicleGroupIdAndIsArchived(UUID vehicleGroupId,
+            boolean isArchived);
+
+    List<Vehicle> findByStatusAndIsArchived(VehicleStatus status,
+            boolean isArchived);
 }

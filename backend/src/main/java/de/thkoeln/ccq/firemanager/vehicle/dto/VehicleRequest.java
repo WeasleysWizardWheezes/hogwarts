@@ -3,7 +3,11 @@ package de.thkoeln.ccq.firemanager.vehicle.dto;
 import de.thkoeln.ccq.firemanager.vehicle.VehicleStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.UUID;
 
@@ -13,6 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class VehicleRequest {
+
     @NotBlank(message = "Name ist ein Pflichtfeld")
     private String name;
 
@@ -23,7 +28,9 @@ public class VehicleRequest {
     private String kennzeichen;
 
     private Integer baujahr;
+
     private String beschreibung;
+
     private VehicleStatus status;
 
     @NotNull(message = "VehicleGroup-ID ist ein Pflichtfeld")
