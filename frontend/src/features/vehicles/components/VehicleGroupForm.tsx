@@ -21,7 +21,7 @@ interface VehicleGroup {
 }
 
 const vehicleGroupFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Name ist erforderlich"),
   description: z.string().optional(),
 })
 
@@ -47,11 +47,18 @@ export function VehicleGroupForm({ group, onSuccess }: VehicleGroupFormProps) {
   function onSubmit(data: VehicleGroupFormValues) {
     if (group) {
       updateVehicleGroupMutation.mutate(
-        { id: group.id!, group: data },
+        { id: group.id!, group: {
+          name: data.name!,
+          description: data.description,
+        } },
         { onSuccess }
       )
     } else {
-      createVehicleGroupMutation.mutate(data, { onSuccess })
+      const groupData = {
+        name: data.name!,
+        description: data.description,
+      }
+      createVehicleGroupMutation.mutate(groupData, { onSuccess })
     }
   }
 
@@ -63,7 +70,7 @@ export function VehicleGroupForm({ group, onSuccess }: VehicleGroupFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Name *</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -77,7 +84,7 @@ export function VehicleGroupForm({ group, onSuccess }: VehicleGroupFormProps) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Beschreibung</FormLabel>
               <FormControl>
                 <Textarea {...field} />
               </FormControl>
@@ -88,11 +95,11 @@ export function VehicleGroupForm({ group, onSuccess }: VehicleGroupFormProps) {
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline">
-            Cancel
+            Abbrechen
           </Button>
           <Button type="submit" 
             disabled={createVehicleGroupMutation.isPending || updateVehicleGroupMutation.isPending}>
-            {group ? "Update Vehicle Group" : "Create Vehicle Group"}
+            {group ? "Fahrzeuggruppe aktualisieren" : "Fahrzeuggruppe erstellen"}
           </Button>
         </div>
       </form>

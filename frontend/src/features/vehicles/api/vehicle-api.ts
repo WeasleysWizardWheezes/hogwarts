@@ -5,8 +5,9 @@ export interface Vehicle {
   name: string
   licensePlate: string
   type: string
-  status: string
+  status: "VERFUEGBAR" | "IM_EINSATZ" | "WARTUNG_REPARATUR" | "DEFEKT"
   vehicleGroupId?: string
+  year?: number
 }
 
 export interface VehicleGroup {
@@ -14,6 +15,9 @@ export interface VehicleGroup {
   name: string
   description?: string
 }
+
+export type VehicleCreate = Omit<Vehicle, 'id'>
+export type VehicleGroupCreate = Omit<VehicleGroup, 'id'>
 
 async function handleResponse(response: Response) {
   if (!response.ok) {
@@ -33,7 +37,7 @@ export async function getVehicleById(id: string) {
   return handleResponse(response)
 }
 
-export async function createVehicle(vehicle: Omit<Vehicle, 'id'>) {
+export async function createVehicle(vehicle: { name: string; licensePlate: string; type: string; year?: number; status: string; vehicleGroupId?: string }) {
   const response = await fetch(`${API_BASE_URL}/api/v1/vehicles`, {
     method: 'POST',
     headers: {
@@ -44,7 +48,7 @@ export async function createVehicle(vehicle: Omit<Vehicle, 'id'>) {
   return handleResponse(response)
 }
 
-export async function updateVehicle(id: string, vehicle: Vehicle) {
+export async function updateVehicle(id: string, vehicle: { name: string; licensePlate: string; type: string; year?: number; status: string; vehicleGroupId?: string }) {
   const response = await fetch(`${API_BASE_URL}/api/v1/vehicles/${id}`, {
     method: 'PUT',
     headers: {
@@ -72,7 +76,7 @@ export async function getVehicleGroupById(id: string) {
   return handleResponse(response)
 }
 
-export async function createVehicleGroup(group: Omit<VehicleGroup, 'id'>) {
+export async function createVehicleGroup(group: { name: string; description?: string }) {
   const response = await fetch(`${API_BASE_URL}/api/v1/vehicle-groups`, {
     method: 'POST',
     headers: {

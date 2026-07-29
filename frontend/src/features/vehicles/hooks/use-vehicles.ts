@@ -12,8 +12,9 @@ interface Vehicle {
   name: string
   licensePlate: string
   type: string
-  status: string
+  status: "VERFUEGBAR" | "IM_EINSATZ" | "WARTUNG_REPARATUR" | "DEFEKT"
   vehicleGroupId?: string
+  year?: number
 }
 
 export function useVehicles() {
@@ -35,7 +36,7 @@ export function useCreateVehicle() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (vehicle: Omit<Vehicle, "id">) => createVehicle(vehicle),
+    mutationFn: (vehicle: { name: string; licensePlate: string; type: string; year?: number; status: string; vehicleGroupId?: string }) => createVehicle(vehicle),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicles"] })
     },
@@ -46,7 +47,7 @@ export function useUpdateVehicle() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, vehicle }: { id: string; vehicle: Vehicle }) => 
+    mutationFn: ({ id, vehicle }: { id: string; vehicle: { name: string; licensePlate: string; type: string; year?: number; status: string; vehicleGroupId?: string } }) => 
       updateVehicle(id, vehicle),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicles"] })

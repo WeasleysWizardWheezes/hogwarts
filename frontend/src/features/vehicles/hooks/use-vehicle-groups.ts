@@ -32,7 +32,7 @@ export function useCreateVehicleGroup() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (group: Omit<VehicleGroup, "id">) => createVehicleGroup(group),
+    mutationFn: (group: { name: string; description?: string }) => createVehicleGroup(group),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicle-groups"] })
     },
@@ -43,7 +43,7 @@ export function useUpdateVehicleGroup() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, group }: { id: string; group: VehicleGroup }) => 
+    mutationFn: ({ id, group }: { id: string; group: { name: string; description?: string } }) => 
       updateVehicleGroup(id, group),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicle-groups"] })

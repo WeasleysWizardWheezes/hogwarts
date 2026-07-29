@@ -25,6 +25,7 @@ interface Vehicle {
   name: string
   licensePlate: string
   type: string
+  year?: number
   status: string
   vehicleGroupId?: string
 }
@@ -36,10 +37,11 @@ interface VehicleGroup {
 }
 
 const vehicleFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  licensePlate: z.string().min(1, "License plate is required"),
-  type: z.string().min(1, "Type is required"),
-  status: z.string().min(1, "Status is required"),
+  name: z.string().min(1, "Name ist erforderlich"),
+  licensePlate: z.string().min(1, "Funkrufname ist erforderlich"),
+  type: z.string().min(1, "Kennzeichen ist erforderlich"),
+  year: z.number().min(1900, "Baujahr muss mindestens 1900 sein").max(new Date().getFullYear(), "Baujahr darf nicht in der Zukunft liegen"),
+  status: z.string().min(1, "Status ist erforderlich"),
   vehicleGroupId: z.string().optional(),
 })
 
@@ -58,7 +60,8 @@ export function VehicleForm({ vehicle, vehicleGroups, onSuccess }: VehicleFormPr
       name: vehicle?.name || "",
       licensePlate: vehicle?.licensePlate || "",
       type: vehicle?.type || "",
-      status: vehicle?.status || "ACTIVE",
+      year: vehicle?.year || new Date().getFullYear(),
+      status: vehicle?.status || "VERFUEGBAR",
       vehicleGroupId: vehicle?.vehicleGroupId || "",
     },
   })
@@ -69,11 +72,26 @@ export function VehicleForm({ vehicle, vehicleGroups, onSuccess }: VehicleFormPr
   function onSubmit(data: VehicleFormValues) {
     if (vehicle) {
       updateVehicleMutation.mutate(
-        { id: vehicle.id!, vehicle: data },
+        { id: vehicle.id!, vehicle: {
+          name: data.name!,
+          licensePlate: data.licensePlate!,
+          type: data.type!,
+          year: data.year!,
+          status: data.status!,
+          vehicleGroupId: data.vehicleGroupId,
+        } },
         { onSuccess }
       )
     } else {
-      createVehicleMutation.mutate(data, { onSuccess })
+      const vehicleData = {
+        name: data.name!,
+        licensePlate: data.licensePlate!,
+        type: data.type!,
+        year: data.year!,
+        status: data.status!,
+        vehicleGroupId: data.vehicleGroupId,
+      }
+      createVehicleMutation.mutate(vehicleData, { onSuccess })
     }
   }
 
@@ -85,7 +103,7 @@ export function VehicleForm({ vehicle, vehicleGroups, onSuccess }: VehicleFormPr
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Name *</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -99,7 +117,7 @@ export function VehicleForm({ vehicle, vehicleGroups, onSuccess }: VehicleFormPr
           name="licensePlate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>License Plate</FormLabel>
+              <FormLabel>Funkrufname *</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -113,9 +131,23 @@ export function VehicleForm({ vehicle, vehicleGroups, onSuccess }: VehicleFormPr
           name="type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Type</FormLabel>
+              <FormLabel>Kennzeichen *</FormLabel>
               <FormControl>
                 <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="year"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Baujahr *</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -127,19 +159,20 @@ export function VehicleForm({ vehicle, vehicleGroups, onSuccess }: VehicleFormPr
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Status</FormLabel>
+              <FormLabel>Status *</FormLabel>
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder="Status auswählen" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ACTIVE">Active</SelectItem>
-                    <SelectItem value="INACTIVE">Inactive</SelectItem>
-                    <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                    <SelectItem value="VERFUEGBAR">Verfügbar</SelectItem>
+                    <SelectItem value="IM_EINSATZ">Im Einsatz</SelectItem>
+                    <SelectItem value="WARTUNG_REPARATUR">Wartung/Reparatur</SelectItem>
+                    <SelectItem value="DEFEKT">Defekt</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -153,14 +186,14 @@ export function VehicleForm({ vehicle, vehicleGroups, onSuccess }: VehicleFormPr
           name="vehicleGroupId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Vehicle Group</FormLabel>
+              <FormLabel>Fahrzeuggruppe</FormLabel>
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select vehicle group" />
+                    <SelectValue placeholder="Fahrzeuggruppe auswählen" />
                   </SelectTrigger>
                   <SelectContent>
                     {vehicleGroups.map((group) => (
@@ -178,11 +211,11 @@ export function VehicleForm({ vehicle, vehicleGroups, onSuccess }: VehicleFormPr
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline">
-            Cancel
+            Abbrechen
           </Button>
           <Button type="submit" 
             disabled={createVehicleMutation.isPending || updateVehicleMutation.isPending}>
-            {vehicle ? "Update Vehicle" : "Create Vehicle"}
+            {vehicle ? "Fahrzeug aktualisieren" : "Fahrzeug erstellen"}
           </Button>
         </div>
       </form>

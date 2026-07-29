@@ -88,7 +88,7 @@ export function VehicleList() {
             </DialogHeader>
             <VehicleForm
               vehicle={editingVehicle}
-              vehicleGroups={vehicleGroups || []}
+              vehicleGroups={vehicleGroups?.data || []}
               onSuccess={() => {
                 setIsDialogOpen(false)
                 setEditingVehicle(null)
@@ -99,18 +99,19 @@ export function VehicleList() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">Loading vehicles...</div>
+        <div className="text-center py-8">Fahrzeuge werden geladen...</div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>License Plate</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Funkrufname</TableHead>
+                <TableHead>Kennzeichen</TableHead>
+                <TableHead>Baujahr</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Group</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Fahrzeuggruppe</TableHead>
+                <TableHead>Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -120,7 +121,20 @@ export function VehicleList() {
                     <TableCell>{vehicle.name}</TableCell>
                     <TableCell>{vehicle.licensePlate}</TableCell>
                     <TableCell>{vehicle.type}</TableCell>
-                    <TableCell>{vehicle.status}</TableCell>
+                    <TableCell>{vehicle.year || "-"}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        vehicle.status === "VERFUEGBAR" ? "bg-green-100 text-green-800" :
+                        vehicle.status === "IM_EINSATZ" ? "bg-blue-100 text-blue-800" :
+                        vehicle.status === "WARTUNG_REPARATUR" ? "bg-yellow-100 text-yellow-800" :
+                        "bg-red-100 text-red-800"
+                      }`}>
+                        {vehicle.status === "VERFUEGBAR" ? "Verfügbar" :
+                         vehicle.status === "IM_EINSATZ" ? "Im Einsatz" :
+                         vehicle.status === "WARTUNG_REPARATUR" ? "Wartung/Reparatur" :
+                         "Defekt"}
+                      </span>
+                    </TableCell>
                     <TableCell>{getVehicleGroupName(vehicle.vehicleGroupId)}</TableCell>
                     <TableCell className="flex gap-2">
                       <Button
@@ -128,22 +142,22 @@ export function VehicleList() {
                         size="sm"
                         onClick={() => handleEdit(vehicle)}
                       >
-                        Edit
+                        Bearbeiten
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDelete(vehicle.id)}
                       >
-                        Delete
+                        Löschen
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4">
-                    No vehicles found
+                  <TableCell colSpan={7} className="text-center py-4">
+                    Keine Fahrzeuge gefunden
                   </TableCell>
                 </TableRow>
               )}

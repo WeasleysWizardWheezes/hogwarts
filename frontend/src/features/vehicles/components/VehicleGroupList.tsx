@@ -82,7 +82,7 @@ export function VehicleGroupList() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">Loading vehicle groups...</div>
+        <div className="text-center py-8">Fahrzeuggruppen werden geladen...</div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
           <Table>
