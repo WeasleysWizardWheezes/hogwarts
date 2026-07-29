@@ -27,6 +27,7 @@ interface Vehicle {
   type: string
   status: string
   vehicleGroupId?: string
+  year?: number
 }
 
 interface VehicleGroup {
