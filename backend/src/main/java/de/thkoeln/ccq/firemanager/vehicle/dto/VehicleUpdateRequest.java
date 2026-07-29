@@ -1,6 +1,8 @@
 package de.thkoeln.ccq.firemanager.vehicle.dto;
 
-import de.thkoeln.ccq.firemanager.vehicle.VehicleStatus;
+import de.thkoeln.ccq.firemanager.vehicle.domain.VehicleStatus;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +24,8 @@ public class VehicleUpdateRequest {
 
     private String kennzeichen;
 
+    @Min(value = 1900, message = "Baujahr muss mindestens 1900 sein")
+    @Max(value = 2100, message = "Baujahr darf maximal 2100 sein")
     private Integer baujahr;
 
     private String beschreibung;

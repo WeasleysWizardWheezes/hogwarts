@@ -3,6 +3,9 @@ package de.thkoeln.ccq.firemanager.vehicle.api;
 import de.thkoeln.ccq.firemanager.vehicle.domain.Vehicle;
 import de.thkoeln.ccq.firemanager.vehicle.domain.VehicleStatus;
 import de.thkoeln.ccq.firemanager.vehicle.application.VehicleService;
+import de.thkoeln.ccq.firemanager.vehicle.dto.VehicleRequest;
+import de.thkoeln.ccq.firemanager.vehicle.dto.VehicleUpdateRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,8 +31,8 @@ public class VehicleController {
     }
 
     @PostMapping
-    public ResponseEntity<Vehicle> create(@RequestBody Vehicle vehicle) {
-        Vehicle created = service.create(vehicle);
+    public ResponseEntity<Vehicle> create(@Valid @RequestBody VehicleRequest request) {
+        Vehicle created = service.create(request);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
@@ -38,14 +41,7 @@ public class VehicleController {
             @RequestParam(required = false) VehicleStatus status,
             @RequestParam(required = false) UUID vehicleGroupId,
             @RequestParam(required = false) Boolean isArchived) {
-        List<Vehicle> vehicles;
-        if (status != null) {
-            vehicles = service.getByStatus(status);
-        } else if (vehicleGroupId != null) {
-            vehicles = service.getByVehicleGroup(vehicleGroupId);
-        } else {
-            vehicles = service.getAll();
-        }
+        List<Vehicle> vehicles = service.getAll(status, vehicleGroupId, isArchived);
         return new ResponseEntity<>(vehicles, HttpStatus.OK);
     }
 
@@ -56,8 +52,10 @@ public class VehicleController {
     }
 
     @PatchMapping("/{vehicleId}")
-    public ResponseEntity<Vehicle> update(@PathVariable UUID vehicleId, @RequestBody Vehicle vehicle) {
-        Vehicle updated = service.update(vehicleId, vehicle);
+    public ResponseEntity<Vehicle> update(
+            @PathVariable UUID vehicleId,
+            @Valid @RequestBody VehicleUpdateRequest request) {
+        Vehicle updated = service.update(vehicleId, request);
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 

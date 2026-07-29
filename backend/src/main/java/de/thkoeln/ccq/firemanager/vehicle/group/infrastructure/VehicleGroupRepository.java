@@ -12,6 +12,9 @@ public interface VehicleGroupRepository extends JpaRepository<VehicleGroup, UUID
     @Query("SELECT v FROM VehicleGroup v WHERE v.archived = false")
     List<VehicleGroup> findAllNotArchived();
 
+    @Query("SELECT v FROM VehicleGroup v WHERE v.archived = true")
+    List<VehicleGroup> findAllArchived();
+
     @Query("SELECT v FROM VehicleGroup v WHERE v.id = :id AND v.archived = false")
     VehicleGroup findByIdNotArchived(@Param("id") UUID id);
 }
