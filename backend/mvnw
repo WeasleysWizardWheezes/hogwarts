@@ -1,4 +1,12 @@
 #!/bin/sh
+# Load .env file from parent directory if it exists
+if [ -f "../.env" ]; then
+  export $(grep -v '^#' ../.env | xargs)
+fi
+# Fallback for GITHUB_ACTOR
+if [ -z "$GITHUB_ACTOR" ]; then
+  export GITHUB_ACTOR="HermioneGrangerAgent"
+fi
 # ----------------------------------------------------------------------------
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file

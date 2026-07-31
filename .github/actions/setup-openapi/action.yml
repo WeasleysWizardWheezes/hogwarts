@@ -1,0 +1,11 @@
+name: Setup OpenAPI Generator
+description: Install OpenAPI Generator CLI
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - run: npm install -g @openapitools/openapi-generator-cli
+      shell: bash

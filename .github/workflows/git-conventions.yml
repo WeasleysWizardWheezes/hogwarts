@@ -111,11 +111,8 @@ jobs:
             FILES=$(git diff --name-only HEAD~1..HEAD 2>/dev/null || git ls-tree --name-only -r HEAD)
           fi
 
-          # Keine OpenClaw-Dateien (SOUL.md, Skills, Agent-Configs, .openclaw)
           FORBIDDEN_PATTERNS="SOUL\.md|/Skills/|/Agent-Configs/|\.openclaw|/\.openclaw/"
-
-          # Erlaubte Pfade (Projekt-Code)
-          ALLOWED_PATTERNS="^(backend/|frontend/|\.github/|docs/|README\.md|\.gitignore|\.gitattributes|docker-compose\.yml)"
+          ALLOWED_PATTERNS="^(openapi/|backend/|frontend/|\.github/|docs/|README\.md|\.gitignore|\.gitattributes|docker-compose\.yml)"
 
           while IFS= read -r file; do
             [ -z "$file" ] && continue
@@ -130,6 +127,6 @@ jobs:
 
           if [ $ERRORS -gt 0 ]; then
             echo "::error::$ERRORS forbidden/misplaced file(s) found. Only project code should be committed."
-            echo "Allowed paths: backend/, frontend/, .github/, docs/, README.md, .gitignore, .gitattributes, docker-compose.yml"
+            echo "Allowed paths: openapi/, backend/, frontend/, .github/, docs/, README.md, .gitignore, .gitattributes, docker-compose.yml"
             exit 1
           fi
