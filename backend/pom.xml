@@ -114,11 +114,11 @@
             <version>3.0.0</version>
         </dependency>
 
-        <dependency>
+        <!-- dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>hogwarts-api-client</artifactId>
             <version>${hogwarts.api.version}</version>
-        </dependency>
+        </dependency -->
 
     </dependencies>
 
