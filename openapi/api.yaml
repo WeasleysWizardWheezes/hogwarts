@@ -1,11 +1,59 @@
-openapi: 3.0.3
+openapi: "3.0.3"
 info:
-  title: Hogwarts API Dummy
-  version: 0.1.0-SNAPSHOT
+  title: Hogwarts Firemanager API
+  version: "0.0.0-issue-141"
+  description: REST-API für die Fahrzeugverwaltung (Fahrzeuggruppen und Fahrzeuge)
+
+servers:
+  - url: http://localhost:8080
+    description: Lokale Entwicklung
+
+tags:
+  - name: VehicleGroups
+    description: Verwaltung von Fahrzeuggruppen
+  - name: Vehicles
+    description: Verwaltung von Fahrzeugen
+
 paths:
-  /dummy:
-    get:
-      summary: Dummy endpoint to trigger generation. Remove in the future.
-      responses:
-        '200':
-          description: Dummy OK
+  /api/v1/vehicle-groups:
+    $ref: './paths/vehicle-groups.yaml#/paths/~1api~1v1~1vehicle-groups'
+  /api/v1/vehicle-groups/{vehicleGroupId}:
+    $ref: './paths/vehicle-groups.yaml#/paths/~1api~1v1~1vehicle-groups~1{vehicleGroupId}'
+  /api/v1/vehicles:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles'
+  /api/v1/vehicles/{vehicleId}:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles~1{vehicleId}'
+
+components:
+  schemas:
+    ErrorResponse:
+      $ref: './components/schemas/common.yaml#/ErrorResponse'
+    PaginationMeta:
+      $ref: './components/schemas/common.yaml#/PaginationMeta'
+    VehicleStatus:
+      $ref: './components/schemas/vehicles.yaml#/VehicleStatus'
+    CreateVehicleGroupRequest:
+      $ref: './components/schemas/vehicle-groups.yaml#/CreateVehicleGroupRequest'
+    VehicleGroupResponse:
+      $ref: './components/schemas/vehicle-groups.yaml#/VehicleGroupResponse'
+    UpdateVehicleGroupRequest:
+      $ref: './components/schemas/vehicle-groups.yaml#/UpdateVehicleGroupRequest'
+    CreateVehicleRequest:
+      $ref: './components/schemas/vehicles.yaml#/CreateVehicleRequest'
+    VehicleResponse:
+      $ref: './components/schemas/vehicles.yaml#/VehicleResponse'
+    UpdateVehicleRequest:
+      $ref: './components/schemas/vehicles.yaml#/UpdateVehicleRequest'
+  responses:
+    BadRequest:
+      $ref: './components/responses/errors.yaml#/BadRequest'
+    Unauthorized:
+      $ref: './components/responses/errors.yaml#/Unauthorized'
+    Forbidden:
+      $ref: './components/responses/errors.yaml#/Forbidden'
+    NotFound:
+      $ref: './components/responses/errors.yaml#/NotFound'
+    Conflict:
+      $ref: './components/responses/errors.yaml#/Conflict'
+    InternalServerError:
+      $ref: './components/responses/errors.yaml#/InternalServerError'

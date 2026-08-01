@@ -1,0 +1,166 @@
+paths:
+  /api/v1/vehicle-groups:
+    get:
+      tags: [VehicleGroups]
+      summary: Alle Fahrzeuggruppen auflisten
+      operationId: listVehicleGroups
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+      responses:
+        '200':
+          description: Liste aller Fahrzeuggruppen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/vehicle-groups.yaml#/VehicleGroupResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+
+    post:
+      tags: [VehicleGroups]
+      summary: Neue Fahrzeuggruppe anlegen
+      operationId: createVehicleGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/vehicle-groups.yaml#/CreateVehicleGroupRequest'
+      responses:
+        '201':
+          description: Fahrzeuggruppe erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/vehicle-groups.yaml#/VehicleGroupResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/vehicle-groups/{vehicleGroupId}:
+    get:
+      tags: [VehicleGroups]
+      summary: Fahrzeuggruppe anhand der ID laden
+      operationId: getVehicleGroup
+      parameters:
+        - name: vehicleGroupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Fahrzeuggruppe gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/vehicle-groups.yaml#/VehicleGroupResponse'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    put:
+      tags: [VehicleGroups]
+      summary: Fahrzeuggruppe vollständig aktualisieren
+      operationId: updateVehicleGroup
+      parameters:
+        - name: vehicleGroupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/vehicle-groups.yaml#/UpdateVehicleGroupRequest'
+      responses:
+        '200':
+          description: Fahrzeuggruppe aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/vehicle-groups.yaml#/VehicleGroupResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+    patch:
+      tags: [VehicleGroups]
+      summary: Fahrzeuggruppe teilweise aktualisieren
+      operationId: patchVehicleGroup
+      parameters:
+        - name: vehicleGroupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/vehicle-groups.yaml#/UpdateVehicleGroupRequest'
+      responses:
+        '200':
+          description: Fahrzeuggruppe aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/vehicle-groups.yaml#/VehicleGroupResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+    delete:
+      tags: [VehicleGroups]
+      summary: Fahrzeuggruppe archivieren/löschen
+      operationId: deleteVehicleGroup
+      parameters:
+        - name: vehicleGroupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Fahrzeuggruppe archiviert/gelöscht
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'

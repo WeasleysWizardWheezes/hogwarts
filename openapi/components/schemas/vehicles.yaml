@@ -1,0 +1,121 @@
+VehicleStatus:
+  type: string
+  description: Status des Fahrzeugs
+  enum:
+    - AVAILABLE
+    - IN_USE
+    - IN_MAINTENANCE
+    - DEFECTIVE
+  example: "AVAILABLE"
+
+CreateVehicleRequest:
+  type: object
+  required:
+    - name
+    - callSign
+    - licensePlate
+    - yearOfConstruction
+    - vehicleGroupId
+  properties:
+    name:
+      type: string
+      description: Name des Fahrzeugs (bspw. "01-HLF20-01")
+      example: "01-HLF20-01"
+    callSign:
+      type: string
+      description: Funkrufname des Fahrzeugs (bspw. "Florian Monheim 01-HLF20-01")
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "KM-FW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung oder Bemerkung zum Fahrzeug
+      example: "Hilfeleistungslöschfahrzeug 20"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der Fahrzeuggruppe, der das Fahrzeug angehört
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+VehicleResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Eindeutige ID des Fahrzeugs
+      example: "660e8400-e29b-41d4-a716-446655440001"
+    name:
+      type: string
+      description: Name des Fahrzeugs
+      example: "01-HLF20-01"
+    callSign:
+      type: string
+      description: Funkrufname des Fahrzeugs
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "KM-FW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Beschreibung des Fahrzeugs
+      example: "Hilfeleistungslöschfahrzeug 20"
+    status:
+      $ref: './vehicles.yaml#/VehicleStatus'
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der Fahrzeuggruppe, der das Fahrzeug angehört
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    createdAt:
+      type: string
+      format: date-time
+      description: Erstellzeitpunkt
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      description: Letzter Updatezeitpunkt
+      example: "2024-01-15T10:30:00Z"
+
+UpdateVehicleRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      description: Name des Fahrzeugs
+      example: "01-HLF20-01"
+    callSign:
+      type: string
+      description: Funkrufname des Fahrzeugs
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "KM-FW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung oder Bemerkung zum Fahrzeug
+      example: "Hilfeleistungslöschfahrzeug 20"
+    status:
+      $ref: './vehicles.yaml#/VehicleStatus'
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der Fahrzeuggruppe, der das Fahrzeug angehört
+      example: "550e8400-e29b-41d4-a716-446655440000"
