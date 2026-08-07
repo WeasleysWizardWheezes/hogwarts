@@ -1,0 +1,286 @@
+CreateMemberRequest:
+  type: object
+  required:
+    - firstName
+    - lastName
+    - dateOfBirth
+    - rank
+    - locationIds
+  properties:
+    firstName:
+      type: string
+      description: Vorname des Mitglieds
+      example: "Max"
+    lastName:
+      type: string
+      description: Nachname des Mitglieds
+      example: "Mustermann"
+    dateOfBirth:
+      type: string
+      format: date
+      description: Geburtsdatum des Mitglieds
+      example: "1985-06-15"
+    email:
+      type: string
+      format: email
+      description: optionale E-Mail-Adresse
+      example: "max.mustermann@example.com"
+    phone:
+      type: string
+      description: optionale Telefonnummer
+      example: "+49 123 456789"
+    rank:
+      type: string
+      description: Dienstgrad des Mitglieds
+      enum:
+        - FFA
+        - FMA
+        - FF
+        - FM
+        - OFF
+        - OFM
+        - HFF
+        - HFM
+        - UBM
+        - BM
+        - OBM
+        - HBM
+        - BI
+        - BOI
+        - GBI
+        - STBI
+      example: "BM"
+    locationIds:
+      type: array
+      description: IDs der Standorte, denen das Mitglied zugewiesen ist (mindestens einer)
+      minItems: 1
+      items:
+        type: string
+        format: uuid
+      example:
+        - "550e8400-e29b-41d4-a716-446655440000"
+    unitIds:
+      type: array
+      description: optionale IDs der Einheiten (z.B. Einsatzabteilung, Jugendfeuerwehr)
+      items:
+        type: string
+        format: uuid
+      example:
+        - "660e8400-e29b-41d4-a716-446655440001"
+    function:
+      type: string
+      description: optionale Funktion des Mitglieds
+      enum:
+        - LDF
+        - STV_LDF
+        - EINHEITSFUEHRER
+        - STV_EINHEITSFUEHRER
+        - JFW
+        - STV_JFW
+        - KFW
+        - STV_KFW
+      example: "EINHEITSFUEHRER"
+    isTechnicalAdvisor:
+      type: boolean
+      description: true wenn das Mitglied Fachberater ist
+      example: false
+    technicalAdvisorType:
+      type: string
+      description: Typ des Fachberaters (nur wenn isTechnicalAdvisor=true)
+      enum:
+        - ABC
+        - MEDIZIN
+        - SEELSORGE
+      example: "ABC"
+
+MemberResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    firstName:
+      type: string
+      example: "Max"
+    lastName:
+      type: string
+      example: "Mustermann"
+    dateOfBirth:
+      type: string
+      format: date
+      example: "1985-06-15"
+    email:
+      type: string
+      nullable: true
+      example: "max.mustermann@example.com"
+    phone:
+      type: string
+      nullable: true
+      example: "+49 123 456789"
+    rank:
+      type: string
+      enum:
+        - FFA
+        - FMA
+        - FF
+        - FM
+        - OFF
+        - OFM
+        - HFF
+        - HFM
+        - UBM
+        - BM
+        - OBM
+        - HBM
+        - BI
+        - BOI
+        - GBI
+        - STBI
+      example: "BM"
+    locations:
+      type: array
+      description: Standorte, denen das Mitglied zugewiesen ist
+      items:
+        $ref: './locations.yaml#/LocationResponse'
+    units:
+      type: array
+      description: Einheiten, denen das Mitglied angehört
+      nullable: true
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          name:
+            type: string
+    function:
+      type: string
+      nullable: true
+      enum:
+        - LDF
+        - STV_LDF
+        - EINHEITSFUEHRER
+        - STV_EINHEITSFUEHRER
+        - JFW
+        - STV_JFW
+        - KFW
+        - STV_KFW
+      example: "EINHEITSFUEHRER"
+    isTechnicalAdvisor:
+      type: boolean
+      example: false
+    technicalAdvisorType:
+      type: string
+      nullable: true
+      enum:
+        - ABC
+        - MEDIZIN
+        - SEELSORGE
+      example: "ABC"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2024-08-07T14:20:00Z"
+
+UpdateMemberRequest:
+  type: object
+  required:
+    - firstName
+    - lastName
+    - dateOfBirth
+    - rank
+    - locationIds
+  properties:
+    firstName:
+      type: string
+      description: Vorname des Mitglieds
+      example: "Max"
+    lastName:
+      type: string
+      description: Nachname des Mitglieds
+      example: "Mustermann"
+    dateOfBirth:
+      type: string
+      format: date
+      description: Geburtsdatum des Mitglieds
+      example: "1985-06-15"
+    email:
+      type: string
+      format: email
+      description: optionale E-Mail-Adresse
+      example: "max.mustermann@example.com"
+    phone:
+      type: string
+      description: optionale Telefonnummer
+      example: "+49 123 456789"
+    rank:
+      type: string
+      description: Dienstgrad des Mitglieds
+      enum:
+        - FFA
+        - FMA
+        - FF
+        - FM
+        - OFF
+        - OFM
+        - HFF
+        - HFM
+        - UBM
+        - BM
+        - OBM
+        - HBM
+        - BI
+        - BOI
+        - GBI
+        - STBI
+      example: "BM"
+    locationIds:
+      type: array
+      description: IDs der Standorte, denen das Mitglied zugewiesen ist (mindestens einer)
+      minItems: 1
+      items:
+        type: string
+        format: uuid
+      example:
+        - "550e8400-e29b-41d4-a716-446655440000"
+    unitIds:
+      type: array
+      description: optionale IDs der Einheiten
+      items:
+        type: string
+        format: uuid
+      example:
+        - "660e8400-e29b-41d4-a716-446655440001"
+    function:
+      type: string
+      nullable: true
+      description: optionale Funktion des Mitglieds
+      enum:
+        - LDF
+        - STV_LDF
+        - EINHEITSFUEHRER
+        - STV_EINHEITSFUEHRER
+        - JFW
+        - STV_JFW
+        - KFW
+        - STV_KFW
+      example: "EINHEITSFUEHRER"
+    isTechnicalAdvisor:
+      type: boolean
+      description: true wenn das Mitglied Fachberater ist
+      example: false
+    technicalAdvisorType:
+      type: string
+      nullable: true
+      description: Typ des Fachberaters (nur wenn isTechnicalAdvisor=true)
+      enum:
+        - ABC
+        - MEDIZIN
+        - SEELSORGE
+      example: "ABC"

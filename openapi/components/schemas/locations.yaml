@@ -1,0 +1,88 @@
+CreateLocationRequest:
+  type: object
+  required:
+    - name
+    - type
+  properties:
+    name:
+      type: string
+      description: Name des Standorts (z.B. "Hauptwache", "Wache 2")
+      example: "Hauptwache"
+    type:
+      type: string
+      description: Typ des Standorts
+      enum: [LOESCHZUG, LOESCHGRUPPE]
+      example: "LOESCHZUG"
+    parentId:
+      type: string
+      format: uuid
+      description: ID des übergeordneten Standorts (nur bei Löschgruppen, die einem Löschzug zugeordnet sind)
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    description:
+      type: string
+      description: optionale Beschreibung des Standorts
+      example: "Hauptwache mit 2 Löschgruppen"
+
+LocationResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      example: "Hauptwache"
+    type:
+      type: string
+      enum: [LOESCHZUG, LOESCHGRUPPE]
+      example: "LOESCHZUG"
+    parentId:
+      type: string
+      format: uuid
+      nullable: true
+      description: ID des übergeordneten Standorts (null bei Löschzügen oder eigenständigen Löschgruppen)
+      example: null
+    description:
+      type: string
+      nullable: true
+      example: "Hauptwache mit 2 Löschgruppen"
+    memberCount:
+      type: integer
+      description: Anzahl der Mitglieder, die diesem Standort zugewiesen sind
+      example: 42
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2024-08-07T14:20:00Z"
+
+UpdateLocationRequest:
+  type: object
+  required:
+    - name
+    - type
+  properties:
+    name:
+      type: string
+      description: Name des Standorts
+      example: "Hauptwache Nord"
+    type:
+      type: string
+      description: Typ des Standorts
+      enum: [LOESCHZUG, LOESCHGRUPPE]
+      example: "LOESCHZUG"
+    parentId:
+      type: string
+      format: uuid
+      nullable: true
+      description: ID des übergeordneten Standorts (nur bei Löschgruppen)
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    description:
+      type: string
+      nullable: true
+      description: optionale Beschreibung des Standorts
+      example: "Hauptwache Nord mit 3 Löschgruppen"
