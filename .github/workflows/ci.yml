@@ -66,8 +66,9 @@ jobs:
         id: issue
         run: |
           # yq liest den Pfad .info.version aus deiner api.yaml
-          VERSION=$(yq eval '.info.version' openapi/api.yaml)
-          echo "Version aus OpenAPI ermittelt: $VERSION"
+          RAW_VERSION=$(yq eval '.info.version' openapi/api.yaml)
+          VERSION="${RAW_VERSION}-SNAPSHOT"
+          echo "Version aus OpenAPI ermittelt: $VERSION (raw: $RAW_VERSION)"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - uses: ./.github/actions/setup-openapi
