@@ -1,0 +1,122 @@
+VehicleStatus:
+  type: string
+  description: Status des Fahrzeugs
+  enum:
+    - VERFUEGBAR
+    - IM_EINSATZ
+    - WARTUNG
+    - DEFEKT
+  example: "VERFUEGBAR"
+
+CreateVehicleRequest:
+  type: object
+  required:
+    - name
+    - vehicleGroupId
+  properties:
+    name:
+      type: string
+      description: Name des Fahrzeugs (z.B. "01-HLF20-01")
+      example: "01-HLF20-01"
+    radioCallName:
+      type: string
+      description: Funkrufname (z.B. "Florian Monheim 01-HLF20-01")
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "K-EW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung/Bemerkung
+      example: "HLF 20 mit Rettungssatz"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der Fahrzeuggruppe, der dieses Fahrzeug angehört
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+UpdateVehicleRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      description: Name des Fahrzeugs (z.B. "01-HLF20-01")
+      example: "01-HLF20-01"
+    radioCallName:
+      type: string
+      description: Funkrufname (z.B. "Florian Monheim 01-HLF20-01")
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "K-EW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung/Bemerkung
+      example: "HLF 20 mit Rettungssatz"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der Fahrzeuggruppe, der dieses Fahrzeug angehört
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    status:
+      $ref: './vehicle.yaml#/VehicleStatus'
+
+VehicleResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Eindeutige ID des Fahrzeugs
+      example: "660e8400-e29b-41d4-a716-446655440001"
+    name:
+      type: string
+      description: Name des Fahrzeugs (z.B. "01-HLF20-01")
+      example: "01-HLF20-01"
+    radioCallName:
+      type: string
+      description: Funkrufname (z.B. "Florian Monheim 01-HLF20-01")
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "K-EW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung/Bemerkung
+      example: "HLF 20 mit Rettungssatz"
+    status:
+      $ref: './vehicle.yaml#/VehicleStatus'
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der Fahrzeuggruppe, der dieses Fahrzeug angehört
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    createdAt:
+      type: string
+      format: date-time
+      description: Erstellzeitpunkt
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      description: Letzter Update-Zeitpunkt
+      example: "2024-01-20T14:45:00Z"
+    archived:
+      type: boolean
+      description: Archivierungsstatus (Soft Delete)
+      example: false
