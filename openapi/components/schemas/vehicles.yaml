@@ -1,0 +1,119 @@
+VehicleStatus:
+  type: string
+  description: Status des Fahrzeugs
+  enum:
+    - AVAILABLE
+    - IN_USE
+    - IN_MAINTENANCE
+    - DEFECTIVE
+  example: "AVAILABLE"
+
+CreateVehicleRequest:
+  type: object
+  required:
+    - name
+    - functionalRadioName
+    - vehicleGroupId
+  properties:
+    name:
+      type: string
+      description: Name des Fahrzeugs (z.B. "01-HLF20-01")
+      example: "01-HLF20-01"
+    functionalRadioName:
+      type: string
+      description: Funkrufname des Fahrzeugs (z.B. "Florian Monheim 01-HLF20-01")
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "KM-FW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung oder Bemerkung
+      example: "HLF 20 mit 2000L Wassertank"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der Fahrzeuggruppe, der dieses Fahrzeug angehört
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+VehicleResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "660e8400-e29b-41d4-a716-446655440001"
+    name:
+      type: string
+      description: Name des Fahrzeugs
+      example: "01-HLF20-01"
+    functionalRadioName:
+      type: string
+      description: Funkrufname des Fahrzeugs
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "KM-FW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Beschreibung des Fahrzeugs
+      example: "HLF 20 mit 2000L Wassertank"
+    status:
+      $ref: './vehicles.yaml#/VehicleStatus'
+    vehicleGroup:
+      $ref: './vehicle-groups.yaml#/VehicleGroupResponse'
+      description: Die Fahrzeuggruppe, der dieses Fahrzeug angehört
+    createdAt:
+      type: string
+      format: date-time
+      description: Erstellzeitpunkt
+    updatedAt:
+      type: string
+      format: date-time
+      description: Letzter Update-Zeitpunkt
+    archivedAt:
+      type: string
+      format: date-time
+      nullable: true
+      description: Archivierungszeitpunkt (null wenn nicht archiviert)
+
+UpdateVehicleRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      description: Name des Fahrzeugs
+      example: "01-HLF20-01"
+    functionalRadioName:
+      type: string
+      description: Funkrufname des Fahrzeugs
+      example: "Florian Monheim 01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen des Fahrzeugs
+      example: "KM-FW 1234"
+    yearOfConstruction:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung oder Bemerkung
+      example: "HLF 20 mit 2000L Wassertank"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der Fahrzeuggruppe, der dieses Fahrzeug angehört
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    status:
+      $ref: './vehicles.yaml#/VehicleStatus'

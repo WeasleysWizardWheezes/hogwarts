@@ -1,0 +1,53 @@
+CreateVehicleGroupRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      description: Name der Fahrzeuggruppe
+      example: "Löschfahrzeuge"
+    description:
+      type: string
+      description: Optionale Beschreibung der Fahrzeuggruppe
+      example: "Alle Löschfahrzeuge der Feuerwehr"
+
+VehicleGroupResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      description: Name der Fahrzeuggruppe
+      example: "Löschfahrzeuge"
+    description:
+      type: string
+      description: Beschreibung der Fahrzeuggruppe
+      example: "Alle Löschfahrzeuge der Feuerwehr"
+    vehicleCount:
+      type: integer
+      description: Anzahl der Fahrzeuge in dieser Gruppe
+      example: 5
+    createdAt:
+      type: string
+      format: date-time
+      description: Erstellzeitpunkt
+    updatedAt:
+      type: string
+      format: date-time
+      description: Letzter Update-Zeitpunkt
+
+UpdateVehicleGroupRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      description: Name der Fahrzeuggruppe
+      example: "Löschfahrzeuge"
+    description:
+      type: string
+      description: Optionale Beschreibung der Fahrzeuggruppe
+      example: "Alle Löschfahrzeuge der Feuerwehr"
