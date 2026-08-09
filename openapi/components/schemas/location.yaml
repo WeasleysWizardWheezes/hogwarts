@@ -1,0 +1,66 @@
+CreateLocationRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      example: "Hauptwache"
+    description:
+      type: string
+      example: "Hauptstandort der Feuerwehr"
+
+UpdateLocationRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "Hauptwache"
+    description:
+      type: string
+      example: "Hauptstandort der Feuerwehr"
+
+LocationResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      example: "Hauptwache"
+    description:
+      type: string
+      example: "Hauptstandort der Feuerwehr"
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AssignMemberToLocationRequest:
+  type: object
+  required:
+    - memberId
+  properties:
+    memberId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+MemberLocationResponse:
+  type: object
+  properties:
+    memberId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    locationId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    assignedAt:
+      type: string
+      format: date-time
