@@ -1,0 +1,33 @@
+MemberResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    firstName:
+      type: string
+      example: "Max"
+    lastName:
+      type: string
+      example: "Mustermann"
+    rank:
+      type: string
+      example: "Hauptbrandmeister"
+    unit:
+      type: string
+      example: "Einsatzabteilung"
+    locations:
+      type: array
+      items:
+        $ref: './locations.yaml#/LocationResponse'
+
+MemberLocationAssignmentRequest:
+  type: object
+  required:
+    - locationId
+  properties:
+    locationId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
