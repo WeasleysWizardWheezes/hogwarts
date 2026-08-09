@@ -29,7 +29,7 @@
 	<properties>
 		<java.version>25</java.version>
         <lombok.version>1.18.40</lombok.version>
-        <hogwarts.api.version>0.1.0-SNAPSHOT</hogwarts.api.version>
+        <hogwarts.api.version>0.0.0-issue-165-SNAPSHOT</hogwarts.api.version>
 	</properties>
     <repositories>
         <repository>
