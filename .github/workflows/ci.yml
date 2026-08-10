@@ -165,8 +165,8 @@ jobs:
     needs: [ detect-changes, openapi-validate ]
     if: |
       github.event_name == 'push' &&
-      needs.detect-changes.outputs.openapi == 'true' &&
-      needs.detect-changes.outputs.openapi-version-changed == 'true'
+      github.ref_name == 'main' &&
+      needs.detect-changes.outputs.openapi == 'true'
     steps:
       - uses: actions/checkout@v7
 
@@ -209,8 +209,8 @@ jobs:
     needs: [ detect-changes, openapi-validate ]
     if: |
       github.event_name == 'push' &&
-      needs.detect-changes.outputs.openapi == 'true' &&
-      needs.detect-changes.outputs.openapi-version-changed == 'true'
+      github.ref_name == 'main' &&
+      needs.detect-changes.outputs.openapi == 'true'
     steps:
       - uses: actions/checkout@v7
 
@@ -692,34 +692,51 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Extract issue number from branch
-        id: issue
+      - name: Extract origin issue number from branch
+        id: origin
         run: |
           BRANCH="${GITHUB_REF_NAME}"
           if [[ "$BRANCH" =~ ^[a-z]+/(issue-)?([0-9]+)- ]]; then
             echo "number=${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
-            echo "Found issue #${BASH_REMATCH[2]} from branch $BRANCH"
+            echo "Found origin issue #${BASH_REMATCH[2]} from branch $BRANCH"
           else
             echo "number=" >> "$GITHUB_OUTPUT"
             echo "No issue number found in branch: $BRANCH"
           fi
 
-      - name: Check for awaiting-pipeline label
-        if: steps.issue.outputs.number != ''
-        id: label
+      - name: Find issue with awaiting-pipeline label
+        if: steps.origin.outputs.number != ''
+        id: issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LABELS=$(gh issue view ${{ steps.issue.outputs.number }} --json labels --jq '.labels[].name')
-          if echo "$LABELS" | grep -q "awaiting-pipeline"; then
+          ORIGIN_NR=${{ steps.origin.outputs.number }}
+
+          # Suche das Issue das awaiting-pipeline hat:
+          # 1. Erst das Ursprungsticket selbst prüfen
+          # 2. Dann alle Issues mit Label "origin #<nr>" prüfen
+          ORIGIN_LABELS=$(gh issue view "$ORIGIN_NR" --repo ${{ github.repository }} --json labels --jq '.labels[].name' 2>/dev/null || echo "")
+          if echo "$ORIGIN_LABELS" | grep -q "awaiting-pipeline"; then
+            echo "number=$ORIGIN_NR" >> "$GITHUB_OUTPUT"
             echo "has_label=true" >> "$GITHUB_OUTPUT"
+            echo "Found awaiting-pipeline on origin issue #$ORIGIN_NR"
           else
-            echo "has_label=false" >> "$GITHUB_OUTPUT"
-            echo "Issue #${{ steps.issue.outputs.number }} does not have awaiting-pipeline label – skipping"
+            # Suche Dev-/Test-Tickets mit origin-Label
+            CANDIDATES=$(gh issue list --repo ${{ github.repository }} --label "origin #$ORIGIN_NR" --label "awaiting-pipeline" --state open --json number --jq '.[].number')
+            FOUND=$(echo "$CANDIDATES" | head -1)
+            if [ -n "$FOUND" ]; then
+              echo "number=$FOUND" >> "$GITHUB_OUTPUT"
+              echo "has_label=true" >> "$GITHUB_OUTPUT"
+              echo "Found awaiting-pipeline on issue #$FOUND (origin #$ORIGIN_NR)"
+            else
+              echo "number=" >> "$GITHUB_OUTPUT"
+              echo "has_label=false" >> "$GITHUB_OUTPUT"
+              echo "No issue with awaiting-pipeline found for origin #$ORIGIN_NR"
+            fi
           fi
 
       - name: Determine role from board column
-        if: steps.label.outputs.has_label == 'true'
+        if: steps.issue.outputs.has_label == 'true'
         id: paths
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -775,11 +792,9 @@ jobs:
           # Check if all relevant jobs succeeded (skipped counts as okay)
           FAILED=false
 
-          # Planner role: check openapi-specific jobs
+          # Planner role: only openapi-validate matters (publish jobs run only on main)
           if [[ "${{ steps.paths.outputs.role }}" == "planner" ]]; then
-            if [[ "${{ needs.openapi-validate.result }}" == "failure" ]] || \
-               [[ "${{ needs.openapi-publish-backend.result }}" == "failure" ]] || \
-               [[ "${{ needs.openapi-publish-frontend.result }}" == "failure" ]]; then
+            if [[ "${{ needs.openapi-validate.result }}" == "failure" ]]; then
               FAILED=true
             fi
           fi
@@ -817,11 +832,11 @@ jobs:
           fi
 
       - name: Remove awaiting-pipeline label
-        if: steps.label.outputs.has_label == 'true'
+        if: steps.issue.outputs.has_label == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue edit ${{ steps.issue.outputs.number }} --remove-label "awaiting-pipeline"
+          gh issue edit ${{ steps.issue.outputs.number }} --repo ${{ github.repository }} --remove-label "awaiting-pipeline"
           echo "Removed awaiting-pipeline label from issue #${{ steps.issue.outputs.number }}"
 
       - name: Post failure comment on issue
