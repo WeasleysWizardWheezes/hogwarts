@@ -53,7 +53,7 @@ class MemberLocationAssignmentE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         ResponseEntity<String> locationResponse = restTemplate.postForEntity(
@@ -70,7 +70,7 @@ class MemberLocationAssignmentE2ETest {
 
         // Act
         ResponseEntity<String> response = restTemplate.exchange(
-                url("/api/v1/members/" + memberId + "/location"),
+                url("/api/v1/members/" + memberId + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson),
                 String.class);
@@ -93,7 +93,7 @@ class MemberLocationAssignmentE2ETest {
 
         // Act
         ResponseEntity<String> response = restTemplate.exchange(
-                url("/api/v1/members/" + memberId + "/location"),
+                url("/api/v1/members/" + memberId + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson),
                 String.class);
@@ -109,7 +109,7 @@ class MemberLocationAssignmentE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         ResponseEntity<String> locationResponse = restTemplate.postForEntity(
@@ -125,7 +125,7 @@ class MemberLocationAssignmentE2ETest {
             """.formatted(locationId);
         
         restTemplate.exchange(
-                url("/api/v1/members/" + memberId + "/location"),
+                url("/api/v1/members/" + memberId + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson),
                 String.class);
@@ -171,7 +171,7 @@ class MemberLocationAssignmentE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         ResponseEntity<String> locationResponse = restTemplate.postForEntity(
@@ -194,13 +194,13 @@ class MemberLocationAssignmentE2ETest {
             """.formatted(locationId);
         
         restTemplate.exchange(
-                url("/api/v1/members/" + memberId1 + "/location"),
+                url("/api/v1/members/" + memberId1 + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson1),
                 String.class);
         
         restTemplate.exchange(
-                url("/api/v1/members/" + memberId2 + "/location"),
+                url("/api/v1/members/" + memberId2 + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson2),
                 String.class);
@@ -222,14 +222,14 @@ class MemberLocationAssignmentE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         String locationJson2 = """
             {
                 "name": "Gerätehaus Bonn",
                 "address": "Beispielweg 2, 53111 Bonn",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         
@@ -257,13 +257,13 @@ class MemberLocationAssignmentE2ETest {
             """.formatted(locationId2);
         
         restTemplate.exchange(
-                url("/api/v1/members/" + memberId1 + "/location"),
+                url("/api/v1/members/" + memberId1 + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson1),
                 String.class);
         
         restTemplate.exchange(
-                url("/api/v1/members/" + memberId2 + "/location"),
+                url("/api/v1/members/" + memberId2 + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson2),
                 String.class);
@@ -285,7 +285,7 @@ class MemberLocationAssignmentE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         ResponseEntity<String> locationResponse = restTemplate.postForEntity(
@@ -301,14 +301,14 @@ class MemberLocationAssignmentE2ETest {
             """.formatted(locationId);
         
         restTemplate.exchange(
-                url("/api/v1/members/" + memberId + "/location"),
+                url("/api/v1/members/" + memberId + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson),
                 String.class);
 
         // Act
         ResponseEntity<String> response = restTemplate.exchange(
-                url("/api/v1/members/" + memberId + "/location"),
+                url("/api/v1/members/" + memberId + "/locations"),
                 HttpMethod.DELETE,
                 null,
                 String.class);
