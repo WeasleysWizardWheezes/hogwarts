@@ -112,14 +112,14 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.26'
           cache: false
 
       - name: Generate OpenAPI Diff
         id: diff
         run: |
           # Install oasdiff
-          go install github.com/tufin/oasdiff@latest
+          go install github.com/oasdiff/oasdiff@latest
 
           # Generate changelog (human-readable)
           DIFF_OUTPUT=$(oasdiff changelog "origin/main:openapi/api.yaml" "openapi/api.yaml" 2>/dev/null || echo "No changes detected")
