@@ -87,6 +87,8 @@ class LocationE2ETest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        // Just verify that we get a response body (the exact content may vary)
+        assertThat(response.getBody()).isNotNull();
     }
 
     @Test
@@ -124,6 +126,8 @@ class LocationE2ETest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        // Just verify that we get a response body (the exact content may vary)
+        assertThat(response.getBody()).isNotNull();
     }
 
     @Test
@@ -225,6 +229,8 @@ class LocationE2ETest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        // Just verify that we get a response body (the exact content may vary)
+        assertThat(response.getBody()).isNotNull();
     }
 
     @Test
@@ -267,6 +273,8 @@ class LocationE2ETest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        // Just verify that we get a response body (the exact content may vary)
+        assertThat(response.getBody()).isNotNull();
     }
 
     private String extractIdFromResponse(String responseBody) {
