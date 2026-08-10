@@ -828,8 +828,32 @@ jobs:
           gh issue edit ${{ steps.issue.outputs.number }} --remove-label "awaiting-pipeline"
           echo "Removed awaiting-pipeline label from issue #${{ steps.issue.outputs.number }}"
 
-      - name: Move issue on project board
-        if: steps.result.outputs.status == 'success' && steps.paths.outputs.role != '' && steps.paths.outputs.role != 'planner'
+      - name: Post failure comment on issue
+        if: steps.result.outputs.status == 'failure' && steps.paths.outputs.role != '' && steps.issue.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ROLE="${{ steps.paths.outputs.role }}"
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          COMMENT="## Pipeline fehlgeschlagen\n\n"
+          COMMENT+="**Rolle:** $ROLE\n"
+          COMMENT+="**Run:** $RUN_URL\n\n"
+
+          if [[ "$ROLE" == backend-dev ]] || [[ "$ROLE" == frontend-dev ]]; then
+            COMMENT+="Die Pipeline ist nach dem Dev-Push fehlgeschlagen. Mögliche Ursache: bestehende Tests sind durch die Code-Änderung gebrochen.\n\n"
+            COMMENT+="**Ticket wird trotzdem nach Ready Test verschoben.** Der Tester muss prüfen ob seine Tests angepasst werden müssen oder ob der Produktionscode fehlerhaft ist."
+          elif [[ "$ROLE" == backend-tester ]] || [[ "$ROLE" == frontend-tester ]]; then
+            COMMENT+="Die Pipeline ist nach dem Tester-Push fehlgeschlagen. Das Ticket bleibt in der aktuellen Spalte.\n\n"
+            COMMENT+="**Mögliche Ursachen:** Eigene Tests kompilieren nicht, Tests schlagen fehl, Coverage/Quality Gates nicht bestanden."
+          fi
+
+          gh issue comment "$ISSUE_NUMBER" --repo "${{ github.repository }}" --body "$(echo -e "$COMMENT")"
+          echo "Posted failure comment on issue #$ISSUE_NUMBER"
+
+      - name: Move issue on project board (Dev roles – move on success AND failure)
+        if: steps.paths.outputs.role != '' && steps.paths.outputs.role != 'planner' && (steps.paths.outputs.role == 'backend-dev' || steps.paths.outputs.role == 'frontend-dev')
         env:
           GH_TOKEN: ${{ secrets.PROJECT_PAT }}
         run: |
@@ -910,6 +934,80 @@ jobs:
                 projectV2Item {
                   id
                 }
+              }
+            }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$OPTION_ID"
+
+          echo "✅ Moved issue #$ISSUE_NUMBER to '$TARGET_STATUS'"
+
+      - name: Move issue on project board (Tester roles – move only on success)
+        if: steps.result.outputs.status == 'success' && steps.paths.outputs.role != '' && (steps.paths.outputs.role == 'backend-tester' || steps.paths.outputs.role == 'frontend-tester')
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ORG="WeasleysWizardWheezes"
+          PROJECT_NUMBER=1
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          TARGET_STATUS="${{ steps.paths.outputs.target_column }}"
+
+          PROJECT_ID=$(gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
+
+          ITEM_ID=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      content {
+                        ... on Issue {
+                          number
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id")
+
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          STATUS_FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          OPTION_ID=$(echo "$FIELD_DATA" | jq -r ".data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"$TARGET_STATUS\") | .id")
+
+          gh api graphql -f query='
+            mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $projectId
+                itemId: $itemId
+                fieldId: $fieldId
+                value: { singleSelectOptionId: $optionId }
+              }) {
+                projectV2Item { id }
               }
             }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$OPTION_ID"
 
