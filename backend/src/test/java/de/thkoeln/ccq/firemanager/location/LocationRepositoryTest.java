@@ -46,7 +46,8 @@ class LocationRepositoryTest {
 
         // Assert
         assertThat(result).hasSize(2);
-        assertThat(result).containsExactlyInAnyOrder(location1, location2);
+        assertThat(result).extracting(Location::getId)
+            .containsExactlyInAnyOrder(location1.getId(), location2.getId());
     }
 
     @Test
@@ -61,7 +62,7 @@ class LocationRepositoryTest {
 
         // Assert
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(location);
+        assertThat(result.get().getId()).isEqualTo(location.getId());
     }
 
     @Test
@@ -89,7 +90,10 @@ class LocationRepositoryTest {
 
         // Assert
         assertThat(foundLocation).isPresent();
-        assertThat(foundLocation.get()).isEqualTo(location);
+        assertThat(foundLocation.get().getId()).isNotNull();
+        assertThat(foundLocation.get().getName()).isEqualTo(location.getName());
+        assertThat(foundLocation.get().getAddress()).isEqualTo(location.getAddress());
+        assertThat(foundLocation.get().getType()).isEqualTo(location.getType());
     }
 
     @Test

@@ -48,6 +48,16 @@ class LocationE2ETest {
         return new HttpEntity<>(json, headers);
     }
 
+    private ResponseEntity<String> exchangeWithNoErrorHandler(String url, HttpMethod method, HttpEntity<?> request, Class<String> responseClass) {
+        try {
+            return restTemplate.exchange(url, method, request, responseClass);
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        }
+    }
+
     @Test
     void createLocation_returnsCreated() {
         // Arrange
@@ -82,8 +92,11 @@ class LocationE2ETest {
             """;
 
         // Act
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                url("/api/v1/locations"), jsonEntity(json), String.class);
+        ResponseEntity<String> response = exchangeWithNoErrorHandler(
+                url("/api/v1/locations"),
+                HttpMethod.POST,
+                jsonEntity(json),
+                String.class);
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -121,8 +134,11 @@ class LocationE2ETest {
         String nonExistentId = UUID.randomUUID().toString();
 
         // Act
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                url("/api/v1/locations/" + nonExistentId), String.class);
+        ResponseEntity<String> response = exchangeWithNoErrorHandler(
+                url("/api/v1/locations/" + nonExistentId),
+                HttpMethod.GET,
+                null,
+                String.class);
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -221,7 +237,7 @@ class LocationE2ETest {
             """;
 
         // Act
-        ResponseEntity<String> response = restTemplate.exchange(
+        ResponseEntity<String> response = exchangeWithNoErrorHandler(
                 url("/api/v1/locations/" + nonExistentId),
                 HttpMethod.PUT,
                 jsonEntity(updateJson),
@@ -249,7 +265,7 @@ class LocationE2ETest {
         String locationId = extractIdFromResponse(createResponse.getBody());
 
         // Act
-        ResponseEntity<String> response = restTemplate.exchange(
+        ResponseEntity<String> response = exchangeWithNoErrorHandler(
                 url("/api/v1/locations/" + locationId),
                 HttpMethod.DELETE,
                 null,
@@ -265,7 +281,7 @@ class LocationE2ETest {
         String nonExistentId = UUID.randomUUID().toString();
 
         // Act
-        ResponseEntity<String> response = restTemplate.exchange(
+        ResponseEntity<String> response = exchangeWithNoErrorHandler(
                 url("/api/v1/locations/" + nonExistentId),
                 HttpMethod.DELETE,
                 null,
