@@ -1,5 +1,5 @@
 name: Setup Frontend Dependencies
-description: Install frontend dependencies
+description: Install frontend dependencies and generate API types
 
 runs:
   using: composite
@@ -10,3 +10,8 @@ runs:
       working-directory: frontend
       shell: bash
       run: npm ci --legacy-peer-deps
+
+    - name: Generate API Types
+      working-directory: frontend
+      shell: bash
+      run: npm run api:generate
