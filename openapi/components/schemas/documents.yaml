@@ -1,0 +1,41 @@
+UploadDocumentRequest:
+  type: object
+  description: Multipart-Form-Data für Dokument-Upload
+  properties:
+    file:
+      type: string
+      format: binary
+      description: Die hochzuladende Datei
+
+DocumentResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    originalName:
+      type: string
+      description: Originaler Dateiname
+      example: "perschein.pdf"
+    mimeType:
+      type: string
+      description: MIME-Type der Datei
+      example: "application/pdf"
+    size:
+      type: integer
+      description: Dateigröße in Bytes
+      example: 2458732
+    downloadUrl:
+      type: string
+      description: URL zum Herunterladen des Dokuments
+      example: "/api/v1/members/550e8400-e29b-41d4-a716-446655440001/documents/550e8400-e29b-41d4-a716-446655440000"
+    uploadedBy:
+      type: string
+      format: uuid
+      description: ID des Users der das Dokument hochgeladen hat
+      example: "550e8400-e29b-41d4-a716-446655440001"
+    uploadedAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"

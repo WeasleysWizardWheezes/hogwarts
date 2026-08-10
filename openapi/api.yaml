@@ -1,17 +1,45 @@
-openapi: 3.0.3
+openapi: "3.0.3"
 info:
-  title: Hogwarts API Dummy
-  version: 0.1.0-SNAPSHOT-test4
+  title: Hogwarts Firemanager API
+  version: "0.0.0-issue-52"
+  description: REST-API für die Feuerwehr-Verwaltung
+
+servers:
+  - url: http://localhost:8080
+    description: Lokale Entwicklung
+
+tags:
+  - name: Documents
+    description: Verwaltung von Dokumenten in der Personalakte
+
 paths:
-  /dummy:
-    get:
-      summary: Dummy endpoint to trigger generation. Remove in the future.
-      responses:
-        '200':
-          description: Dummy OK
-  /test:
-    get:
-      summary: Dummy endpoint to trigger test pipeline jobs. Remove in the future.
-      responses:
-        '200':
-          description: Test 4 OK
+  /api/v1/members/{memberId}/documents:
+    $ref: './paths/documents.yaml#/paths/~1api~1v1~1members~1{memberId}~1documents'
+  /api/v1/members/{memberId}/documents/{documentId}:
+    $ref: './paths/documents.yaml#/paths/~1api~1v1~1members~1{memberId}~1documents~1{documentId}'
+
+components:
+  schemas:
+    ErrorResponse:
+      $ref: './components/schemas/common.yaml#/ErrorResponse'
+    PaginationMeta:
+      $ref: './components/schemas/common.yaml#/PaginationMeta'
+    DocumentResponse:
+      $ref: './components/schemas/documents.yaml#/DocumentResponse'
+    UploadDocumentRequest:
+      $ref: './components/schemas/documents.yaml#/UploadDocumentRequest'
+  responses:
+    BadRequest:
+      $ref: './components/responses/errors.yaml#/BadRequest'
+    Unauthorized:
+      $ref: './components/responses/errors.yaml#/Unauthorized'
+    Forbidden:
+      $ref: './components/responses/errors.yaml#/Forbidden'
+    NotFound:
+      $ref: './components/responses/errors.yaml#/NotFound'
+    Conflict:
+      $ref: './components/responses/errors.yaml#/Conflict'
+    InternalServerError:
+      $ref: './components/responses/errors.yaml#/InternalServerError'
+    PayloadTooLarge:
+      $ref: './components/responses/errors.yaml#/PayloadTooLarge'
