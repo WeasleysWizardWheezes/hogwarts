@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Hogwarts API Dummy
-  version: 0.1.0-SNAPSHOT-test2
+  version: 0.1.0-SNAPSHOT-test3
 paths:
   /dummy:
     get:
@@ -14,4 +14,4 @@ paths:
       summary: Dummy endpoint to trigger test pipeline jobs. Remove in the future.
       responses:
         '200':
-          description: Test 2 OK
+          description: Test 3 OK

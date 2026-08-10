@@ -109,14 +109,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: false
+
       - name: Generate OpenAPI Diff
         id: diff
         run: |
           # Install oasdiff
-          curl -sSL https://github.com/Tufin/oasdiff/releases/latest/download/oasdiff_linux_amd64.tar.gz | tar xz -C /usr/local/bin
+          go install github.com/tufin/oasdiff@latest
 
           # Generate changelog (human-readable)
-          DIFF_OUTPUT=$(oasdiff changelog origin/main:openapi/api.yaml openapi/api.yaml 2>/dev/null || echo "No changes detected")
+          DIFF_OUTPUT=$(oasdiff changelog "origin/main:openapi/api.yaml" "openapi/api.yaml" 2>/dev/null || echo "No changes detected")
 
           # Write to file for the comment step
           echo "$DIFF_OUTPUT" > /tmp/api-diff.md
