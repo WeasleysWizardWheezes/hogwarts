@@ -1,5 +1,5 @@
 name: Setup Frontend Dependencies
-description: Install frontend dependencies with GitHub Packages registry auth
+description: Install frontend dependencies
 
 runs:
   using: composite
@@ -9,11 +9,4 @@ runs:
     - name: Install Frontend Dependencies
       working-directory: frontend
       shell: bash
-      run: |
-        WANTED_VERSION=$(node -p "require('./package.json').dependencies['@weasleyswizardwheezes/hogwarts-api-client']")
-        echo "Geforderte API-Version laut package.json: $WANTED_VERSION"
-        npm install "@weasleyswizardwheezes/hogwarts-api-client@$WANTED_VERSION" --package-lock-only --legacy-peer-deps
-        npm ci --legacy-peer-deps
-      env:
-        NODE_AUTH_TOKEN: ${{ env.NODE_AUTH_TOKEN }}
-
+      run: npm ci --legacy-peer-deps
