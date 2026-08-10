@@ -37,6 +37,9 @@ public class MemberLocationAssignmentService {
     }
 
     public List<MemberLocationAssignment> getAssignmentsByMember(UUID memberId) {
+        if (memberId == null) {
+            return this.memberLocationAssignmentRepository.findAll();
+        }
         return this.memberLocationAssignmentRepository.findByMemberId(memberId);
     }
 
