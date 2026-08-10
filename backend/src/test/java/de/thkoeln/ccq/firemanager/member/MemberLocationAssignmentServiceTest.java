@@ -43,7 +43,7 @@ class MemberLocationAssignmentServiceTest {
     void assignMemberToLocation_returnsAssignmentWhenSuccessful() {
         // Arrange
         UUID memberId = UUID.randomUUID();
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         UUID locationId = location.getId();
         
         when(locationServiceStub.getById(locationId)).thenReturn(location);
@@ -80,7 +80,7 @@ class MemberLocationAssignmentServiceTest {
     void getAssignmentsByLocation_returnsAssignmentsForLocation() {
         // Arrange
         UUID locationId = UUID.randomUUID();
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         
         MemberLocationAssignment assignment1 = new MemberLocationAssignment(UUID.randomUUID(), location);
         MemberLocationAssignment assignment2 = new MemberLocationAssignment(UUID.randomUUID(), location);
@@ -100,7 +100,7 @@ class MemberLocationAssignmentServiceTest {
     void getAssignmentsByMember_returnsAssignmentsForMember() {
         // Arrange
         UUID memberId = UUID.randomUUID();
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         
         MemberLocationAssignment assignment = new MemberLocationAssignment(memberId, location);
         
@@ -119,7 +119,7 @@ class MemberLocationAssignmentServiceTest {
     void deleteAssignmentByMember_deletesAssignmentsWhenExist() {
         // Arrange
         UUID memberId = UUID.randomUUID();
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         
         MemberLocationAssignment assignment = new MemberLocationAssignment(memberId, location);
         

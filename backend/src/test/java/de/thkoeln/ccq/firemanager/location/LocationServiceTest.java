@@ -40,7 +40,7 @@ class LocationServiceTest {
         // Arrange
         String name = "Gerätehaus Köln";
         String address = "Musterstraße 1, 50677 Köln";
-        String type = "GERAETEHAUS";
+        String type = "FIRE_STATION";
         
         Location expectedLocation = new Location(name, address, type);
         when(locationRepositoryStub.save(any(Location.class))).thenReturn(expectedLocation);
@@ -59,8 +59,8 @@ class LocationServiceTest {
     @Test
     void getAll_returnsAllLocations() {
         // Arrange
-        Location location1 = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
-        Location location2 = new Location("Gerätehaus Bonn", "Beispielweg 2, 53111 Bonn", "GERAETEHAUS");
+        Location location1 = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
+        Location location2 = new Location("Gerätehaus Bonn", "Beispielweg 2, 53111 Bonn", "FIRE_STATION");
         when(locationRepositoryStub.findAll()).thenReturn(List.of(location1, location2));
 
         // Act
@@ -74,7 +74,7 @@ class LocationServiceTest {
     @Test
     void getById_returnsLocationWhenIdExists() {
         // Arrange
-        Location expectedLocation = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location expectedLocation = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         when(locationRepositoryStub.findById(expectedLocation.getId())).thenReturn(Optional.of(expectedLocation));
 
         // Act
@@ -107,7 +107,7 @@ class LocationServiceTest {
     @Test
     void deleteById_deletesLocationWhenExists() {
         // Arrange
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         UUID locationId = location.getId();
         when(locationRepositoryStub.existsById(locationId)).thenReturn(true);
 
@@ -133,12 +133,12 @@ class LocationServiceTest {
     @Test
     void update_returnsUpdatedLocation() {
         // Arrange
-        Location existingLocation = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location existingLocation = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         UUID locationId = existingLocation.getId();
         
         String newName = "Gerätehaus Köln-Zentrum";
         String newAddress = "Neue Straße 1, 50677 Köln";
-        String newType = "GERAETEHAUS";
+        String newType = "FIRE_STATION";
         
         when(locationRepositoryStub.findById(locationId)).thenReturn(Optional.of(existingLocation));
         when(locationRepositoryStub.save(any(Location.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -161,7 +161,7 @@ class LocationServiceTest {
         when(locationRepositoryStub.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> sut.update(nonExistentId, "New Name", "New Address", "GERAETEHAUS"))
+        assertThatThrownBy(() -> sut.update(nonExistentId, "New Name", "New Address", "FIRE_STATION"))
                 .isInstanceOf(LocationNotFoundException.class)
                 .hasMessageContaining(nonExistentId.toString());
     }

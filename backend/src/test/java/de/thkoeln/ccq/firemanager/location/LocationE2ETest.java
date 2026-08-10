@@ -55,7 +55,7 @@ class LocationE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
 
@@ -67,7 +67,7 @@ class LocationE2ETest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).contains("Gerätehaus Köln");
         assertThat(response.getBody()).contains("Musterstraße 1, 50677 Köln");
-        assertThat(response.getBody()).contains("GERAETEHAUS");
+        assertThat(response.getBody()).contains("FIRE_STATION");
     }
 
     @Test
@@ -77,7 +77,7 @@ class LocationE2ETest {
             {
                 "name": "",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
 
@@ -96,7 +96,7 @@ class LocationE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         ResponseEntity<String> createResponse = restTemplate.postForEntity(
@@ -144,14 +144,14 @@ class LocationE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         String json2 = """
             {
                 "name": "Gerätehaus Bonn",
                 "address": "Beispielweg 2, 53111 Bonn",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         
@@ -175,7 +175,7 @@ class LocationE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         ResponseEntity<String> createResponse = restTemplate.postForEntity(
@@ -187,7 +187,7 @@ class LocationE2ETest {
             {
                 "name": "Gerätehaus Köln-Zentrum",
                 "address": "Neue Straße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
 
@@ -212,7 +212,7 @@ class LocationE2ETest {
             {
                 "name": "Gerätehaus Köln-Zentrum",
                 "address": "Neue Straße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
 
@@ -234,7 +234,7 @@ class LocationE2ETest {
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
         ResponseEntity<String> createResponse = restTemplate.postForEntity(

@@ -34,8 +34,8 @@ class LocationRepositoryTest {
     @Test
     void findAll_returnsPersistedLocations() {
         // Arrange
-        Location location1 = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
-        Location location2 = new Location("Gerätehaus Bonn", "Beispielweg 2, 53111 Bonn", "GERAETEHAUS");
+        Location location1 = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
+        Location location2 = new Location("Gerätehaus Bonn", "Beispielweg 2, 53111 Bonn", "FIRE_STATION");
         
         entityManager.persistAndFlush(location1);
         entityManager.persistAndFlush(location2);
@@ -52,7 +52,7 @@ class LocationRepositoryTest {
     @Test
     void findById_returnsLocationWhenExists() {
         // Arrange
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         entityManager.persistAndFlush(location);
         entityManager.clear();
 
@@ -79,7 +79,7 @@ class LocationRepositoryTest {
     @Test
     void save_persistsLocation() {
         // Arrange
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
 
         // Act
         Location savedLocation = sut.save(location);
@@ -95,7 +95,7 @@ class LocationRepositoryTest {
     @Test
     void deleteById_removesLocation() {
         // Arrange
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         entityManager.persistAndFlush(location);
         entityManager.clear();
 

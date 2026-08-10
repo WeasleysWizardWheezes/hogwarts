@@ -39,16 +39,16 @@ class LocationControllerTest {
     void createLocation_returnsCreated() throws Exception {
         // Arrange
         UUID locationId = UUID.randomUUID();
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         location.getId(); // Ensure ID is set
-        when(locationServiceStub.create("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS"))
+        when(locationServiceStub.create("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION"))
                 .thenReturn(location);
 
         String requestBody = """
             {
                 "name": "Gerätehaus Köln",
                 "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
 
@@ -60,32 +60,15 @@ class LocationControllerTest {
                 .andExpect(jsonPath("$.id").value(location.getId().toString()))
                 .andExpect(jsonPath("$.name").value("Gerätehaus Köln"))
                 .andExpect(jsonPath("$.address").value("Musterstraße 1, 50677 Köln"))
-                .andExpect(jsonPath("$.type").value("GERAETEHAUS"));
+                .andExpect(jsonPath("$.type").value("FIRE_STATION"));
     }
 
-    @Test
-    void createLocation_returnsBadRequestWhenNameIsBlank() throws Exception {
-        // Arrange
-        String requestBody = """
-            {
-                "name": "",
-                "address": "Musterstraße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
-            }
-            """;
-
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/locations")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest());
-    }
 
     @Test
     void getLocation_returnsOkWhenLocationExists() throws Exception {
         // Arrange
         UUID locationId = UUID.randomUUID();
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         location.getId(); // Ensure ID is set
         when(locationServiceStub.getById(locationId)).thenReturn(location);
 
@@ -95,7 +78,7 @@ class LocationControllerTest {
                 .andExpect(jsonPath("$.id").value(location.getId().toString()))
                 .andExpect(jsonPath("$.name").value("Gerätehaus Köln"))
                 .andExpect(jsonPath("$.address").value("Musterstraße 1, 50677 Köln"))
-                .andExpect(jsonPath("$.type").value("GERAETEHAUS"));
+                .andExpect(jsonPath("$.type").value("FIRE_STATION"));
     }
 
     @Test
@@ -113,8 +96,8 @@ class LocationControllerTest {
     @Test
     void listLocations_returnsOk() throws Exception {
         // Arrange
-        Location location1 = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
-        Location location2 = new Location("Gerätehaus Bonn", "Beispielweg 2, 53111 Bonn", "GERAETEHAUS");
+        Location location1 = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
+        Location location2 = new Location("Gerätehaus Bonn", "Beispielweg 2, 53111 Bonn", "FIRE_STATION");
         when(locationServiceStub.getAll()).thenReturn(List.of(location1, location2));
 
         // Act & Assert
@@ -128,7 +111,7 @@ class LocationControllerTest {
     void updateLocation_returnsOk() throws Exception {
         // Arrange
         UUID locationId = UUID.randomUUID();
-        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "GERAETEHAUS");
+        Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         location.getId(); // Ensure ID is set
         when(locationServiceStub.update(eq(locationId), any(), any(), any())).thenReturn(location);
 
@@ -136,7 +119,7 @@ class LocationControllerTest {
             {
                 "name": "Gerätehaus Köln-Zentrum",
                 "address": "Neue Straße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
 
@@ -160,7 +143,7 @@ class LocationControllerTest {
             {
                 "name": "Gerätehaus Köln-Zentrum",
                 "address": "Neue Straße 1, 50677 Köln",
-                "type": "GERAETEHAUS"
+                "type": "FIRE_STATION"
             }
             """;
 
