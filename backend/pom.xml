@@ -29,14 +29,7 @@
 	<properties>
 		<java.version>25</java.version>
         <lombok.version>1.18.40</lombok.version>
-        <hogwarts.api.version>0.0.0-issue-165-SNAPSHOT</hogwarts.api.version>
 	</properties>
-    <repositories>
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/WeasleysWizardWheezes/hogwarts</url>
-        </repository>
-    </repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -103,6 +96,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.6</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.pitest</groupId>
             <artifactId>pitest-junit5-plugin</artifactId>
             <version>1.2.2</version>
@@ -114,16 +113,55 @@
             <version>3.0.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.openapitools</groupId>
-            <artifactId>hogwarts-api-client</artifactId>
-            <version>${hogwarts.api.version}</version>
-        </dependency>
-
     </dependencies>
 
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>7.14.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/../openapi/api.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <output>${project.build.directory}/generated-sources/openapi</output>
+                            <configOptions>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useSpringBoot3>true</useSpringBoot3>
+                                <useTags>true</useTags>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                                <sourceFolder>src/main/java</sourceFolder>
+                            </configOptions>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>add-generated-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
