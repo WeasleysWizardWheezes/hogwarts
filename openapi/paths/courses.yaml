@@ -1,0 +1,178 @@
+paths:
+  /api/v1/courses:
+    get:
+      tags:
+        - Courses
+      summary: Alle Qualifikationen auflisten
+      operationId: listCourses
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+        - name: category
+          in: query
+          required: false
+          description: Filter nach Kategorie
+          schema:
+            $ref: '../components/schemas/courses.yaml#/CourseCategory'
+      responses:
+        '200':
+          description: Liste aller Qualifikationen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/courses.yaml#/CourseResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+
+    post:
+      tags:
+        - Courses
+      summary: Neue Qualifikation anlegen
+      operationId: createCourse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/courses.yaml#/CreateCourseRequest'
+      responses:
+        '201':
+          description: Qualifikation erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/courses.yaml#/CourseResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+
+  /api/v1/courses/{courseId}:
+    get:
+      tags:
+        - Courses
+      summary: Qualifikation laden
+      operationId: getCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Qualifikation gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/courses.yaml#/CourseResponse'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    put:
+      tags:
+        - Courses
+      summary: Qualifikation vollständig aktualisieren
+      operationId: updateCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/courses.yaml#/UpdateCourseRequest'
+      responses:
+        '200':
+          description: Qualifikation aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/courses.yaml#/CourseResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    patch:
+      tags:
+        - Courses
+      summary: Qualifikation teilweise aktualisieren
+      operationId: patchCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/courses.yaml#/UpdateCourseRequest'
+      responses:
+        '200':
+          description: Qualifikation aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/courses.yaml#/CourseResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    delete:
+      tags:
+        - Courses
+      summary: Qualifikation löschen
+      operationId: deleteCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Qualifikation gelöscht
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'

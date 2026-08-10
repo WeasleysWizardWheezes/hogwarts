@@ -1,0 +1,72 @@
+CreateMemberQualificationRequest:
+  type: object
+  required:
+    - courseId
+    - acquisitionDate
+  properties:
+    courseId:
+      type: string
+      format: uuid
+      description: ID der Qualifikation
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    acquisitionDate:
+      type: string
+      format: date
+      description: Datum des Erwerbs
+      example: "2024-01-15"
+    certificateNumber:
+      type: string
+      description: Zertifikatsnummer
+      example: "AGT-2024-0042"
+    issuingAuthority:
+      type: string
+      description: Ausstellende Behörde
+      example: "Kreisfeuerwehrverband Musterstadt"
+
+MemberQualificationResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "660e8400-e29b-41d4-a716-446655440000"
+    courseId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    courseName:
+      type: string
+      example: "Atemschutzgeräteträger"
+    courseCategory:
+      $ref: './courses.yaml#/CourseCategory'
+    acquisitionDate:
+      type: string
+      format: date
+      example: "2024-01-15"
+    certificateNumber:
+      type: string
+      example: "AGT-2024-0042"
+    issuingAuthority:
+      type: string
+      example: "Kreisfeuerwehrverband Musterstadt"
+    withdrawn:
+      type: boolean
+      description: true wenn die Qualifikation entzogen wurde
+      example: false
+    withdrawalDate:
+      type: string
+      format: date
+      description: Datum der Entziehung (nur wenn withdrawn=true)
+      example: null
+    withdrawalReason:
+      type: string
+      description: Grund der Entziehung (nur wenn withdrawn=true)
+      example: null
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
