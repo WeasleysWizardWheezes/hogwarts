@@ -718,59 +718,55 @@ jobs:
             echo "Issue #${{ steps.issue.outputs.number }} does not have awaiting-pipeline label – skipping"
           fi
 
-      - name: Determine changed paths
+      - name: Determine role from board column
         if: steps.label.outputs.has_label == 'true'
         id: paths
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD)
-          echo "Changed files:"
-          echo "$CHANGED"
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
 
-          BACKEND_MAIN=false
-          BACKEND_TEST=false
-          FRONTEND_MAIN=false
-          FRONTEND_TEST=false
-          OPENAPI=false
+          # Board-Spalte des Issues ermitteln
+          BOARD_STATUS=$(gh project item-list 1 --owner WeasleysWizardWheezes --format json -L 100 | jq -r ".items[] | select(.content.number == $ISSUE_NUMBER) | .status")
+          echo "Issue #$ISSUE_NUMBER – Board-Status: $BOARD_STATUS"
 
-          while IFS= read -r file; do
-            if [[ "$file" == openapi/* ]]; then
-              OPENAPI=true
-            elif [[ "$file" == backend/src/main/* ]]; then
-              BACKEND_MAIN=true
-            elif [[ "$file" == backend/src/test/* ]]; then
-              BACKEND_TEST=true
-            elif [[ "$file" == frontend/e2e/* ]] || [[ "$file" == frontend/src/test/* ]] || [[ "$file" == *.test.* ]] || [[ "$file" == *.spec.* ]]; then
-              FRONTEND_TEST=true
-            elif [[ "$file" == frontend/src/* ]]; then
-              FRONTEND_MAIN=true
-            fi
-          done <<< "$CHANGED"
+          # Issue-Labels lesen (backend/frontend)
+          ISSUE_LABELS=$(gh issue view "$ISSUE_NUMBER" --repo ${{ github.repository }} --json labels --jq '.labels[].name')
+          echo "Labels: $ISSUE_LABELS"
 
-          # Determine role: openapi takes priority, then testers, then devs
-          if [[ "$OPENAPI" == "true" ]]; then
-            echo "role=planner" >> "$GITHUB_OUTPUT"
-            echo "current_column=Backlog" >> "$GITHUB_OUTPUT"
-            echo "target_column=Ready Dev" >> "$GITHUB_OUTPUT"
-          elif [[ "$BACKEND_TEST" == "true" ]]; then
-            echo "role=backend-tester" >> "$GITHUB_OUTPUT"
-            echo "current_column=Test" >> "$GITHUB_OUTPUT"
-            echo "target_column=Needs Review" >> "$GITHUB_OUTPUT"
-          elif [[ "$FRONTEND_TEST" == "true" ]]; then
-            echo "role=frontend-tester" >> "$GITHUB_OUTPUT"
-            echo "current_column=Test" >> "$GITHUB_OUTPUT"
-            echo "target_column=Needs Review" >> "$GITHUB_OUTPUT"
-          elif [[ "$BACKEND_MAIN" == "true" ]]; then
-            echo "role=backend-dev" >> "$GITHUB_OUTPUT"
-            echo "current_column=Dev" >> "$GITHUB_OUTPUT"
-            echo "target_column=Ready Test" >> "$GITHUB_OUTPUT"
-          elif [[ "$FRONTEND_MAIN" == "true" ]]; then
-            echo "role=frontend-dev" >> "$GITHUB_OUTPUT"
-            echo "current_column=Dev" >> "$GITHUB_OUTPUT"
-            echo "target_column=Ready Test" >> "$GITHUB_OUTPUT"
-          else
-            echo "role=" >> "$GITHUB_OUTPUT"
-            echo "No relevant path changes detected"
-          fi
+          IS_BACKEND=$(echo "$ISSUE_LABELS" | grep -q "^backend$" && echo "true" || echo "false")
+          IS_FRONTEND=$(echo "$ISSUE_LABELS" | grep -q "^frontend$" && echo "true" || echo "false")
+
+          # Rolle und Ziel-Spalte anhand der Board-Spalte bestimmen
+          case "$BOARD_STATUS" in
+            "Backlog")
+              echo "role=planner" >> "$GITHUB_OUTPUT"
+              echo "current_column=Backlog" >> "$GITHUB_OUTPUT"
+              echo "target_column=Ready Dev" >> "$GITHUB_OUTPUT"
+              ;;
+            "Dev")
+              if [[ "$IS_BACKEND" == "true" ]]; then
+                echo "role=backend-dev" >> "$GITHUB_OUTPUT"
+              else
+                echo "role=frontend-dev" >> "$GITHUB_OUTPUT"
+              fi
+              echo "current_column=Dev" >> "$GITHUB_OUTPUT"
+              echo "target_column=Ready Test" >> "$GITHUB_OUTPUT"
+              ;;
+            "Test")
+              if [[ "$IS_BACKEND" == "true" ]]; then
+                echo "role=backend-tester" >> "$GITHUB_OUTPUT"
+              else
+                echo "role=frontend-tester" >> "$GITHUB_OUTPUT"
+              fi
+              echo "current_column=Test" >> "$GITHUB_OUTPUT"
+              echo "target_column=Needs Review" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "role=" >> "$GITHUB_OUTPUT"
+              echo "Board-Status '$BOARD_STATUS' ist keine aktive Arbeitsspalte – kein Move nötig"
+              ;;
+          esac
 
       - name: Determine pipeline result
         if: steps.paths.outputs.role != ''
