@@ -34,7 +34,19 @@ class MemberLocationAssignmentE2ETest {
     @LocalServerPort
     private int port;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate() {{
+        setErrorHandler(new org.springframework.web.client.ResponseErrorHandler() {
+            @Override
+            public boolean hasError(org.springframework.http.client.ClientHttpResponse response) throws java.io.IOException {
+                return false;
+            }
+
+            @Override
+            public void handleError(org.springframework.http.client.ClientHttpResponse response) throws java.io.IOException {
+                // Do nothing
+            }
+        });
+    }};
 
     private String url(String path) {
         return "http://localhost:" + port + path;
