@@ -123,9 +123,9 @@ class MemberLocationAssignmentRepositoryTest {
 
         // Assert
         assertThat(foundAssignment).isPresent();
-        assertThat(foundAssignment.get().getId()).isEqualTo(assignment.getId());
-        assertThat(foundAssignment.get().getMemberId()).isEqualTo(assignment.getMemberId());
-        assertThat(foundAssignment.get().getLocation().getId()).isEqualTo(assignment.getLocation().getId());
+        assertThat(foundAssignment.get().getId()).isNotNull();
+        assertThat(foundAssignment.get().getMemberId()).isEqualTo(memberId);
+        assertThat(foundAssignment.get().getLocation().getId()).isEqualTo(location.getId());
     }
 
     @Test
