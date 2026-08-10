@@ -51,7 +51,8 @@ class MemberLocationAssignmentRepositoryTest {
 
         // Assert
         assertThat(result).hasSize(2);
-        assertThat(result).containsExactlyInAnyOrder(assignment1, assignment2);
+        assertThat(result).extracting(MemberLocationAssignment::getId)
+            .containsExactlyInAnyOrder(assignment1.getId(), assignment2.getId());
     }
 
     @Test
@@ -70,7 +71,9 @@ class MemberLocationAssignmentRepositoryTest {
 
         // Assert
         assertThat(result).hasSize(1);
-        assertThat(result).containsExactly(assignment);
+        assertThat(result.get(0).getId()).isEqualTo(assignment.getId());
+        assertThat(result.get(0).getMemberId()).isEqualTo(assignment.getMemberId());
+        assertThat(result.get(0).getLocation().getId()).isEqualTo(assignment.getLocation().getId());
     }
 
     @Test
@@ -120,7 +123,9 @@ class MemberLocationAssignmentRepositoryTest {
 
         // Assert
         assertThat(foundAssignment).isPresent();
-        assertThat(foundAssignment.get()).isEqualTo(assignment);
+        assertThat(foundAssignment.get().getId()).isEqualTo(assignment.getId());
+        assertThat(foundAssignment.get().getMemberId()).isEqualTo(assignment.getMemberId());
+        assertThat(foundAssignment.get().getLocation().getId()).isEqualTo(assignment.getLocation().getId());
     }
 
     @Test
