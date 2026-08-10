@@ -117,6 +117,7 @@ class MemberLocationAssignmentRepositoryTest {
 
         // Act
         MemberLocationAssignment savedAssignment = sut.save(assignment);
+        entityManager.flush();
         entityManager.clear();
 
         var foundAssignment = sut.findById(savedAssignment.getId());

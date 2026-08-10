@@ -84,6 +84,7 @@ class LocationRepositoryTest {
 
         // Act
         Location savedLocation = sut.save(location);
+        entityManager.flush();
         entityManager.clear();
 
         var foundLocation = sut.findById(savedLocation.getId());
