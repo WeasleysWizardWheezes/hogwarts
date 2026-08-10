@@ -11,12 +11,15 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,19 +37,7 @@ class MemberLocationAssignmentE2ETest {
     @LocalServerPort
     private int port;
 
-    private final RestTemplate restTemplate = new RestTemplate() {{
-        setErrorHandler(new org.springframework.web.client.ResponseErrorHandler() {
-            @Override
-            public boolean hasError(org.springframework.http.client.ClientHttpResponse response) throws java.io.IOException {
-                return false;
-            }
-
-            @Override
-            public void handleError(org.springframework.http.client.ClientHttpResponse response) throws java.io.IOException {
-                // Do nothing
-            }
-        });
-    }};
+    private final RestTemplate restTemplate = new RestTemplate();
 
     private String url(String path) {
         return "http://localhost:" + port + path;
@@ -56,6 +47,16 @@ class MemberLocationAssignmentE2ETest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return new HttpEntity<>(json, headers);
+    }
+
+    private ResponseEntity<String> exchangeWithNoErrorHandler(String url, HttpMethod method, HttpEntity<?> request, Class<String> responseClass) {
+        try {
+            return restTemplate.exchange(url, method, request, responseClass);
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        }
     }
 
     @Test
@@ -104,7 +105,7 @@ class MemberLocationAssignmentE2ETest {
             """;
 
         // Act
-        ResponseEntity<String> response = restTemplate.exchange(
+        ResponseEntity<String> response = exchangeWithNoErrorHandler(
                 url("/api/v1/members/" + memberId + "/locations"),
                 HttpMethod.POST,
                 jsonEntity(assignmentJson),
@@ -160,8 +161,11 @@ class MemberLocationAssignmentE2ETest {
         UUID nonExistentMemberId = UUID.randomUUID();
 
         // Act
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                url("/api/v1/members/" + nonExistentMemberId), String.class);
+        ResponseEntity<String> response = exchangeWithNoErrorHandler(
+                url("/api/v1/members/" + nonExistentMemberId),
+                HttpMethod.GET,
+                null,
+                String.class);
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -322,7 +326,7 @@ class MemberLocationAssignmentE2ETest {
                 String.class);
 
         // Act
-        ResponseEntity<String> response = restTemplate.exchange(
+        ResponseEntity<String> response = exchangeWithNoErrorHandler(
                 url("/api/v1/members/" + memberId + "/locations"),
                 HttpMethod.DELETE,
                 null,
