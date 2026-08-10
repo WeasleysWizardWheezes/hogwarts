@@ -1,0 +1,132 @@
+paths:
+  /api/v1/members/{memberId}/qualifications:
+    get:
+      tags:
+        - Member Qualifications
+      summary: Alle Qualifikationen eines Mitglieds auflisten
+      operationId: listMemberQualifications
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+        - name: category
+          in: query
+          required: false
+          description: Filter nach Kategorie
+          schema:
+            $ref: '../components/schemas/courses.yaml#/CourseCategory'
+        - name: withdrawn
+          in: query
+          required: false
+          description: Filter nach entzogenen Qualifikationen
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Liste aller Qualifikationen des Mitglieds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/member-qualifications.yaml#/MemberQualificationResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    post:
+      tags:
+        - Member Qualifications
+      summary: Qualifikation einem Mitglied zuweisen
+      operationId: assignQualificationToMember
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/member-qualifications.yaml#/CreateMemberQualificationRequest'
+      responses:
+        '201':
+          description: Qualifikation zugewiesen
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/member-qualifications.yaml#/MemberQualificationResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/members/{memberId}/qualifications/{qualificationId}:
+    delete:
+      tags:
+        - Member Qualifications
+      summary: Qualifikation von einem Mitglied entziehen
+      operationId: withdrawQualificationFromMember
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: qualificationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  description: Grund für die Entziehung
+                  example: "Frist abgelaufen"
+      responses:
+        '204':
+          description: Qualifikation entzogen
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
