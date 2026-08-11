@@ -7,7 +7,7 @@ export const createLocationSchema = v.object({
     v.string(),
     v.minLength(1, "Der Name ist erforderlich")
   ),
-  address: v.optional(v.string()),
+  address: v.optional(v.string(), ""),
   type: v.pipe(
     v.string(),
     v.minLength(1, "Der Typ ist erforderlich"),
@@ -19,13 +19,13 @@ export const updateLocationSchema = v.object({
   name: v.optional(v.pipe(
     v.string(),
     v.minLength(1, "Der Name ist erforderlich")
-  )),
-  address: v.optional(v.string()),
+  ), ""),
+  address: v.optional(v.string(), ""),
   type: v.optional(v.pipe(
     v.string(),
     v.minLength(1, "Der Typ ist erforderlich"),
     v.includes(locationTypes)
-  )),
+  ), ""),
 })
 
 export type CreateLocationFormData = v.InferOutput<typeof createLocationSchema>

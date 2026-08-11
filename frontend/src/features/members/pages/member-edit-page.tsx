@@ -14,7 +14,7 @@ export default function MemberEditPage() {
   const memberQuery = useMember(id || "")
   const updateMutation = useUpdateMember()
 
-  const handleSubmit = (data: UpdateMemberRequest) => {
+  const handleSubmit = (data: any) => {
     if (id) {
       updateMutation.mutate(
         { id, body: data },

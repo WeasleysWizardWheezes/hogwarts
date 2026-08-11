@@ -29,7 +29,7 @@ export function MemberTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Alle Standorte</SelectItem>
-              {locationsQuery.data?.data?.map((location) => (
+              {locationsQuery.data?.data?.map((location: any) => (
                 <SelectItem key={location.id} value={location.id}>
                   {location.name}
                 </SelectItem>

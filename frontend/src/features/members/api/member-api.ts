@@ -2,7 +2,7 @@ import { api } from "@/shared/api"
 import type { components } from "@weasleyswizardwheezes/hogwarts-api-client"
 
 export async function createMember(
-  body: components["schemas"]["CreateMemberRequest"]
+  body: any
 ) {
   const { data, error } = await api.POST("/api/v1/members", {
     body,
@@ -13,7 +13,7 @@ export async function createMember(
 
 export async function updateMember(
   id: string,
-  body: components["schemas"]["UpdateMemberRequest"]
+  body: any
 ) {
   const { data, error } = await api.PUT("/api/v1/members/{memberId}", {
     params: { path: { memberId: id } },

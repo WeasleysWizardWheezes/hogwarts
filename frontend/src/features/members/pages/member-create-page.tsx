@@ -10,7 +10,7 @@ export default function MemberCreatePage() {
   const navigate = useNavigate()
   const createMutation = useCreateMember()
 
-  const handleSubmit = (data: CreateMemberRequest) => {
+  const handleSubmit = (data: any) => {
     createMutation.mutate(data, {
       onSuccess: () => {
         navigate("/members")

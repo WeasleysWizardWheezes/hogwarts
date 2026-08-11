@@ -9,7 +9,7 @@ export default function LocationCreatePage() {
   const navigate = useNavigate()
   const createMutation = useCreateLocation()
 
-  const handleSubmit = (data: CreateLocationRequest) => {
+  const handleSubmit = (data: any) => {
     createMutation.mutate(data, {
       onSuccess: () => {
         navigate("/locations")

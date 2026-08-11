@@ -13,7 +13,7 @@ export default function LocationEditPage() {
   const locationQuery = useLocation(id || "")
   const updateMutation = useUpdateLocation()
 
-  const handleSubmit = (data: UpdateLocationRequest) => {
+  const handleSubmit = (data: any) => {
     if (id) {
       updateMutation.mutate(
         { id, body: data },

@@ -3,6 +3,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { useLocations } from "../hooks/use-locations"
 import { useAssignMemberToLocation } from "../hooks/use-assign-member-to-location"
+import type { components } from "@/shared/api"
 
 export function MemberLocationAssignment({
   memberId,
@@ -11,7 +12,7 @@ export function MemberLocationAssignment({
   memberId?: string
   currentLocationId?: string
 }) {
-  const [selectedLocationId, setSelectedLocationId] = useState<string>(currentLocationId || "")
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(currentLocationId || null)
   
   const locationsQuery = useLocations(0, 100)
   const assignMutation = useAssignMemberToLocation()
@@ -46,8 +47,8 @@ export function MemberLocationAssignment({
       ) : (
         <div className="flex items-center gap-4">
           <Select
-            value={selectedLocationId}
-            onValueChange={setSelectedLocationId}
+            value={selectedLocationId || ""}
+            onValueChange={(value) => setSelectedLocationId(value)}
             disabled={assignMutation.isPending}
           >
             <SelectTrigger className="w-[200px]">
