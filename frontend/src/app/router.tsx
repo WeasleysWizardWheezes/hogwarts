@@ -2,6 +2,12 @@ import { createBrowserRouter } from "react-router"
 import { lazy } from "react"
 
 const AppLayout = lazy(() => import("@/app/app-layout"))
+const LocationListPage = lazy(() => import("@/features/locations/pages/location-list-page"))
+const LocationCreatePage = lazy(() => import("@/features/locations/pages/location-create-page"))
+const LocationEditPage = lazy(() => import("@/features/locations/pages/location-edit-page"))
+const MemberListPage = lazy(() => import("@/features/members/pages/member-list-page"))
+const MemberCreatePage = lazy(() => import("@/features/members/pages/member-create-page"))
+const MemberEditPage = lazy(() => import("@/features/members/pages/member-edit-page"))
 
 // Placeholder: Wird durch echte Feature-Pages ersetzt
 function DashboardPage() {
@@ -18,6 +24,12 @@ export const router = createBrowserRouter([
     Component: AppLayout,
     children: [
       { index: true, Component: DashboardPage },
+      { path: "locations", Component: LocationListPage },
+      { path: "locations/create", Component: LocationCreatePage },
+      { path: "locations/:id", Component: LocationEditPage },
+      { path: "members", Component: MemberListPage },
+      { path: "members/create", Component: MemberCreatePage },
+      { path: "members/:id", Component: MemberEditPage },
     ],
   },
 ])
