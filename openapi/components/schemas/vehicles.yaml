@@ -1,0 +1,190 @@
+# Fahrzeuggruppe Schemas
+
+CreateVehicleGroupRequest:
+  type: object
+  required:
+    - designation
+  properties:
+    designation:
+      type: string
+      description: Bezeichnung der Fahrzeuggruppe
+      example: "Löschzug 1"
+
+VehicleGroupResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    designation:
+      type: string
+      description: Bezeichnung der Fahrzeuggruppe
+      example: "Löschzug 1"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    archivedAt:
+      type: string
+      format: date-time
+      nullable: true
+      example: null
+
+UpdateVehicleGroupRequest:
+  type: object
+  properties:
+    designation:
+      type: string
+      description: Bezeichnung der Fahrzeuggruppe
+      example: "Löschzug 1"
+
+# Fahrzeug Schemas
+
+CreateVehicleRequest:
+  type: object
+  required:
+    - radioCallName
+    - name
+    - licensePlate
+    - constructionYear
+    - status
+    - vehicleGroupId
+  properties:
+    radioCallName:
+      type: string
+      description: Funkrufname des Fahrzeugs
+      example: "Florian Köln 01-HLF20-01"
+    name:
+      type: string
+      description: Kurzname des Fahrzeugs
+      example: "01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen im deutschen Format
+      example: "K-HL 1234"
+      pattern: "^[A-Z]{1,2}-[A-Z]{1,2}\\s?[0-9]{1,4}$"
+    constructionYear:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      minimum: 1900
+      maximum: 2100
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung oder Vermerk
+      example: "Hubrettungsfahrzeug mit 20m Leiter"
+    status:
+      type: string
+      description: Status des Fahrzeugs
+      enum:
+        - AVAILABLE
+        - IN_OPERATION
+        - IN_MAINTENANCE
+        - DEFECTIVE
+      example: "AVAILABLE"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der zugeordneten Fahrzeuggruppe
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+VehicleResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440001"
+    radioCallName:
+      type: string
+      description: Funkrufname des Fahrzeugs
+      example: "Florian Köln 01-HLF20-01"
+    name:
+      type: string
+      description: Kurzname des Fahrzeugs
+      example: "01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen im deutschen Format
+      example: "K-HL 1234"
+    constructionYear:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung oder Vermerk
+      example: "Hubrettungsfahrzeug mit 20m Leiter"
+    status:
+      type: string
+      description: Status des Fahrzeugs
+      enum:
+        - AVAILABLE
+        - IN_OPERATION
+        - IN_MAINTENANCE
+        - DEFECTIVE
+      example: "AVAILABLE"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der zugeordneten Fahrzeuggruppe
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    archivedAt:
+      type: string
+      format: date-time
+      nullable: true
+      example: null
+
+UpdateVehicleRequest:
+  type: object
+  properties:
+    radioCallName:
+      type: string
+      description: Funkrufname des Fahrzeugs
+      example: "Florian Köln 01-HLF20-01"
+    name:
+      type: string
+      description: Kurzname des Fahrzeugs
+      example: "01-HLF20-01"
+    licensePlate:
+      type: string
+      description: Kennzeichen im deutschen Format
+      example: "K-HL 1234"
+      pattern: "^[A-Z]{1,2}-[A-Z]{1,2}\\s?[0-9]{1,4}$"
+    constructionYear:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      minimum: 1900
+      maximum: 2100
+      example: 2020
+    description:
+      type: string
+      description: Freitext-Beschreibung oder Vermerk
+      example: "Hubrettungsfahrzeug mit 20m Leiter"
+    status:
+      type: string
+      description: Status des Fahrzeugs
+      enum:
+        - AVAILABLE
+        - IN_OPERATION
+        - IN_MAINTENANCE
+        - DEFECTIVE
+      example: "IN_MAINTENANCE"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      description: ID der zugeordneten Fahrzeuggruppe
+      example: "550e8400-e29b-41d4-a716-446655440000"
