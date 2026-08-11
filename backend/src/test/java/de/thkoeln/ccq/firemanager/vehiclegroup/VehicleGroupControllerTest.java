@@ -151,6 +151,9 @@ class VehicleGroupControllerTest {
     void delete_returns404WhenNotFound() throws Exception {
         // Arrange
         var vehicleGroupId = UUID.randomUUID();
+        // doThrow ist bei void-Methoden nicht nötig - default tut nichts, aber Controller wirft NotFoundException
+        // Da deleteById void ist und NotFoundException throwt, muss der Controller das abfangen
+        // Das funktioniert nur wenn der Service die Exception wirft - hier wird deleteById direkt aufgerufen
         doThrow(new de.thkoeln.ccq.firemanager.vehiclegroup.exception.VehicleGroupNotFoundException(vehicleGroupId))
                 .when(vehicleGroupServiceStub).deleteById(vehicleGroupId);
 

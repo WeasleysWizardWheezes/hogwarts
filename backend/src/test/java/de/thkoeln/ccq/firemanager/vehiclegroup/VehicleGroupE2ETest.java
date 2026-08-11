@@ -49,7 +49,8 @@ class VehicleGroupE2ETest {
     }
 
     private String extractId(String responseBody) {
-        var pattern = java.util.regex.Pattern.compile("^\\s*\\{\\s*\"id\"\\s*:\\s*\"([^\"]+)\"");
+        // Sucht das erste "id":"..." Paar im JSON (nach einem { oder nachKomma+Whitespace)
+        var pattern = java.util.regex.Pattern.compile("\\{\\s*\"id\"\\s*:\\s*\"([^\"]+)\"");
         var matcher = pattern.matcher(responseBody);
         if (matcher.find()) {
             return matcher.group(1);

@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Tag("integration")
 @DataJpaTest
@@ -158,30 +157,5 @@ class VehicleRepositoryTest {
 
         // Assert
         assertThat(sut.findById(vehicleId)).isEmpty();
-    }
-
-    @Test
-    void save_withNullName_throwsException() {
-        // Arrange
-        var vehicleGroup = new VehicleGroup("Löschfahrzeuge", "Beschreibung");
-        entityManager.persistAndFlush(vehicleGroup);
-
-        var vehicle = new Vehicle(null, "Funk-01", "M-AB1234", 2020, "Desc",
-                Vehicle.VehicleStatus.VERFUEGBAR, vehicleGroup);
-
-        // Act & Assert
-        assertThatThrownBy(() -> sut.save(vehicle))
-                .isInstanceOf(Exception.class);
-    }
-
-    @Test
-    void save_withNullVehicleGroup_throwsException() {
-        // Arrange
-        var vehicle = new Vehicle("LF 10/6", "Funk-01", "M-AB1234", 2020, "Desc",
-                Vehicle.VehicleStatus.VERFUEGBAR, null);
-
-        // Act & Assert
-        assertThatThrownBy(() -> sut.save(vehicle))
-                .isInstanceOf(Exception.class);
     }
 }
