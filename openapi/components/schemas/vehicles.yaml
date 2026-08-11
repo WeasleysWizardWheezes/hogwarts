@@ -1,0 +1,183 @@
+# Fahrzeuggruppe Schemas
+
+CreateVehicleGroupRequest:
+  type: object
+  required:
+    - bezeichnung
+  properties:
+    bezeichnung:
+      type: string
+      description: Bezeichnung der Fahrzeuggruppe (z.B. "Löschzug Mitte", "Löschgruppe Nord")
+      example: "Löschzug Mitte"
+
+VehicleGroupResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Eindeutige ID der Fahrzeuggruppe
+      example: "550e8400-e29b-41d4-a716-446655440001"
+    bezeichnung:
+      type: string
+      description: Bezeichnung der Fahrzeuggruppe
+      example: "Löschzug Mitte"
+    createdAt:
+      type: string
+      format: date-time
+      description: Erstellzeitpunkt
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      description: Letzter Update-Zeitpunkt
+      example: "2024-01-15T10:30:00Z"
+    archivedAt:
+      type: string
+      format: date-time
+      description: Archivierungszeitpunkt (null wenn nicht archiviert)
+      example: null
+
+UpdateVehicleGroupRequest:
+  type: object
+  properties:
+    bezeichnung:
+      type: string
+      description: Neue Bezeichnung der Fahrzeuggruppe
+      example: "Löschzug Mitte-West"
+
+# Fahrzeug Schemas
+
+VehicleStatus:
+  type: string
+  description: Status des Fahrzeugs
+  enum:
+    - VERFUEGBAR
+    - IM_EINSATZ
+    - WARTUNG
+    - DEFEKT
+  example: "VERFUEGBAR"
+
+CreateVehicleRequest:
+  type: object
+  required:
+    - funkRufname
+    - name
+    - kennzeichen
+    - baujahr
+    - fahrzeuggruppeId
+  properties:
+    funkRufname:
+      type: string
+      description: Funkrufname im Format "Florian Köln 01-HLF20-01"
+      example: "Florian Köln 01-HLF20-01"
+    name:
+      type: string
+      description: Kurzform des Funkrufnamens (z.B. "01-HLF20-01")
+      example: "01-HLF20-01"
+    kennzeichen:
+      type: string
+      description: Kennzeichen im deutschen Format
+      example: "K-HL 1234"
+    baujahr:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      minimum: 1950
+      maximum: 2030
+      example: 2020
+    beschreibung:
+      type: string
+      description: Freitext-Beschreibung oder Vermerk
+      example: "HLF 20 mit Sonderausstattung"
+    fahrzeuggruppeId:
+      type: string
+      format: uuid
+      description: ID der zugeordneten Fahrzeuggruppe
+      example: "550e8400-e29b-41d4-a716-446655440001"
+
+VehicleResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Eindeutige ID des Fahrzeugs
+      example: "550e8400-e29b-41d4-a716-446655440002"
+    funkRufname:
+      type: string
+      description: Funkrufname des Fahrzeugs
+      example: "Florian Köln 01-HLF20-01"
+    name:
+      type: string
+      description: Kurzform des Funkrufnamens
+      example: "01-HLF20-01"
+    kennzeichen:
+      type: string
+      description: Kennzeichen im deutschen Format
+      example: "K-HL 1234"
+    baujahr:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      example: 2020
+    beschreibung:
+      type: string
+      description: Freitext-Beschreibung oder Vermerk
+      example: "HLF 20 mit Sonderausstattung"
+    status:
+      $ref: '#/VehicleStatus'
+    fahrzeuggruppe:
+      $ref: '#/VehicleGroupResponse'
+    createdAt:
+      type: string
+      format: date-time
+      description: Erstellzeitpunkt
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      description: Letzter Update-Zeitpunkt
+      example: "2024-01-15T10:30:00Z"
+    archivedAt:
+      type: string
+      format: date-time
+      description: Archivierungszeitpunkt (null wenn nicht archiviert)
+      example: null
+
+UpdateVehicleRequest:
+  type: object
+  properties:
+    funkRufname:
+      type: string
+      description: Neuer Funkrufname
+      example: "Florian Köln 02-HLF20-01"
+    name:
+      type: string
+      description: Neuer Name (Kurzform)
+      example: "02-HLF20-01"
+    kennzeichen:
+      type: string
+      description: Neues Kennzeichen
+      example: "K-HL 5678"
+    baujahr:
+      type: integer
+      description: Baujahr des Fahrzeugs
+      minimum: 1950
+      maximum: 2030
+      example: 2021
+    beschreibung:
+      type: string
+      description: Neue Beschreibung oder Vermerk
+      example: "HLF 20 mit erweiterter Ausstattung"
+    fahrzeuggruppeId:
+      type: string
+      format: uuid
+      description: ID der neuen Fahrzeuggruppe
+      example: "550e8400-e29b-41d4-a716-446655440003"
+
+UpdateVehicleStatusRequest:
+  type: object
+  required:
+    - status
+  properties:
+    status:
+      $ref: '#/VehicleStatus'

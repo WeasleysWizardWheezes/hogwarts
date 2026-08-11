@@ -13,6 +13,10 @@ tags:
     description: Verwaltung von Feuerwehrmitgliedern
   - name: Locations
     description: Verwaltung von Standorten
+  - name: VehicleGroups
+    description: Verwaltung von Fahrzeuggruppen
+  - name: Vehicles
+    description: Verwaltung von Fahrzeugen
 
 paths:
   /api/v1/members:
@@ -25,6 +29,16 @@ paths:
     $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations~1{locationId}'
   /api/v1/members/{memberId}/locations:
     $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations'
+  /api/v1/vehicle-groups:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicle-groups'
+  /api/v1/vehicle-groups/{vehicleGroupId}:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicle-groups~1{vehicleGroupId}'
+  /api/v1/vehicles:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles'
+  /api/v1/vehicles/{vehicleId}:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles~1{vehicleId}'
+  /api/v1/vehicles/{vehicleId}/status:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles~1{vehicleId}~1status'
 
 components:
   schemas:
@@ -32,6 +46,22 @@ components:
       $ref: './components/schemas/common.yaml#/ErrorResponse'
     PaginationMeta:
       $ref: './components/schemas/common.yaml#/PaginationMeta'
+    CreateVehicleGroupRequest:
+      $ref: './components/schemas/vehicles.yaml#/CreateVehicleGroupRequest'
+    VehicleGroupResponse:
+      $ref: './components/schemas/vehicles.yaml#/VehicleGroupResponse'
+    UpdateVehicleGroupRequest:
+      $ref: './components/schemas/vehicles.yaml#/UpdateVehicleGroupRequest'
+    VehicleStatus:
+      $ref: './components/schemas/vehicles.yaml#/VehicleStatus'
+    CreateVehicleRequest:
+      $ref: './components/schemas/vehicles.yaml#/CreateVehicleRequest'
+    VehicleResponse:
+      $ref: './components/schemas/vehicles.yaml#/VehicleResponse'
+    UpdateVehicleRequest:
+      $ref: './components/schemas/vehicles.yaml#/UpdateVehicleRequest'
+    UpdateVehicleStatusRequest:
+      $ref: './components/schemas/vehicles.yaml#/UpdateVehicleStatusRequest'
   responses:
     BadRequest:
       $ref: './components/responses/errors.yaml#/BadRequest'
