@@ -49,8 +49,8 @@ class VehicleGroupE2ETest {
     }
 
     private String extractId(String responseBody) {
-        // Sucht das erste "id":"..." Paar im JSON
-        var pattern = java.util.regex.Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"");
+        // Extrahiert die ID des äußeren JSON-Objekts
+        var pattern = java.util.regex.Pattern.compile("[{\"],\\s*\"id\"\\s*:\\s*\"([^\"]+)\"");
         var matcher = pattern.matcher(responseBody);
         if (matcher.find()) {
             return matcher.group(1);
@@ -85,8 +85,8 @@ class VehicleGroupE2ETest {
     @Test
     void getAllVehicleGroups_returnsListAfterCreate() {
         // Arrange
-        createVehicleGroupViaApi("Löschfahrzeuge", "Beschreibung");
-        createVehicleGroupViaApi("Rettungsdienst", "Beschreibung");
+        String groupId = createVehicleGroupViaApi("Löschfahrzeuge", "Beschreibung");
+        String groupId2 = createVehicleGroupViaApi("Rettungsdienst", "Beschreibung");
 
         // Act
         ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
