@@ -11,7 +11,7 @@ export function MemberLocationAssignment({
   memberId?: string
   currentLocationId?: string
 }) {
-  const [selectedLocationId, setSelectedLocationId] = useState(currentLocationId || "")
+  const [selectedLocationId, setSelectedLocationId] = useState<string>(currentLocationId || "")
   
   const locationsQuery = useLocations(0, 100)
   const assignMutation = useAssignMemberToLocation()
@@ -54,7 +54,7 @@ export function MemberLocationAssignment({
               <SelectValue placeholder="Standort auswählen" />
             </SelectTrigger>
             <SelectContent>
-              {locationsQuery.data?.data?.map((location) => (
+              {locationsQuery.data?.data?.map((location: any) => (
                 <SelectItem key={location.id} value={location.id}>
                   {location.name}
                 </SelectItem>

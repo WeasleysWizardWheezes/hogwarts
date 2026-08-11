@@ -11,7 +11,7 @@ export const createLocationSchema = v.object({
   type: v.pipe(
     v.string(),
     v.minLength(1, "Der Typ ist erforderlich"),
-    v.includes(locationTypes, "Ungültiger Standorttyp")
+    v.includes(locationTypes)
   ),
 })
 
@@ -24,7 +24,7 @@ export const updateLocationSchema = v.object({
   type: v.optional(v.pipe(
     v.string(),
     v.minLength(1, "Der Typ ist erforderlich"),
-    v.includes(locationTypes, "Ungültiger Standorttyp")
+    v.includes(locationTypes)
   )),
 })
 

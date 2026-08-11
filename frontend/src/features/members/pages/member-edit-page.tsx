@@ -5,15 +5,16 @@ import { useMember } from "../hooks/use-member"
 import { useUpdateMember } from "../hooks/use-update-member"
 import { Button } from "@/shared/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import type { UpdateMemberRequest } from "../types"
 
-export function MemberEditPage() {
+export default function MemberEditPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   
   const memberQuery = useMember(id || "")
   const updateMutation = useUpdateMember()
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: UpdateMemberRequest) => {
     if (id) {
       updateMutation.mutate(
         { id, body: data },

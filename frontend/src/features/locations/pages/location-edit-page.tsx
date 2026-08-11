@@ -4,15 +4,16 @@ import { useLocation } from "../hooks/use-location"
 import { useUpdateLocation } from "../hooks/use-update-location"
 import { Button } from "@/shared/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import type { UpdateLocationRequest } from "../types"
 
-export function LocationEditPage() {
+export default function LocationEditPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   
   const locationQuery = useLocation(id || "")
   const updateMutation = useUpdateLocation()
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: UpdateLocationRequest) => {
     if (id) {
       updateMutation.mutate(
         { id, body: data },

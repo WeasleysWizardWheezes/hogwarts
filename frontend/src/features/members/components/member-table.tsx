@@ -58,7 +58,7 @@ export function MemberTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {membersQuery.data?.data?.map((member) => (
+                {membersQuery.data?.data?.map((member: any) => (
                   <TableRow key={member.id}>
                     <TableCell>{member.firstName} {member.lastName}</TableCell>
                     <TableCell>{member.email}</TableCell>

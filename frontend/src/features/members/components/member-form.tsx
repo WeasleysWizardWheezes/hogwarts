@@ -132,7 +132,7 @@ export function MemberForm({
       <div className="flex justify-end">
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting]}
-          children={([canSubmit, isSubmitting]) => (
+          children={([canSubmit, _isSubmitting]) => (
             <Button type="submit" disabled={!canSubmit || isLoading}>
               {isLoading ? "Wird gespeichert..." : "Speichern"}
             </Button>

@@ -5,7 +5,3 @@ export type CreateLocationRequest = components["schemas"]["CreateLocationRequest
 export type UpdateLocationRequest = components["schemas"]["UpdateLocationRequest"]
 
 export type LocationType = "FIRE_STATION" | "EQUIPMENT_DEPOT" | "TRAINING_CENTER"
-
-export interface LocationWithMemberCount extends Location {
-  memberCount: number
-}

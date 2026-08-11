@@ -3,12 +3,13 @@ import { LocationForm } from "../components/location-form"
 import { useCreateLocation } from "../hooks/use-create-location"
 import { Button } from "@/shared/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import type { CreateLocationRequest } from "../types"
 
-export function LocationCreatePage() {
+export default function LocationCreatePage() {
   const navigate = useNavigate()
   const createMutation = useCreateLocation()
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: CreateLocationRequest) => {
     createMutation.mutate(data, {
       onSuccess: () => {
         navigate("/locations")

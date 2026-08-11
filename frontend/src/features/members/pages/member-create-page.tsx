@@ -4,12 +4,13 @@ import { MemberLocationAssignment } from "@/features/locations/components/member
 import { useCreateMember } from "../hooks/use-create-member"
 import { Button } from "@/shared/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import type { CreateMemberRequest } from "../types"
 
-export function MemberCreatePage() {
+export default function MemberCreatePage() {
   const navigate = useNavigate()
   const createMutation = useCreateMember()
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: CreateMemberRequest) => {
     createMutation.mutate(data, {
       onSuccess: () => {
         navigate("/members")

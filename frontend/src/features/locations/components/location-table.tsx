@@ -7,7 +7,7 @@ import { Pagination } from "@/shared/components/ui/pagination"
 import { useLocations } from "../hooks/use-locations"
 import { useDeleteLocation } from "../hooks/use-delete-location"
 import { ConfirmActionDialog } from "@/shared/components/ui/confirm-action-dialog"
-import { LocationType } from "../types"
+import type { LocationType } from "../types"
 
 export function LocationTable() {
   const [page, setPage] = useState(0)
@@ -69,7 +69,7 @@ export function LocationTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {locationsQuery.data?.data?.map((location) => (
+                {locationsQuery.data?.data?.map((location: any) => (
                   <TableRow key={location.id}>
                     <TableCell>{location.name}</TableCell>
                     <TableCell>{location.address || "-"}</TableCell>

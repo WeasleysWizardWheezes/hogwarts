@@ -14,7 +14,7 @@ export const createMemberSchema = v.object({
     v.minLength(1, "Die E-Mail ist erforderlich"),
     v.email("Ungültige E-Mail-Adresse")
   ),
-  phone: v.optional(v.string()),
+  phone: v.optional(v.string(), ""),
 })
 
 export const updateMemberSchema = v.object({
