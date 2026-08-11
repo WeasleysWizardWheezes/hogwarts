@@ -51,9 +51,8 @@ class VehicleE2ETest {
 
     private String extractId(String responseBody) {
         // Extrahiert die ID des äußeren JSON-Objekts
-        // JSON format: {"id":"uuid","name":"...",...} oder {"archived":false,"id":"uuid",...}
-        // Wir extrahieren einfach das erste Vorkommen von "id":"..." nach einem {
-        var pattern = java.util.regex.Pattern.compile("\\{[^}]*?\"id\"\\s*:\\s*\"([^\"]+)\"");
+        // Wir extrahieren die ID, die nach dem letzten Komma im äußeren Objekt kommt (vor dem schließenden })
+        var pattern = java.util.regex.Pattern.compile(",\\s*\"id\"\\s*:\\s*\"([^\"]+)\"\\s*\\}");
         var matcher = pattern.matcher(responseBody);
         if (matcher.find()) {
             return matcher.group(1);
