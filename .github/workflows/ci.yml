@@ -1065,7 +1065,7 @@ jobs:
             # Remove the waiting label
             gh issue edit "$DEP_NUMBER" --repo "$ORG/$REPO_NAME" --remove-label "waiting on issue #$ISSUE_NUMBER"
 
-            # Get project item ID
+            # Get project item ID (or add to board if not there)
             DEP_ITEM_ID=$(gh api graphql -f query='
               query($projectId: ID!) {
                 node(id: $projectId) {
@@ -1083,6 +1083,12 @@ jobs:
                   }
                 }
               }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $DEP_NUMBER) | .id")
+
+            if [ -z "$DEP_ITEM_ID" ]; then
+              echo "Issue #$DEP_NUMBER not on board – adding..."
+              DEP_ITEM_ID=$(gh project item-add 1 --owner "$ORG" --url "https://github.com/$ORG/$REPO_NAME/issues/$DEP_NUMBER" --format json | jq -r '.id')
+              echo "Added issue #$DEP_NUMBER to board (Item ID: $DEP_ITEM_ID)"
+            fi
 
             if [ -n "$DEP_ITEM_ID" ]; then
               gh api graphql -f query='
