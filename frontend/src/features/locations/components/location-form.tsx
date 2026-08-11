@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/shared/components/ui/textarea"
 import { createLocationSchema, updateLocationSchema } from "../schemas/location-schema"
 import type { LocationType } from "../types"
-import type { components } from "@/shared/api"
 
 export function LocationForm({
   initialValues,

@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
 import { getMembers } from "../api/member-api"
-import type { components } from "@/shared/api"
 
 export function useMembers(page: number = 0, size: number = 10, locationId?: string) {
   return useQuery({

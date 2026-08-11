@@ -3,7 +3,6 @@ import { LocationForm } from "../components/location-form"
 import { useCreateLocation } from "../hooks/use-create-location"
 import { Button } from "@/shared/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-import type { CreateLocationRequest } from "../types"
 
 export default function LocationCreatePage() {
   const navigate = useNavigate()

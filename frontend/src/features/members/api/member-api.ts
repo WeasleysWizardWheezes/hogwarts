@@ -1,27 +1,6 @@
 import { api } from "@/shared/api"
-import type { components } from "@weasleyswizardwheezes/hogwarts-api-client"
 
-export async function createMember(
-  body: any
-) {
-  const { data, error } = await api.POST("/api/v1/members", {
-    body,
-  })
-  if (error) throw error
-  return data
-}
 
-export async function updateMember(
-  id: string,
-  body: any
-) {
-  const { data, error } = await api.PUT("/api/v1/members/{memberId}", {
-    params: { path: { memberId: id } },
-    body,
-  })
-  if (error) throw error
-  return data
-}
 
 
 export async function getMembers(page: number = 0, size: number = 10, locationId?: string) {

@@ -3,7 +3,6 @@ import { Button } from "@/shared/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { useLocations } from "../hooks/use-locations"
 import { useAssignMemberToLocation } from "../hooks/use-assign-member-to-location"
-import type { components } from "@/shared/api"
 
 export function MemberLocationAssignment({
   memberId,
