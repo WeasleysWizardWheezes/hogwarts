@@ -9,11 +9,63 @@ const MemberListPage = lazy(() => import("@/features/members/pages/member-list-p
 const EquipmentListPage = lazy(() => import("@/features/equipment/pages/equipment-list-page"))
 const EquipmentCreatePage = lazy(() => import("@/features/equipment/pages/equipment-create-page"))
 
-// Placeholder: Wird durch echte Feature-Pages ersetzt
+// Dashboard mit Navigation zu allen Features
 function DashboardPage() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <h1 className="text-3xl font-bold">Fire Manager</h1>
+    <div className="container mx-auto py-12">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold mb-4">Fire Manager</h1>
+        <p className="text-xl text-muted-foreground">
+          Feuerwehrverwaltungssystem
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Standortverwaltung */}
+        <div className="bg-card rounded-lg p-6 border hover:shadow-md transition-shadow">
+          <h2 className="text-xl font-semibold mb-2">Standortverwaltung</h2>
+          <p className="text-muted-foreground mb-4">
+            Verwalte Feuerwehrwachen, Gerätedepots und Ausbildungszentren.
+          </p>
+          <div className="flex gap-2">
+            <a href="/locations" className="text-primary hover:underline text-sm">
+              Alle Standorte anzeigen
+            </a>
+            <a href="/locations/create" className="text-primary hover:underline text-sm">
+              Neuen Standort erstellen
+            </a>
+          </div>
+        </div>
+
+        {/* Geräteverwaltung */}
+        <div className="bg-card rounded-lg p-6 border hover:shadow-md transition-shadow">
+          <h2 className="text-xl font-semibold mb-2">Geräteverwaltung</h2>
+          <p className="text-muted-foreground mb-4">
+            Verwalte Atemschutzgeräte, Funkgeräte, Werkzeuge und mehr.
+          </p>
+          <div className="flex gap-2">
+            <a href="/equipment" className="text-primary hover:underline text-sm">
+              Alle Geräte anzeigen
+            </a>
+            <a href="/equipment/create" className="text-primary hover:underline text-sm">
+              Neues Gerät erstellen
+            </a>
+          </div>
+        </div>
+
+        {/* Mitgliederverwaltung */}
+        <div className="bg-card rounded-lg p-6 border hover:shadow-md transition-shadow">
+          <h2 className="text-xl font-semibold mb-2">Mitgliederverwaltung</h2>
+          <p className="text-muted-foreground mb-4">
+            Verwalte Feuerwehrmitglieder und ihre Zuordnungen.
+          </p>
+          <div className="flex gap-2">
+            <a href="/members" className="text-primary hover:underline text-sm">
+              Alle Mitglieder anzeigen
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
