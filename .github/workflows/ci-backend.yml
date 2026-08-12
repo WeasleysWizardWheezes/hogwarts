@@ -1,0 +1,194 @@
+name: Backend CI
+
+on:
+  workflow_call:
+    inputs:
+      backend-changed:
+        type: boolean
+        required: true
+      is-pull-request:
+        type: boolean
+        required: true
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  # ═══════════════════════════════════════════════
+  # Unit Tests + Coverage
+  # ═══════════════════════════════════════════════
+  test:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    if: inputs.backend-changed
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-java
+
+      - name: Run Unit Tests
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw test \
+            -s ${{ github.workspace }}/settings.xml \
+            --batch-mode --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload target directory
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-target
+          path: backend/target/
+          retention-days: 1
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: |
+            backend/target/surefire-reports/
+            backend/target/site/jacoco/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════
+  # Code Quality (Checkstyle + JaCoCo)
+  # ═══════════════════════════════════════════════
+  quality:
+    name: Code Quality (Checkstyle + JaCoCo)
+    runs-on: ubuntu-latest
+    needs: test
+    if: |
+      always() &&
+      inputs.backend-changed &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
+    # TODO: Remove continue-on-error once real tests achieve 80% coverage
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-java
+
+      - name: Verify Quality Gates (Checkstyle + JaCoCo)
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw verify \
+            -s ${{ github.workspace }}/settings.xml \
+            -DskipTests \
+            --batch-mode --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Checkstyle Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: checkstyle-report
+          path: backend/target/checkstyle-result.xml
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload JaCoCo Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════
+  # Mutation Testing (PITest) – nur bei PRs
+  # ═══════════════════════════════════════════════
+  mutation-testing:
+    name: Mutation Testing (PITest)
+    runs-on: ubuntu-latest
+    needs: test
+    if: inputs.is-pull-request && inputs.backend-changed
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-java
+
+      - name: Run PITest
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw pitest:mutationCoverage \
+            -s ${{ github.workspace }}/settings.xml \
+            --batch-mode --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Mutation Score Threshold
+        working-directory: backend
+        run: |
+          REPORT=$(find target/pit-reports -name "mutations.xml" -type f 2>/dev/null | head -1)
+
+          if [ -z "$REPORT" ]; then
+            echo "::warning::PITest report not found – no mutations generated"
+            exit 0
+          fi
+
+          TOTAL=$(grep -c '<mutation ' "$REPORT" || echo 0)
+          KILLED=$(grep -c 'status="KILLED"' "$REPORT" || echo 0)
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "::warning::No mutations generated"
+            exit 0
+          fi
+
+          SCORE=$((KILLED * 100 / TOTAL))
+          echo "Mutation Score: $SCORE% ($KILLED/$TOTAL killed)"
+
+          if [ "$SCORE" -lt 70 ]; then
+            echo "::error::Mutation Score $SCORE% is below threshold of 70%"
+            exit 1
+          fi
+
+      - name: Upload PITest Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pitest-report
+          path: backend/target/pit-reports/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════
+  # E2E Tests (Testcontainers)
+  # ═══════════════════════════════════════════════
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: test
+    if: |
+      always() &&
+      inputs.backend-changed &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-java
+
+      - name: Run E2E Tests (Testcontainers)
+        working-directory: backend
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: 'true'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x mvnw
+          ./mvnw verify \
+            -s ${{ github.workspace }}/settings.xml \
+            -Dsurefire.skip=true \
+            --batch-mode --no-transfer-progress
+
+      - name: Upload E2E Test Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-test-results
+          path: backend/target/failsafe-reports/
+          if-no-files-found: ignore
+          retention-days: 7

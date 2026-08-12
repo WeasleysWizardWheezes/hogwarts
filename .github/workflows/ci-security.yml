@@ -1,0 +1,76 @@
+name: Security CI
+
+on:
+  workflow_call:
+    inputs:
+      backend-changed:
+        type: boolean
+        required: true
+      frontend-changed:
+        type: boolean
+        required: true
+      is-pull-request:
+        type: boolean
+        required: true
+      ref-name:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # ═══════════════════════════════════════════════
+  # CodeQL – Backend (Java/Kotlin)
+  # ═══════════════════════════════════════════════
+  scan-backend:
+    name: Security Scan – Backend (CodeQL)
+    runs-on: ubuntu-latest
+    if: |
+      (inputs.ref-name == 'main' || inputs.is-pull-request) &&
+      inputs.backend-changed
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+
+      - uses: ./.github/actions/setup-java
+
+      - name: Build for CodeQL
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw compile \
+            -s ${{ github.workspace }}/settings.xml \
+            --batch-mode --no-transfer-progress \
+            -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+
+  # ═══════════════════════════════════════════════
+  # CodeQL – Frontend (JavaScript/TypeScript)
+  # ═══════════════════════════════════════════════
+  scan-frontend:
+    name: Security Scan – Frontend (CodeQL)
+    runs-on: ubuntu-latest
+    if: |
+      (inputs.ref-name == 'main' || inputs.is-pull-request) &&
+      inputs.frontend-changed
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          source-root: frontend/
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4

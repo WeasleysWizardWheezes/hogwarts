@@ -1,0 +1,616 @@
+name: Board Automation
+
+on:
+  workflow_call:
+    inputs:
+      ref-name:
+        type: string
+        required: true
+      is-push:
+        type: boolean
+        required: true
+      is-pull-request:
+        type: boolean
+        required: true
+      pr-merged:
+        type: boolean
+        required: true
+      pr-body:
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  # ═══════════════════════════════════════════════
+  # Board Automation (Push on feature branch)
+  # ═══════════════════════════════════════════════
+  on-push:
+    name: Board Automation (Push)
+    runs-on: ubuntu-latest
+    if: inputs.is-push && inputs.ref-name != 'main'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Extract issue number from branch
+        id: issue
+        run: |
+          BRANCH="${{ inputs.ref-name }}"
+          if [[ "$BRANCH" =~ ^[a-z]+/(issue-)?([0-9]+)- ]]; then
+            echo "number=${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
+            echo "Found issue #${BASH_REMATCH[2]} from branch $BRANCH"
+          else
+            echo "number=" >> "$GITHUB_OUTPUT"
+            echo "No issue number found in branch: $BRANCH"
+          fi
+
+      - name: Check for awaiting-pipeline label
+        if: steps.issue.outputs.number != ''
+        id: label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LABELS=$(gh issue view ${{ steps.issue.outputs.number }} --json labels --jq '.labels[].name')
+          if echo "$LABELS" | grep -q "awaiting-pipeline"; then
+            echo "has_label=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_label=false" >> "$GITHUB_OUTPUT"
+            echo "Issue #${{ steps.issue.outputs.number }} does not have awaiting-pipeline label – skipping"
+          fi
+
+      - name: Determine role from board column
+        if: steps.label.outputs.has_label == 'true'
+        id: paths
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+
+          # Board-Spalte des Issues ermitteln
+          BOARD_STATUS=$(gh project item-list 1 --owner WeasleysWizardWheezes --format json -L 100 | jq -r ".items[] | select(.content.number == $ISSUE_NUMBER) | .status")
+          echo "Issue #$ISSUE_NUMBER – Board-Status: $BOARD_STATUS"
+
+          # Issue-Labels lesen (backend/frontend)
+          ISSUE_LABELS=$(gh issue view "$ISSUE_NUMBER" --repo ${{ github.repository }} --json labels --jq '.labels[].name')
+          echo "Labels: $ISSUE_LABELS"
+
+          IS_BACKEND=$(echo "$ISSUE_LABELS" | grep -q "^backend$" && echo "true" || echo "false")
+          IS_FRONTEND=$(echo "$ISSUE_LABELS" | grep -q "^frontend$" && echo "true" || echo "false")
+
+          # Rolle und Ziel-Spalte anhand der Board-Spalte bestimmen
+          case "$BOARD_STATUS" in
+            "Backlog")
+              echo "role=planner" >> "$GITHUB_OUTPUT"
+              echo "current_column=Backlog" >> "$GITHUB_OUTPUT"
+              echo "target_column=Ready Dev" >> "$GITHUB_OUTPUT"
+              ;;
+            "Dev")
+              if [[ "$IS_BACKEND" == "true" ]]; then
+                echo "role=backend-dev" >> "$GITHUB_OUTPUT"
+              else
+                echo "role=frontend-dev" >> "$GITHUB_OUTPUT"
+              fi
+              echo "current_column=Dev" >> "$GITHUB_OUTPUT"
+              echo "target_column=Ready Test" >> "$GITHUB_OUTPUT"
+              ;;
+            "Test")
+              if [[ "$IS_BACKEND" == "true" ]]; then
+                echo "role=backend-tester" >> "$GITHUB_OUTPUT"
+              else
+                echo "role=frontend-tester" >> "$GITHUB_OUTPUT"
+              fi
+              echo "current_column=Test" >> "$GITHUB_OUTPUT"
+              echo "target_column=Needs Review" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "role=" >> "$GITHUB_OUTPUT"
+              echo "Board-Status '$BOARD_STATUS' ist keine aktive Arbeitsspalte – kein Move nötig"
+              ;;
+          esac
+
+      - name: Determine pipeline result
+        if: steps.paths.outputs.role != ''
+        id: result
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ROLE="${{ steps.paths.outputs.role }}"
+          RUN_ID="${{ github.run_id }}"
+          FAILED=false
+
+          # Hole die Job-Ergebnisse des aktuellen Workflow-Runs
+          JOBS_JSON=$(gh api "/repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --paginate --jq '.jobs')
+
+          # Planner role: check openapi-related results
+          if [[ "$ROLE" == "planner" ]]; then
+            OPENAPI_FAILED=$(echo "$JOBS_JSON" | jq -r '[.[] | select(.name | test("OpenAPI"; "i")) | select(.conclusion == "failure")] | length')
+            if [ "$OPENAPI_FAILED" -gt 0 ]; then
+              FAILED=true
+            fi
+          fi
+
+          # Backend roles: check backend-related results
+          if [[ "$ROLE" == backend-* ]]; then
+            BACKEND_FAILED=$(echo "$JOBS_JSON" | jq -r '[.[] | select(.name | test("Backend|Quality|E2E"; "i")) | select(.conclusion == "failure")] | length')
+            if [ "$BACKEND_FAILED" -gt 0 ]; then
+              FAILED=true
+            fi
+          fi
+
+          # Frontend roles: check frontend-related results
+          if [[ "$ROLE" == frontend-* ]]; then
+            FRONTEND_FAILED=$(echo "$JOBS_JSON" | jq -r '[.[] | select(.name | test("Frontend"; "i")) | select(.conclusion == "failure")] | length')
+            if [ "$FRONTEND_FAILED" -gt 0 ]; then
+              FAILED=true
+            fi
+          fi
+
+          # Security scans: fail if they ran and failed
+          SECURITY_FAILED=$(echo "$JOBS_JSON" | jq -r '[.[] | select(.name | test("Security"; "i")) | select(.conclusion == "failure")] | length')
+          if [ "$SECURITY_FAILED" -gt 0 ]; then
+            FAILED=true
+          fi
+
+          if [[ "$FAILED" == "true" ]]; then
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+            echo "Pipeline FAILED for role $ROLE"
+          else
+            echo "status=success" >> "$GITHUB_OUTPUT"
+            echo "Pipeline SUCCEEDED for role $ROLE"
+          fi
+
+      - name: Remove awaiting-pipeline label
+        if: steps.label.outputs.has_label == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit ${{ steps.issue.outputs.number }} --remove-label "awaiting-pipeline"
+          echo "Removed awaiting-pipeline label from issue #${{ steps.issue.outputs.number }}"
+
+      - name: Post failure comment on issue
+        if: steps.result.outputs.status == 'failure' && steps.paths.outputs.role != '' && steps.issue.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ROLE="${{ steps.paths.outputs.role }}"
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          COMMENT="## Pipeline fehlgeschlagen\n\n"
+          COMMENT+="**Rolle:** $ROLE\n"
+          COMMENT+="**Run:** $RUN_URL\n\n"
+
+          if [[ "$ROLE" == backend-dev ]] || [[ "$ROLE" == frontend-dev ]]; then
+            COMMENT+="Die Pipeline ist nach dem Dev-Push fehlgeschlagen. Mögliche Ursache: bestehende Tests sind durch die Code-Änderung gebrochen.\n\n"
+            COMMENT+="**Ticket wird trotzdem nach Ready Test verschoben.** Der Tester muss prüfen ob seine Tests angepasst werden müssen oder ob der Produktionscode fehlerhaft ist."
+          elif [[ "$ROLE" == backend-tester ]] || [[ "$ROLE" == frontend-tester ]]; then
+            COMMENT+="Die Pipeline ist nach dem Tester-Push fehlgeschlagen. Das Ticket bleibt in der aktuellen Spalte.\n\n"
+            COMMENT+="**Mögliche Ursachen:** Eigene Tests kompilieren nicht, Tests schlagen fehl, Coverage/Quality Gates nicht bestanden."
+          fi
+
+          gh issue comment "$ISSUE_NUMBER" --repo "${{ github.repository }}" --body "$(echo -e "$COMMENT")"
+          echo "Posted failure comment on issue #$ISSUE_NUMBER"
+
+      - name: Move issue on project board (Dev roles)
+        if: steps.paths.outputs.role != '' && steps.paths.outputs.role != 'planner' && (steps.paths.outputs.role == 'backend-dev' || steps.paths.outputs.role == 'frontend-dev')
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ORG="WeasleysWizardWheezes"
+          PROJECT_NUMBER=1
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          TARGET_STATUS="${{ steps.paths.outputs.target_column }}"
+
+          # Get project ID
+          PROJECT_ID=$(gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
+
+          echo "Project ID: $PROJECT_ID"
+
+          # Get the project item ID for this issue
+          ITEM_ID=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      content {
+                        ... on Issue {
+                          number
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id")
+
+          echo "Item ID: $ITEM_ID"
+
+          # Get the Status field ID and target option ID
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          STATUS_FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          OPTION_ID=$(echo "$FIELD_DATA" | jq -r ".data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"$TARGET_STATUS\") | .id")
+
+          echo "Status Field ID: $STATUS_FIELD_ID"
+          echo "Target Option ID: $OPTION_ID (for status: $TARGET_STATUS)"
+
+          # Update the item status
+          gh api graphql -f query='
+            mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $projectId
+                itemId: $itemId
+                fieldId: $fieldId
+                value: { singleSelectOptionId: $optionId }
+              }) {
+                projectV2Item {
+                  id
+                }
+              }
+            }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$OPTION_ID"
+
+          echo "✅ Moved issue #$ISSUE_NUMBER to '$TARGET_STATUS'"
+
+      - name: Move issue on project board (Tester roles – move only on success)
+        if: steps.result.outputs.status == 'success' && steps.paths.outputs.role != '' && (steps.paths.outputs.role == 'backend-tester' || steps.paths.outputs.role == 'frontend-tester')
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ORG="WeasleysWizardWheezes"
+          PROJECT_NUMBER=1
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          TARGET_STATUS="${{ steps.paths.outputs.target_column }}"
+
+          PROJECT_ID=$(gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
+
+          ITEM_ID=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      content {
+                        ... on Issue {
+                          number
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id")
+
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          STATUS_FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          OPTION_ID=$(echo "$FIELD_DATA" | jq -r ".data.node.fields.nodes[] | select(.name == \"Status\") | .options[] | select(.name == \"$TARGET_STATUS\") | .id")
+
+          gh api graphql -f query='
+            mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $projectId
+                itemId: $itemId
+                fieldId: $fieldId
+                value: { singleSelectOptionId: $optionId }
+              }) {
+                projectV2Item { id }
+              }
+            }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$OPTION_ID"
+
+          echo "✅ Moved issue #$ISSUE_NUMBER to '$TARGET_STATUS'"
+
+      - name: Planner – Move dev tickets to Ready Dev and close origin ticket
+        if: steps.result.outputs.status == 'success' && steps.paths.outputs.role == 'planner'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ORG="WeasleysWizardWheezes"
+          PROJECT_NUMBER=1
+          REPO="${{ github.repository }}"
+          REPO_NAME="${REPO#*/}"
+          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+
+          echo "Planner pipeline succeeded for issue #$ISSUE_NUMBER"
+
+          # Get project ID
+          PROJECT_ID=$(gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
+
+          # Get Status field and Ready Dev option ID
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          STATUS_FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          READY_DEV_OPTION_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "Ready Dev") | .id')
+
+          # Find dev tickets with label "waiting on issue #<nr>"
+          DEPENDENTS=$(gh issue list --repo "$ORG/$REPO_NAME" --label "waiting on issue #$ISSUE_NUMBER" --state open --json number --jq '.[].number')
+
+          for DEP_NUMBER in $DEPENDENTS; do
+            echo "Moving dependent issue #$DEP_NUMBER to Ready Dev..."
+
+            # Remove the waiting label
+            gh issue edit "$DEP_NUMBER" --repo "$ORG/$REPO_NAME" --remove-label "waiting on issue #$ISSUE_NUMBER"
+
+            # Get project item ID (or add to board if not there)
+            DEP_ITEM_ID=$(gh api graphql -f query='
+              query($projectId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    items(first: 100) {
+                      nodes {
+                        id
+                        content {
+                          ... on Issue {
+                            number
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $DEP_NUMBER) | .id")
+
+            if [ -z "$DEP_ITEM_ID" ]; then
+              echo "Issue #$DEP_NUMBER not on board – adding..."
+              DEP_ITEM_ID=$(gh project item-add 1 --owner "$ORG" --url "https://github.com/$ORG/$REPO_NAME/issues/$DEP_NUMBER" --format json | jq -r '.id')
+              echo "Added issue #$DEP_NUMBER to board (Item ID: $DEP_ITEM_ID)"
+            fi
+
+            if [ -n "$DEP_ITEM_ID" ]; then
+              gh api graphql -f query='
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: { singleSelectOptionId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }' -f projectId="$PROJECT_ID" -f itemId="$DEP_ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$READY_DEV_OPTION_ID"
+
+              echo "✅ Moved issue #$DEP_NUMBER to 'Ready Dev'"
+            fi
+          done
+
+          # Close the origin ticket
+          gh issue close "$ISSUE_NUMBER" --repo "$ORG/$REPO_NAME"
+          echo "✅ Closed origin issue #$ISSUE_NUMBER"
+
+  # ═══════════════════════════════════════════════
+  # Board Automation (PR Merge → Done + Unblock)
+  # ═══════════════════════════════════════════════
+  on-merge:
+    name: Board Automation (PR Merge)
+    runs-on: ubuntu-latest
+    if: inputs.is-pull-request && inputs.pr-merged
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract closed issue numbers from PR body
+        id: issues
+        env:
+          PR_BODY: ${{ inputs.pr-body }}
+        run: |
+          # Extract issue numbers from "Closes #<nr>" patterns
+          NUMBERS=$(echo "$PR_BODY" | grep -oiP '(?:closes|fixes|resolves)\s+#\K[0-9]+' || true)
+          echo "numbers<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NUMBERS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "Found issues: $NUMBERS"
+
+      - name: Move issues to Done and unblock dependents
+        if: steps.issues.outputs.numbers != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ORG="WeasleysWizardWheezes"
+          PROJECT_NUMBER=1
+          REPO="${{ github.repository }}"
+
+          # Get project ID
+          PROJECT_ID=$(gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }' -f org="$ORG" -F number=$PROJECT_NUMBER --jq '.data.organization.projectV2.id')
+
+          # Get Status field and option IDs
+          FIELD_DATA=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          STATUS_FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          DONE_OPTION_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "Done") | .id')
+          READY_DEV_OPTION_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == "Ready Dev") | .id')
+
+          while IFS= read -r ISSUE_NUMBER; do
+            [ -z "$ISSUE_NUMBER" ] && continue
+            echo "Processing issue #$ISSUE_NUMBER..."
+
+            # Get item ID on project board
+            ITEM_ID=$(gh api graphql -f query='
+              query($projectId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    items(first: 100) {
+                      nodes {
+                        id
+                        content {
+                          ... on Issue {
+                            number
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id")
+
+            if [ -z "$ITEM_ID" ]; then
+              echo "Issue #$ISSUE_NUMBER not found on project board – skipping"
+              continue
+            fi
+
+            # Move to Done
+            gh api graphql -f query='
+              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: { singleSelectOptionId: $optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$DONE_OPTION_ID"
+
+            echo "✅ Moved issue #$ISSUE_NUMBER to 'Done'"
+
+            # Find dependent issues via label "waiting on issue #<nr>"
+            REPO_NAME="${REPO#*/}"
+            DEPENDENTS=$(gh issue list --repo "$ORG/$REPO_NAME" --label "waiting on issue #$ISSUE_NUMBER" --state open --json number --jq '.[].number')
+
+            for DEP_NUMBER in $DEPENDENTS; do
+              echo "Found dependent issue #$DEP_NUMBER – unblocking..."
+
+              # Remove the waiting label
+              gh issue edit "$DEP_NUMBER" --repo "$ORG/$REPO_NAME" --remove-label "waiting on issue #$ISSUE_NUMBER"
+
+              # Move to Ready Dev on project board
+              DEP_ITEM_ID=$(gh api graphql -f query='
+                query($projectId: ID!) {
+                  node(id: $projectId) {
+                    ... on ProjectV2 {
+                      items(first: 100) {
+                        nodes {
+                          id
+                          content {
+                            ... on Issue {
+                              number
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $DEP_NUMBER) | .id")
+
+              if [ -n "$DEP_ITEM_ID" ]; then
+                gh api graphql -f query='
+                  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                    updateProjectV2ItemFieldValue(input: {
+                      projectId: $projectId
+                      itemId: $itemId
+                      fieldId: $fieldId
+                      value: { singleSelectOptionId: $optionId }
+                    }) {
+                      projectV2Item { id }
+                    }
+                  }' -f projectId="$PROJECT_ID" -f itemId="$DEP_ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$READY_DEV_OPTION_ID"
+
+                echo "✅ Moved dependent issue #$DEP_NUMBER to 'Ready Dev'"
+              fi
+            done
+          done <<< "${{ steps.issues.outputs.numbers }}"
