@@ -101,7 +101,7 @@ describe("Location API", () => {
         name: "Neue Wache",
         address: "Neue Straße 1",
         type: "FIRE_STATION"
-      }
+      } as any
 
       const result = await createLocation(newLocation)
 
@@ -122,7 +122,7 @@ describe("Location API", () => {
         name: "Hauptwache (aktualisiert)",
         address: "Hauptstraße 1 (aktualisiert)",
         type: "FIRE_STATION"
-      }
+      } as any
 
       const result = await updateLocation("location-1", updatedLocation)
 
