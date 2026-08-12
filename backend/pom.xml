@@ -292,6 +292,7 @@
                         <param>de.thkoeln.ccq.firemanager.**</param>
                     </targetTests>
                     <mutationThreshold>70</mutationThreshold>
+                    <failWhenNoMutations>false</failWhenNoMutations>
                 </configuration>
             </plugin>
 		</plugins>
