@@ -16,7 +16,6 @@
     "api:generate": "npx openapi-typescript ../openapi/api.yaml -o src/shared/api/schema.d.ts"
   },
   "dependencies": {
-    "@weasleyswizardwheezes/hogwarts-api-client": "^0.1.0-0",
     "@base-ui/react": "^1.6.0",
     "@fontsource-variable/geist": "^5.2.9",
     "@shadcn/react": "^0.2.0",
