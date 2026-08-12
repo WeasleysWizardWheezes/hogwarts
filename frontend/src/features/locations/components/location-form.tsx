@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form"
+import * as v from "valibot"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
@@ -27,7 +28,18 @@ export function LocationForm({
       type: initialValues?.type || "",
     },
     validators: {
-      onBlur: initialValues ? updateLocationSchema : createLocationSchema,
+      onBlur: ({ value }) => {
+        try {
+          const schema = initialValues ? updateLocationSchema : createLocationSchema
+          v.parse(schema, value)
+          return { valid: true }
+        } catch (error) {
+          if (error instanceof Error) {
+            return { valid: false, error: error.message }
+          }
+          return { valid: false, error: "Unbekannter Validierungsfehler" }
+        }
+      },
     },
     onSubmit: ({ value }) => {
       onSubmit(value)
@@ -77,7 +89,7 @@ export function LocationForm({
             <Label htmlFor={field.name}>Adresse</Label>
             <Textarea
               id={field.name}
-              value={field.state.value}
+              value={field.state.value ?? ""}
               onBlur={field.handleBlur}
               onChange={(e) => field.handleChange(e.target.value)}
               disabled={isLoading}
@@ -98,7 +110,7 @@ export function LocationForm({
           <div className="space-y-2">
             <Label htmlFor={field.name}>Typ *</Label>
             <Select
-              value={field.state.value}
+              value={field.state.value ?? ""}
               onValueChange={(value) => field.handleChange(value)}
               disabled={isLoading}
             >

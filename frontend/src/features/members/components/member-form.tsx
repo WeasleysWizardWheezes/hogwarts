@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form"
+import * as v from "valibot"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
@@ -26,7 +27,18 @@ export function MemberForm({
       phone: initialValues?.phone || "",
     },
     validators: {
-      onBlur: initialValues ? updateMemberSchema : createMemberSchema,
+      onBlur: ({ value }) => {
+        try {
+          const schema = initialValues ? updateMemberSchema : createMemberSchema
+          v.parse(schema, value)
+          return { valid: true }
+        } catch (error) {
+          if (error instanceof Error) {
+            return { valid: false, error: error.message }
+          }
+          return { valid: false, error: "Unbekannter Validierungsfehler" }
+        }
+      },
     },
     onSubmit: ({ value }) => {
       onSubmit(value)
