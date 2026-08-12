@@ -1,16 +1,8 @@
 import "@testing-library/jest-dom/vitest"
 import { cleanup } from "@testing-library/react"
-import { afterAll, afterEach, beforeAll } from "vitest"
-import { server } from "./mocks/server"
+import { afterEach } from "vitest"
 
-// Start MSW server before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }))
-
-// Reset handlers between tests (clean slate)
+// Clean up rendered components between tests
 afterEach(() => {
   cleanup()
-  server.resetHandlers()
 })
-
-// Close MSW server after all tests
-afterAll(() => server.close())
