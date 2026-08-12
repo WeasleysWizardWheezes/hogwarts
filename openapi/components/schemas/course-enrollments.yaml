@@ -1,0 +1,74 @@
+EnrollmentStatus:
+  type: string
+  description: Status der Anmeldung
+  enum:
+    - PENDING
+    - WAITING_LIST
+    - CONFIRMED
+    - CANCELLED
+  example: "CONFIRMED"
+
+CreateEnrollmentRequest:
+  type: object
+  required:
+    - memberId
+  properties:
+    memberId:
+      type: string
+      format: uuid
+      description: ID des Mitglieds das sich anmeldet
+      example: "660e8400-e29b-41d4-a716-446655440001"
+    comment:
+      type: string
+      description: Optionale Bemerkung zur Anmeldung
+      maxLength: 500
+      example: "Bitte um Bestätigung da Einsatzrelevant"
+
+EnrollmentResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "770e8400-e29b-41d4-a716-446655440002"
+    courseId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    courseName:
+      type: string
+      description: Name des Lehrgangs
+      example: "Truppmann Modul 1"
+    memberId:
+      type: string
+      format: uuid
+      example: "660e8400-e29b-41d4-a716-446655440001"
+    memberName:
+      type: string
+      description: Name des Mitglieds
+      example: "Erika Musterfrau"
+    status:
+      $ref: './course-enrollments.yaml#/EnrollmentStatus'
+    comment:
+      type: string
+      description: Bemerkung zur Anmeldung
+      example: "Bitte um Bestätigung da Einsatzrelevant"
+    enrolledAt:
+      type: string
+      format: date-time
+      description: Zeitpunkt der Anmeldung
+      example: "2026-08-12T09:00:00Z"
+    confirmedAt:
+      type: string
+      format: date-time
+      description: Zeitpunkt der Bestätigung (null wenn nicht bestätigt)
+      nullable: true
+      example: "2026-08-13T10:00:00Z"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-08-12T09:00:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-08-13T10:00:00Z"
