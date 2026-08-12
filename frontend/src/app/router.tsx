@@ -6,6 +6,8 @@ const LocationListPage = lazy(() => import("@/features/locations/pages/location-
 const LocationCreatePage = lazy(() => import("@/features/locations/pages/location-create-page"))
 const LocationEditPage = lazy(() => import("@/features/locations/pages/location-edit-page"))
 const MemberListPage = lazy(() => import("@/features/members/pages/member-list-page"))
+const EquipmentListPage = lazy(() => import("@/features/equipment/pages/equipment-list-page"))
+const EquipmentCreatePage = lazy(() => import("@/features/equipment/pages/equipment-create-page"))
 
 // Placeholder: Wird durch echte Feature-Pages ersetzt
 function DashboardPage() {
@@ -26,6 +28,8 @@ export const router = createBrowserRouter([
       { path: "locations/create", Component: LocationCreatePage },
       { path: "locations/:id", Component: LocationEditPage },
       { path: "members", Component: MemberListPage },
+      { path: "equipment", Component: EquipmentListPage },
+      { path: "equipment/create", Component: EquipmentCreatePage },
     ],
   },
 ])
