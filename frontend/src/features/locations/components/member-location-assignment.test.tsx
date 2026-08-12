@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react"
+import React from "react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemberLocationAssignment } from "./member-location-assignment"
 import { useLocations } from "../hooks/use-locations"
@@ -9,8 +10,8 @@ vi.mock("../hooks/use-locations")
 vi.mock("../hooks/use-assign-member-to-location")
 
 describe("MemberLocationAssignment", () => {
-  const mockUseLocations = useLocations as jest.Mock
-  const mockUseAssignMemberToLocation = useAssignMemberToLocation as jest.Mock
+  const mockUseLocations = useLocations as vi.Mock
+  const mockUseAssignMemberToLocation = useAssignMemberToLocation as vi.Mock
 
   beforeEach(() => {
     vi.clearAllMocks()

@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react"
+import React from "react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemberTable } from "./member-table"
 import { useMembers } from "../hooks/use-members"
@@ -9,8 +10,8 @@ vi.mock("../hooks/use-members")
 vi.mock("@/features/locations/hooks/use-locations")
 
 describe("MemberTable", () => {
-  const mockUseMembers = useMembers as jest.Mock
-  const mockUseLocations = useLocations as jest.Mock
+  const mockUseMembers = useMembers as vi.Mock
+  const mockUseLocations = useLocations as vi.Mock
 
   beforeEach(() => {
     vi.clearAllMocks()
