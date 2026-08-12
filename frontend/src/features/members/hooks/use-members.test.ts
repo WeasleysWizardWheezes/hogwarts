@@ -21,12 +21,8 @@ describe("useMembers Hook", () => {
     },
   })
 
-  const wrapper = function ({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    )
+  function wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children)
   }
 
   it("sollte Mitglieder erfolgreich laden", async () => {
