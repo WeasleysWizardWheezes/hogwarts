@@ -97,7 +97,7 @@ export const handlers = [
   }),
 
   http.delete("/api/v1/locations/:locationId", ({ params }) => {
-    const { locationId } = params
+    const { locationId: _locationId } = params
     return HttpResponse.json({}, { status: 204 })
   }),
 

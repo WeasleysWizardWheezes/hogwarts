@@ -21,11 +21,13 @@ describe("useLocations Hook", () => {
     },
   })
 
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
+  const wrapper = function ({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    )
+  }
 
   it("sollte Standorte erfolgreich laden", async () => {
     const { result } = renderHook(() => useLocations(0, 10), { wrapper })
