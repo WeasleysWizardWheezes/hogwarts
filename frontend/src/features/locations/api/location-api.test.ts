@@ -3,6 +3,25 @@ import { setupServer } from "msw/node"
 import { handlers } from "@/test/api-handlers"
 import { getLocations, getLocationById, createLocation, updateLocation, deleteLocation, assignMemberToLocation } from "./location-api"
 
+type Location = {
+  id: string
+  name: string
+  address?: string
+  type: string
+  createdAt: string
+  updatedAt: string
+}
+
+type LocationPage = {
+  data: Location[]
+  page: {
+    size: number
+    totalElements: number
+    totalPages: number
+    number: number
+  }
+}
+
 const server = setupServer(...handlers)
 
 beforeAll(() => server.listen())
@@ -14,7 +33,7 @@ describe("Location API", () => {
     it("sollte eine Liste von Standorten zurückgeben", async () => {
       const result = await getLocations(0, 10)
 
-      expect(result).toEqual({
+      const expected: LocationPage = {
         data: [
           {
             id: "location-1",
@@ -47,7 +66,9 @@ describe("Location API", () => {
           totalPages: 1,
           number: 0
         }
-      })
+      }
+
+      expect(result).toEqual(expected)
     })
 
     it("sollte Pagination unterstützen", async () => {

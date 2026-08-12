@@ -3,6 +3,30 @@ import { setupServer } from "msw/node"
 import { handlers } from "@/test/api-handlers"
 import { getMembers, getMemberById } from "./member-api"
 
+type Member = {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  location?: {
+    id: string
+    name: string
+  } | null
+  createdAt: string
+  updatedAt: string
+}
+
+type MemberPage = {
+  data: Member[]
+  page: {
+    size: number
+    totalElements: number
+    totalPages: number
+    number: number
+  }
+}
+
 const server = setupServer(...handlers)
 
 beforeAll(() => server.listen())
@@ -14,7 +38,7 @@ describe("Member API", () => {
     it("sollte eine Liste von Mitgliedern zurückgeben", async () => {
       const result = await getMembers(0, 10)
 
-      expect(result).toEqual({
+      const expected: MemberPage = {
         data: [
           {
             id: "member-1",
@@ -72,7 +96,9 @@ describe("Member API", () => {
           totalPages: 1,
           number: 0
         }
-      })
+      }
+
+      expect(result).toEqual(expected)
     })
 
     it("sollte Mitglieder nach Standort filtern", async () => {
