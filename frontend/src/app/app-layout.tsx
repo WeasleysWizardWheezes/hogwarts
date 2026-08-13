@@ -1,12 +1,22 @@
 import { Outlet } from "react-router"
 import { Suspense } from "react"
+import { AppSidebar } from "./app-sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/shared/components/ui/sidebar"
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen">
-      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Laden...</div>}>
-        <Outlet />
-      </Suspense>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-14 items-center gap-2 border-b px-4">
+          <SidebarTrigger />
+        </header>
+        <main className="flex-1 p-6">
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Laden...</div>}>
+            <Outlet />
+          </Suspense>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
