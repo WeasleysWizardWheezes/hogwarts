@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router"
 import { lazy } from "react"
 
 const AppLayout = lazy(() => import("@/app/app-layout"))
+const LocationsPage = lazy(() => import("@/features/locations/pages/locations-page"))
 
 // Placeholder: Wird durch echte Feature-Pages ersetzt
 function DashboardPage() {
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
     Component: AppLayout,
     children: [
       { index: true, Component: DashboardPage },
+      { path: "locations", Component: LocationsPage },
     ],
   },
 ])
