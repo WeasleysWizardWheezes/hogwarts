@@ -49,18 +49,33 @@ jobs:
             echo "No issue number found in branch: $BRANCH"
           fi
 
-      - name: Check for awaiting-pipeline label
+      - name: Find issue with awaiting-pipeline label
         if: steps.issue.outputs.number != ''
         id: label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LABELS=$(gh issue view ${{ steps.issue.outputs.number }} --json labels --jq '.labels[].name')
-          if echo "$LABELS" | grep -q "awaiting-pipeline"; then
+          ORIGIN_NUMBER=${{ steps.issue.outputs.number }}
+
+          # First check: Does the origin issue itself have awaiting-pipeline? (Planner case)
+          ORIGIN_LABELS=$(gh issue view "$ORIGIN_NUMBER" --repo ${{ github.repository }} --json labels --jq '.labels[].name')
+          if echo "$ORIGIN_LABELS" | grep -q "awaiting-pipeline"; then
             echo "has_label=true" >> "$GITHUB_OUTPUT"
+            echo "issue_number=$ORIGIN_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "Found awaiting-pipeline on origin issue #$ORIGIN_NUMBER"
+            exit 0
+          fi
+
+          # Second check: Find issue with label "origin #<nr>" AND "awaiting-pipeline" (Dev/Tester case)
+          FOUND=$(gh issue list --repo ${{ github.repository }} --label "origin #$ORIGIN_NUMBER" --label "awaiting-pipeline" --state open --json number --jq '.[0].number')
+          if [ -n "$FOUND" ]; then
+            echo "has_label=true" >> "$GITHUB_OUTPUT"
+            echo "issue_number=$FOUND" >> "$GITHUB_OUTPUT"
+            echo "Found awaiting-pipeline on issue #$FOUND (origin #$ORIGIN_NUMBER)"
           else
             echo "has_label=false" >> "$GITHUB_OUTPUT"
-            echo "Issue #${{ steps.issue.outputs.number }} does not have awaiting-pipeline label – skipping"
+            echo "issue_number=" >> "$GITHUB_OUTPUT"
+            echo "No issue with 'origin #$ORIGIN_NUMBER' + 'awaiting-pipeline' found – skipping"
           fi
 
       - name: Determine role from board column
@@ -69,7 +84,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          ISSUE_NUMBER=${{ steps.label.outputs.issue_number }}
 
           # Board-Spalte des Issues ermitteln
           BOARD_STATUS=$(gh project item-list 1 --owner WeasleysWizardWheezes --format json -L 100 | jq -r ".items[] | select(.content.number == $ISSUE_NUMBER) | .status")
@@ -169,16 +184,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue edit ${{ steps.issue.outputs.number }} --remove-label "awaiting-pipeline"
-          echo "Removed awaiting-pipeline label from issue #${{ steps.issue.outputs.number }}"
+          gh issue edit ${{ steps.label.outputs.issue_number }} --remove-label "awaiting-pipeline"
+          echo "Removed awaiting-pipeline label from issue #${{ steps.label.outputs.issue_number }}"
 
       - name: Post failure comment on issue
-        if: steps.result.outputs.status == 'failure' && steps.paths.outputs.role != '' && steps.issue.outputs.number != ''
+        if: steps.result.outputs.status == 'failure' && steps.paths.outputs.role != '' && steps.label.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ROLE="${{ steps.paths.outputs.role }}"
-          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          ISSUE_NUMBER=${{ steps.label.outputs.issue_number }}
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           COMMENT="## Pipeline fehlgeschlagen\n\n"
@@ -203,7 +218,7 @@ jobs:
         run: |
           ORG="WeasleysWizardWheezes"
           PROJECT_NUMBER=1
-          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          ISSUE_NUMBER=${{ steps.label.outputs.issue_number }}
           TARGET_STATUS="${{ steps.paths.outputs.target_column }}"
 
           # Get project ID
@@ -290,7 +305,7 @@ jobs:
         run: |
           ORG="WeasleysWizardWheezes"
           PROJECT_NUMBER=1
-          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          ISSUE_NUMBER=${{ steps.label.outputs.issue_number }}
           TARGET_STATUS="${{ steps.paths.outputs.target_column }}"
 
           PROJECT_ID=$(gh api graphql -f query='
@@ -366,7 +381,7 @@ jobs:
           PROJECT_NUMBER=1
           REPO="${{ github.repository }}"
           REPO_NAME="${REPO#*/}"
-          ISSUE_NUMBER=${{ steps.issue.outputs.number }}
+          ISSUE_NUMBER=${{ steps.label.outputs.issue_number }}
 
           echo "Planner pipeline succeeded for issue #$ISSUE_NUMBER"
 
