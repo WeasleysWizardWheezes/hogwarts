@@ -120,7 +120,7 @@ public class CourseEnrollment {
                 status,
                 comment,
                 OffsetDateTime.now(),
-                null
+                OffsetDateTime.now()
         );
     }
 

@@ -62,7 +62,7 @@ public class CourseEnrollmentService {
     }
 
     public CourseEnrollment create(UUID courseId, UUID memberId, String memberName, String status, String comment) {
-        return this.create(courseId, memberId, memberName, status, comment, OffsetDateTime.now(), null);
+        return this.create(courseId, memberId, memberName, status, comment, OffsetDateTime.now(), OffsetDateTime.now());
     }
 
     public CourseEnrollment create(UUID courseId, UUID memberId, String memberName, String status) {
