@@ -3,11 +3,17 @@ FROM eclipse-temurin:25-jdk-alpine AS build
 
 WORKDIR /app
 
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw dependency:go-offline --batch-mode
+# Copy build files
+COPY backend/.mvn/ .mvn/
+COPY backend/mvnw backend/pom.xml ./
+COPY openapi/ /openapi/
 
-COPY src/ src/
+# Download dependencies (openapi spec is available for the generator plugin)
+RUN chmod +x mvnw && ./mvnw dependency:go-offline --batch-mode --no-transfer-progress
+
+# Copy source and build
+COPY backend/src/ src/
+COPY backend/config/ config/
 RUN ./mvnw package -DskipTests --batch-mode --no-transfer-progress
 
 # Stage 2: Runtime
