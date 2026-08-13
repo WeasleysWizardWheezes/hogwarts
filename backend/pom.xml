@@ -29,14 +29,7 @@
 	<properties>
 		<java.version>25</java.version>
         <lombok.version>1.18.40</lombok.version>
-        <hogwarts.api.version>0.0.0-issue-165-SNAPSHOT</hogwarts.api.version>
 	</properties>
-    <repositories>
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/WeasleysWizardWheezes/hogwarts</url>
-        </repository>
-    </repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -123,14 +116,62 @@
 
         <dependency>
             <groupId>org.openapitools</groupId>
-            <artifactId>hogwarts-api-client</artifactId>
-            <version>${hogwarts.api.version}</version>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.6</version>
         </dependency>
 
     </dependencies>
 
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>7.14.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/../openapi/api.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <output>${project.build.directory}/generated-sources/openapi</output>
+                            <apiPackage>de.thkoeln.ccq.firemanager.generated.api</apiPackage>
+                            <modelPackage>de.thkoeln.ccq.firemanager.generated.model</modelPackage>
+                            <configOptions>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useSpringBoot3>true</useSpringBoot3>
+                                <useTags>true</useTags>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                                <openApiNullable>true</openApiNullable>
+                                <documentationProvider>none</documentationProvider>
+                            </configOptions>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>add-generated-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
@@ -221,6 +262,7 @@
                     <configLocation>config/checkstyle/checkstyle.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
+                    <excludes>**/generated/**</excludes>
                 </configuration>
                 <executions>
                     <execution>
@@ -268,6 +310,9 @@
                                     </limits>
                                 </rule>
                             </rules>
+                            <excludes>
+                                <exclude>de/thkoeln/ccq/firemanager/generated/**</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>

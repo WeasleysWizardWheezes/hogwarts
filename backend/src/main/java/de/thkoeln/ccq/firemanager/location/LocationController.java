@@ -1,10 +1,10 @@
 package de.thkoeln.ccq.firemanager.location;
 
-import org.openapitools.api.LocationsApi;
-import org.openapitools.model.CreateLocationRequest;
-import org.openapitools.model.LocationResponse;
-import org.openapitools.model.ListLocations200Response;
-import org.openapitools.model.UpdateLocationRequest;
+import de.thkoeln.ccq.firemanager.generated.api.LocationsApi;
+import de.thkoeln.ccq.firemanager.generated.model.CreateLocationRequest;
+import de.thkoeln.ccq.firemanager.generated.model.LocationResponse;
+import de.thkoeln.ccq.firemanager.generated.model.ListLocations200Response;
+import de.thkoeln.ccq.firemanager.generated.model.UpdateLocationRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
