@@ -1,5 +1,6 @@
 package de.thkoeln.ccq.firemanager.course;
 
+import de.thkoeln.ccq.firemanager.course.enrollment.CourseEnrollment;
 import de.thkoeln.ccq.firemanager.course.enrollment.CourseEnrollmentService;
 import de.thkoeln.ccq.firemanager.course.exception.CourseNotFoundException;
 import org.junit.jupiter.api.Tag;
@@ -18,10 +19,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
