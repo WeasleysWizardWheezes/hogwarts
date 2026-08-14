@@ -2,7 +2,7 @@ package de.thkoeln.ccq.firemanager.course;
 
 import de.thkoeln.ccq.firemanager.course.exception.CourseConflictException;
 import de.thkoeln.ccq.firemanager.course.exception.CourseNotFoundException;
-import de.thkoeln.ccq.firemanager.memberqualification.MemberQualificationService;
+import de.thkoeln.ccq.firemanager.memberqualification.MemberQualificationRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -14,16 +14,16 @@ import java.util.UUID;
 public class CourseService implements CourseServiceInterface {
 
     private final CourseRepository courseRepository;
-    private final MemberQualificationService memberQualificationService;
+    private final MemberQualificationRepository memberQualificationRepository;
     private final Clock clock;
 
     public CourseService(
             CourseRepository courseRepository,
-            MemberQualificationService memberQualificationService,
+            MemberQualificationRepository memberQualificationRepository,
             Clock clock
     ) {
         this.courseRepository = courseRepository;
-        this.memberQualificationService = memberQualificationService;
+        this.memberQualificationRepository = memberQualificationRepository;
         this.clock = clock;
     }
 
@@ -82,7 +82,7 @@ public class CourseService implements CourseServiceInterface {
         Course course = getById(courseId);
         
         // Prüfen ob die Qualifikation noch zugewiesen ist
-        if (memberQualificationService.existsByCourseId(courseId)) {
+        if (memberQualificationRepository.existsByMemberIdAndCourseIdAndWithdrawnFalse(null, courseId)) {
             throw new CourseConflictException("Course cannot be deleted because it is still assigned to members");
         }
         
@@ -101,6 +101,6 @@ public class CourseService implements CourseServiceInterface {
             return true;
         }
         
-        return memberQualificationService.hasMemberAllQualifications(memberId, prerequisiteIds);
+        return memberQualificationRepository.hasMemberAllQualifications(memberId, prerequisiteIds);
     }
 }
