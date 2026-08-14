@@ -141,4 +141,49 @@ class CourseControllerTest {
         mockMvc.perform(delete("/api/v1/courses/{id}", courseId))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void createEnrollment_returnsCreated() throws Exception {
+        // Arrange
+        var courseId = UUID.randomUUID();
+        var memberId = UUID.randomUUID();
+        var enrollment = new CourseEnrollment(courseId, "Kurs", memberId, "Max Mustermann", "PENDING", "Kommentar");
+        when(courseEnrollmentServiceStub.create(any(UUID.class), any(UUID.class), any(String.class), any(String.class), any(String.class)))
+                .thenReturn(enrollment);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/courses/{courseId}/enrollments", courseId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"memberId": "%s", "memberName": "Max Mustermann", "status": "PENDING", "comment": "Kommentar"}
+                                """.formatted(memberId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.memberName").value("Max Mustermann"));
+    }
+
+    @Test
+    void getEnrollmentsByCourse_returnsOk() throws Exception {
+        // Arrange
+        var courseId = UUID.randomUUID();
+        var memberId = UUID.randomUUID();
+        var enrollment = new CourseEnrollment(courseId, "Kurs", memberId, "Max Mustermann", "PENDING", "Kommentar");
+        when(courseEnrollmentServiceStub.getAllByCourse(courseId)).thenReturn(List.of(enrollment));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/courses/{courseId}/enrollments", courseId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].memberName").value("Max Mustermann"));
+    }
+
+    @Test
+    void cancelEnrollment_returnsNoContent() throws Exception {
+        // Arrange
+        var courseId = UUID.randomUUID();
+        var enrollmentId = UUID.randomUUID();
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/courses/{courseId}/enrollments/{enrollmentId}", courseId, enrollmentId))
+                .andExpect(status().isNoContent());
+    }
 }
