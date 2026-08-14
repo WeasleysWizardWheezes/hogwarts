@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 info:
   title: Hogwarts Firemanager API
-  version: "0.0.0-issue-53"
+  version: "0.1.0-issue-53"
   description: REST-API für die Feuerwehr-Verwaltung
 
 servers:
