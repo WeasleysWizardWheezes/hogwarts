@@ -9,12 +9,26 @@ servers:
     description: Lokale Entwicklung
 
 tags:
+  - name: Members
+    description: Verwaltung von Feuerwehrmitgliedern
+  - name: Locations
+    description: Verwaltung von Standorten
   - name: Courses
     description: Verwaltung von Qualifikationen und Lehrgängen
   - name: Member Qualifications
     description: Zuweisung von Qualifikationen an Mitglieder
 
 paths:
+  /api/v1/members:
+    $ref: './paths/members.yaml#/paths/~1api~1v1~1members'
+  /api/v1/members/{memberId}:
+    $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}'
+  /api/v1/locations:
+    $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations'
+  /api/v1/locations/{locationId}:
+    $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations~1{locationId}'
+  /api/v1/members/{memberId}/locations:
+    $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations'
   /api/v1/courses:
     $ref: './paths/courses.yaml#/paths/~1api~1v1~1courses'
   /api/v1/courses/{courseId}:
@@ -30,6 +44,16 @@ components:
       $ref: './components/schemas/common.yaml#/ErrorResponse'
     PaginationMeta:
       $ref: './components/schemas/common.yaml#/PaginationMeta'
+    MemberResponse:
+      $ref: './components/schemas/members.yaml#/MemberResponse'
+    MemberLocationAssignmentRequest:
+      $ref: './components/schemas/members.yaml#/MemberLocationAssignmentRequest'
+    LocationResponse:
+      $ref: './components/schemas/locations.yaml#/LocationResponse'
+    CreateLocationRequest:
+      $ref: './components/schemas/locations.yaml#/CreateLocationRequest'
+    UpdateLocationRequest:
+      $ref: './components/schemas/locations.yaml#/UpdateLocationRequest'
     CourseCategory:
       $ref: './components/schemas/courses.yaml#/CourseCategory'
     CreateCourseRequest:
