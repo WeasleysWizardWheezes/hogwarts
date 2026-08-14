@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class CourseService {
+public class CourseService implements CourseServiceInterface {
 
     private final CourseRepository courseRepository;
     private final MemberQualificationService memberQualificationService;

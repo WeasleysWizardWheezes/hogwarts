@@ -1,7 +1,7 @@
 package de.thkoeln.ccq.firemanager.memberqualification;
 
 import de.thkoeln.ccq.firemanager.course.Course;
-import de.thkoeln.ccq.firemanager.course.CourseService;
+import de.thkoeln.ccq.firemanager.course.CourseServiceInterface;
 import de.thkoeln.ccq.firemanager.memberqualification.exception.MemberQualificationConflictException;
 import de.thkoeln.ccq.firemanager.memberqualification.exception.MemberQualificationNotFoundException;
 import org.springframework.stereotype.Service;
@@ -16,12 +16,12 @@ import java.util.UUID;
 public class MemberQualificationService {
 
     private final MemberQualificationRepository memberQualificationRepository;
-    private final CourseService courseService;
+    private final CourseServiceInterface courseService;
     private final Clock clock;
 
     public MemberQualificationService(
             MemberQualificationRepository memberQualificationRepository,
-            CourseService courseService,
+            CourseServiceInterface courseService,
             Clock clock
     ) {
         this.memberQualificationRepository = memberQualificationRepository;
