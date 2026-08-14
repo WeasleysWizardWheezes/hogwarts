@@ -42,6 +42,10 @@ public class MemberLocationAssignmentService {
         }
         return this.memberLocationAssignmentRepository.findByMemberId(memberId);
     }
+    
+    public boolean existsByMemberId(UUID memberId) {
+        return memberLocationAssignmentRepository.existsByMemberId(memberId);
+    }
 
     public void deleteAssignmentByMember(UUID memberId) {
         List<MemberLocationAssignment> assignments = memberLocationAssignmentRepository.findByMemberId(memberId);
