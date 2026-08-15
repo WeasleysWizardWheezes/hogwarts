@@ -3,67 +3,33 @@ import { test, expect } from "@playwright/test"
 test.describe("Courses Management E2E Tests", () => {
   test.beforeEach(async ({ page }) => {
     // Mock API responses for the tests
-    await page.route("/api/v1/courses", async (route) => {
-      const json = {
-        data: [
-          {
-            id: "1",
-            name: "Atemschutzgeräteträger",
-            description: "Grundausbildung Atemschutz",
-            maxParticipants: 20,
-            currentParticipants: 15,
-            startDate: "2026-09-01T00:00:00Z",
-            endDate: "2026-09-05T00:00:00Z",
-            instructorId: "instructor-1",
-            instructorName: "Max Mustermann",
-            status: "CONFIRMED",
-          },
-        ],
-        page: 0,
-        size: 20,
-        totalElements: 1,
-        totalPages: 1,
-      }
-      await route.fulfill({ json })
-    })
-
-    await page.route("/api/v1/courses/1", async (route) => {
-      const json = {
-        id: "1",
-        name: "Atemschutzgeräteträger",
-        description: "Grundausbildung Atemschutz",
-        maxParticipants: 20,
-        currentParticipants: 15,
-        startDate: "2026-09-01T00:00:00Z",
-        endDate: "2026-09-05T00:00:00Z",
-        instructorId: "instructor-1",
-        instructorName: "Max Mustermann",
-        status: "CONFIRMED",
-      }
-      await route.fulfill({ json })
-    })
-
-    await page.route("/api/v1/courses/1/enrollments", async (route) => {
-      const json = {
-        data: [
-          {
-            id: "enrollment-1",
-            memberId: "member-1",
-            status: "CONFIRMED",
-            createdAt: "2026-08-01T10:00:00Z",
-          },
-        ],
-        page: 0,
-        size: 20,
-        totalElements: 1,
-        totalPages: 1,
-      }
-      await route.fulfill({ json })
-    })
-
-    // Post requests
-    await page.route("/api/v1/courses", async (route) => {
-      if (route.request().method() === "POST") {
+    await page.route("**/api/v1/courses", async (route) => {
+      const url = new URL(route.request().url())
+      const method = route.request().method()
+      
+      if (method === "GET") {
+        const json = {
+          data: [
+            {
+              id: "1",
+              name: "Atemschutzgeräteträger",
+              description: "Grundausbildung Atemschutz",
+              maxParticipants: 20,
+              currentParticipants: 15,
+              startDate: "2026-09-01T00:00:00Z",
+              endDate: "2026-09-05T00:00:00Z",
+              instructorId: "instructor-1",
+              instructorName: "Max Mustermann",
+              status: "OPEN_FOR_REGISTRATION",
+            },
+          ],
+          page: 0,
+          size: 20,
+          totalElements: 1,
+          totalPages: 1,
+        }
+        await route.fulfill({ json })
+      } else if (method === "POST") {
         const json = {
           id: "2",
           name: "Neuer Lehrgang",
@@ -74,27 +40,30 @@ test.describe("Courses Management E2E Tests", () => {
           endDate: "2026-10-05T00:00:00Z",
           instructorId: "instructor-2",
           instructorName: "Test Leiter",
-          status: "PENDING",
+          status: "OPEN_FOR_REGISTRATION",
         }
         await route.fulfill({ json })
       }
     })
 
-    await page.route("/api/v1/courses/1/enrollments", async (route) => {
-      if (route.request().method() === "POST") {
+    await page.route("**/api/v1/courses/1", async (route) => {
+      const method = route.request().method()
+      
+      if (method === "GET") {
         const json = {
-          id: "enrollment-2",
-          memberId: "member-2",
-          status: "CONFIRMED",
-          createdAt: "2026-08-15T10:00:00Z",
+          id: "1",
+          name: "Atemschutzgeräteträger",
+          description: "Grundausbildung Atemschutz",
+          maxParticipants: 20,
+          currentParticipants: 15,
+          startDate: "2026-09-01T00:00:00Z",
+          endDate: "2026-09-05T00:00:00Z",
+          instructorId: "instructor-1",
+          instructorName: "Max Mustermann",
+          status: "OPEN_FOR_REGISTRATION",
         }
         await route.fulfill({ json })
-      }
-    })
-
-    // Put requests
-    await page.route("/api/v1/courses/1", async (route) => {
-      if (route.request().method() === "PUT") {
+      } else if (method === "PUT") {
         const json = {
           id: "1",
           name: "Atemschutzgeräteträger (aktualisiert)",
@@ -105,21 +74,48 @@ test.describe("Courses Management E2E Tests", () => {
           endDate: "2026-09-05T00:00:00Z",
           instructorId: "instructor-1",
           instructorName: "Max Mustermann",
+          status: "OPEN_FOR_REGISTRATION",
+        }
+        await route.fulfill({ json })
+      } else if (method === "DELETE") {
+        await route.fulfill({ status: 204 })
+      }
+    })
+
+    await page.route("**/api/v1/courses/1/enrollments", async (route) => {
+      const method = route.request().method()
+      
+      if (method === "GET") {
+        const json = {
+          data: [
+            {
+              id: "enrollment-1",
+              memberId: "member-1",
+              status: "CONFIRMED",
+              createdAt: "2026-08-01T10:00:00Z",
+            },
+          ],
+          page: 0,
+          size: 20,
+          totalElements: 1,
+          totalPages: 1,
+        }
+        await route.fulfill({ json })
+      } else if (method === "POST") {
+        const json = {
+          id: "enrollment-2",
+          memberId: "member-2",
           status: "CONFIRMED",
+          createdAt: "2026-08-15T10:00:00Z",
         }
         await route.fulfill({ json })
       }
     })
 
-    // Delete requests
-    await page.route("/api/v1/courses/1", async (route) => {
-      if (route.request().method() === "DELETE") {
-        await route.fulfill({ status: 204 })
-      }
-    })
-
-    await page.route("/api/v1/courses/1/enrollments/enrollment-1", async (route) => {
-      if (route.request().method() === "DELETE") {
+    await page.route("**/api/v1/courses/1/enrollments/enrollment-1", async (route) => {
+      const method = route.request().method()
+      
+      if (method === "DELETE") {
         await route.fulfill({ status: 204 })
       }
     })
@@ -135,7 +131,7 @@ test.describe("Courses Management E2E Tests", () => {
     await expect(page.getByText("Max Mustermann")).toBeVisible()
     await expect(page.getByText("15 / 20")).toBeVisible()
     await expect(page.getByText("01.09.2026 - 05.09.2026")).toBeVisible()
-    await expect(page.getByText("Bestätigt")).toBeVisible()
+    await expect(page.getByText("OPEN_FOR_REGISTRATION")).toBeVisible()
   })
 
   test("should open create course dialog", async ({ page }) => {
@@ -208,24 +204,30 @@ test.describe("Courses Management E2E Tests", () => {
 test.describe("Course Enrollments E2E Tests", () => {
   test.beforeEach(async ({ page }) => {
     // Mock API responses for enrollments tests
-    await page.route("/api/v1/courses/1", async (route) => {
-      const json = {
-        id: "1",
-        name: "Atemschutzgeräteträger",
-        description: "Grundausbildung Atemschutz",
-        maxParticipants: 20,
-        currentParticipants: 15,
-        startDate: "2026-09-01T00:00:00Z",
-        endDate: "2026-09-05T00:00:00Z",
-        instructorId: "instructor-1",
-        instructorName: "Max Mustermann",
-        status: "CONFIRMED",
+    await page.route("**/api/v1/courses/1", async (route) => {
+      const method = route.request().method()
+      
+      if (method === "GET") {
+        const json = {
+          id: "1",
+          name: "Atemschutzgeräteträger",
+          description: "Grundausbildung Atemschutz",
+          maxParticipants: 20,
+          currentParticipants: 15,
+          startDate: "2026-09-01T00:00:00Z",
+          endDate: "2026-09-05T00:00:00Z",
+          instructorId: "instructor-1",
+          instructorName: "Max Mustermann",
+          status: "OPEN_FOR_REGISTRATION",
+        }
+        await route.fulfill({ json })
       }
-      await route.fulfill({ json })
     })
 
-    await page.route("/api/v1/courses/1/enrollments", async (route) => {
-      if (route.request().method() === "GET") {
+    await page.route("**/api/v1/courses/1/enrollments", async (route) => {
+      const method = route.request().method()
+      
+      if (method === "GET") {
         const json = {
           data: [
             {
@@ -247,7 +249,7 @@ test.describe("Course Enrollments E2E Tests", () => {
           totalPages: 1,
         }
         await route.fulfill({ json })
-      } else if (route.request().method() === "POST") {
+      } else if (method === "POST") {
         const json = {
           id: "enrollment-3",
           memberId: "member-3",
@@ -258,8 +260,10 @@ test.describe("Course Enrollments E2E Tests", () => {
       }
     })
 
-    await page.route("/api/v1/courses/1/enrollments/enrollment-1", async (route) => {
-      if (route.request().method() === "DELETE") {
+    await page.route("**/api/v1/courses/1/enrollments/enrollment-1", async (route) => {
+      const method = route.request().method()
+      
+      if (method === "DELETE") {
         await route.fulfill({ status: 204 })
       }
     })
@@ -318,7 +322,7 @@ test.describe("Course Enrollments E2E Tests", () => {
 
   test("should show confirm button for PENDING enrollments", async ({ page }) => {
     // Update one enrollment to PENDING status
-    await page.route("/api/v1/courses/1/enrollments", async (route) => {
+    await page.route("**/api/v1/courses/1/enrollments", async (route) => {
       const json = {
         data: [
           {
