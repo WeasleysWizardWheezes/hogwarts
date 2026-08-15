@@ -1,7 +1,7 @@
 package de.thkoeln.ccq.firemanager.member;
 
 import de.thkoeln.ccq.firemanager.location.Location;
-import de.thkoeln.ccq.firemanager.location.LocationService;
+import de.thkoeln.ccq.firemanager.location.LocationRepository;
 import de.thkoeln.ccq.firemanager.member.exception.MemberLocationAssignmentConflictException;
 import org.springframework.stereotype.Service;
 
@@ -12,14 +12,14 @@ import java.util.UUID;
 public class MemberLocationAssignmentService {
 
     private final MemberLocationAssignmentRepository memberLocationAssignmentRepository;
-    private final LocationService locationService;
+    private final LocationRepository locationRepository;
 
     public MemberLocationAssignmentService(
             MemberLocationAssignmentRepository memberLocationAssignmentRepository,
-            LocationService locationService
+            LocationRepository locationRepository
     ) {
         this.memberLocationAssignmentRepository = memberLocationAssignmentRepository;
-        this.locationService = locationService;
+        this.locationRepository = locationRepository;
     }
 
     public MemberLocationAssignment assignMemberToLocation(UUID memberId, UUID locationId) {
@@ -27,7 +27,8 @@ public class MemberLocationAssignmentService {
             throw new MemberLocationAssignmentConflictException("Member is already assigned to a location");
         }
 
-        Location location = locationService.getById(locationId);
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new IllegalArgumentException("Location with id " + locationId + " does not exist"));
         MemberLocationAssignment assignment = new MemberLocationAssignment(memberId, location);
         return this.memberLocationAssignmentRepository.save(assignment);
     }
