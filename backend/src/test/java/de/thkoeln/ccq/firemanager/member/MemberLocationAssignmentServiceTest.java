@@ -1,7 +1,7 @@
 package de.thkoeln.ccq.firemanager.member;
 
 import de.thkoeln.ccq.firemanager.location.Location;
-import de.thkoeln.ccq.firemanager.location.LocationService;
+import de.thkoeln.ccq.firemanager.location.LocationRepository;
 import de.thkoeln.ccq.firemanager.member.exception.MemberLocationAssignmentConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -10,6 +10,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.UUID;
@@ -29,7 +39,7 @@ class MemberLocationAssignmentServiceTest {
     private MemberLocationAssignmentRepository memberLocationAssignmentRepositoryStub;
 
     @Mock
-    private LocationService locationServiceStub;
+    private LocationRepository locationRepositoryStub;
 
     @InjectMocks
     private MemberLocationAssignmentService sut;
@@ -46,7 +56,7 @@ class MemberLocationAssignmentServiceTest {
         Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         UUID locationId = location.getId();
         
-        when(locationServiceStub.getById(locationId)).thenReturn(location);
+        when(locationRepositoryStub.findById(locationId)).thenReturn(Optional.of(location));
         when(memberLocationAssignmentRepositoryStub.existsByMemberId(memberId)).thenReturn(false);
         
         MemberLocationAssignment expectedAssignment = new MemberLocationAssignment(memberId, location);

@@ -1,6 +1,7 @@
 package de.thkoeln.ccq.firemanager.location;
 
 import de.thkoeln.ccq.firemanager.location.exception.LocationNotFoundException;
+import de.thkoeln.ccq.firemanager.member.MemberLocationAssignmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ class LocationServiceTest {
 
     @Mock
     private LocationRepository locationRepositoryStub;
+
+    @Mock
+    private MemberLocationAssignmentService memberLocationAssignmentServiceStub;
 
     @InjectMocks
     private LocationService sut;
@@ -110,6 +114,7 @@ class LocationServiceTest {
         Location location = new Location("Gerätehaus Köln", "Musterstraße 1, 50677 Köln", "FIRE_STATION");
         UUID locationId = location.getId();
         when(locationRepositoryStub.existsById(locationId)).thenReturn(true);
+        when(memberLocationAssignmentServiceStub.getAssignmentsByLocation(locationId)).thenReturn(List.of());
 
         // Act
         sut.deleteById(locationId);
