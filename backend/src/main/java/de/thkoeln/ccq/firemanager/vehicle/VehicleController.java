@@ -57,7 +57,8 @@ public class VehicleController implements VehiclesApi {
     }
 
     @Override
-    public ResponseEntity<ListVehicles200Response> listVehicles(Integer page, Integer size, UUID vehicleGroupId, String status) {
+public ResponseEntity<ListVehicles200Response> listVehicles(
+            Integer page, Integer size, UUID vehicleGroupId, String status) {
         List<Vehicle> vehicles;
         if (vehicleGroupId != null && status != null) {
             vehicles = vehicleService.getByVehicleGroupIdAndStatus(
