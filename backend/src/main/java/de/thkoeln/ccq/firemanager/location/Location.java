@@ -1,9 +1,11 @@
 package de.thkoeln.ccq.firemanager.location;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +27,7 @@ public class Location {
     @Setter
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Setter
     private String address;
 
@@ -39,12 +41,23 @@ public class Location {
 
     public Location(String name, String address, String type) {
         Assert.hasText(name, "name must not be empty");
-        Assert.hasText(address, "address must not be empty");
-        Assert.hasText(type, "type must not be empty");
+        if (type == null) {
+            throw new IllegalArgumentException("type must not be null");
+        }
 
         this.id = UUID.randomUUID();
         this.name = name;
         this.address = address;
         this.type = type;
+    }
+
+    public Location(String name, String type) {
+        this(name, null, type);
+    }
+
+    public enum LocationType {
+        FIRE_STATION,
+        EQUIPMENT_DEPOT,
+        TRAINING_CENTER
     }
 }

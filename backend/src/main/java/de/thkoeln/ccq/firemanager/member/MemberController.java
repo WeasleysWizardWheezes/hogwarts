@@ -5,6 +5,7 @@ import de.thkoeln.ccq.firemanager.generated.model.LocationResponse;
 import de.thkoeln.ccq.firemanager.generated.model.MemberLocationAssignmentRequest;
 import de.thkoeln.ccq.firemanager.generated.model.MemberResponse;
 import de.thkoeln.ccq.firemanager.generated.model.ListMembers200Response;
+import de.thkoeln.ccq.firemanager.location.Location;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,7 +35,7 @@ public class MemberController implements MembersApi {
                 .id(assignment.getLocation().getId())
                 .name(assignment.getLocation().getName())
                 .address(assignment.getLocation().getAddress())
-                .type(LocationResponse.TypeEnum.fromValue(assignment.getLocation().getType()));
+                .type(mapStringToResponseType(assignment.getLocation().getType()));
         MemberResponse response = new MemberResponse()
                 .id(assignment.getMemberId())
                 .addLocationsItem(locationResponse);
@@ -52,7 +53,7 @@ public class MemberController implements MembersApi {
                 .id(assignment.getLocation().getId())
                 .name(assignment.getLocation().getName())
                 .address(assignment.getLocation().getAddress())
-                .type(LocationResponse.TypeEnum.fromValue(assignment.getLocation().getType()));
+                .type(mapStringToResponseType(assignment.getLocation().getType()));
         MemberResponse response = new MemberResponse()
                 .id(assignment.getMemberId())
                 .addLocationsItem(locationResponse);
@@ -61,8 +62,8 @@ public class MemberController implements MembersApi {
 
     @Override
     public ResponseEntity<ListMembers200Response> listMembers(
-            Integer limit, 
-            Integer offset, 
+            Integer page, 
+            Integer size, 
             UUID locationId
     ) {
         List<MemberLocationAssignment> assignments;
@@ -77,8 +78,7 @@ public class MemberController implements MembersApi {
                             .id(assignment.getLocation().getId())
                             .name(assignment.getLocation().getName())
                             .address(assignment.getLocation().getAddress())
-                            .type(LocationResponse.TypeEnum
-                                    .fromValue(assignment.getLocation().getType()));
+                            .type(mapStringToResponseType(assignment.getLocation().getType()));
                     return new MemberResponse()
                             .id(assignment.getMemberId())
                             .addLocationsItem(locResponse);
@@ -87,5 +87,17 @@ public class MemberController implements MembersApi {
         ListMembers200Response response = new ListMembers200Response()
                 .data(memberResponses);
         return ResponseEntity.ok(response);
+    }
+
+    private LocationResponse.TypeEnum mapStringToResponseType(String type) {
+        if (type == null) {
+            return null;
+        }
+        return switch (type) {
+            case "FIRE_STATION" -> LocationResponse.TypeEnum.FIRE_STATION;
+            case "EQUIPMENT_DEPOT" -> LocationResponse.TypeEnum.EQUIPMENT_DEPOT;
+            case "TRAINING_CENTER" -> LocationResponse.TypeEnum.TRAINING_CENTER;
+            default -> LocationResponse.TypeEnum.fromValue(type);
+        };
     }
 }
