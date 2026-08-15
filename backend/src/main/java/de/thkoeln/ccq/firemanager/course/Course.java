@@ -30,7 +30,7 @@ public class Course {
     @Setter
     private String name;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     @Setter
     private String description;
 
@@ -50,7 +50,7 @@ public class Course {
     @Setter
     private UUID instructorId;
 
-    @Column(nullable = false)
+    @Column
     @Setter
     private String instructorName;
 
@@ -62,7 +62,7 @@ public class Course {
     @Setter
     private OffsetDateTime endDate;
 
-    @Column(nullable = false)
+    @Column
     @Setter
     private String status;
 
@@ -102,20 +102,20 @@ public class Course {
             throw new IllegalArgumentException("endDate must not be null");
         }
         if (status == null) {
-            throw new IllegalArgumentException("status must not be null");
+            status = "PLANNED";
         }
 
         this.id = UUID.randomUUID();
         this.name = name;
-        this.description = description;
+        this.description = description != null ? description : "";
         this.maxParticipants = maxParticipants;
         this.currentParticipants = 0;
         this.waitingListCount = 0;
         this.instructorId = instructorId;
-        this.instructorName = instructorName;
+        this.instructorName = instructorName != null ? instructorName : "";
         this.startDate = startDate;
         this.endDate = endDate;
-        this.status = status;
+        this.status = status != null ? status : "PLANNED";
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
     }

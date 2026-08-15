@@ -40,6 +40,27 @@ public class CourseService {
         return this.courseRepository.save(course);
     }
 
+    public Course createWithDefaults(
+            String name,
+            String description,
+            int maxParticipants,
+            UUID instructorId,
+            String instructorName,
+            OffsetDateTime startDate,
+            OffsetDateTime endDate
+    ) {
+        return this.create(
+                name,
+                description,
+                maxParticipants,
+                instructorId,
+                instructorName,
+                startDate,
+                endDate,
+                "PLANNED"
+        );
+    }
+
     public Course create(
             String name,
             String description,

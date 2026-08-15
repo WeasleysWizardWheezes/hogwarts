@@ -36,16 +36,29 @@ public class CourseController {
     public ResponseEntity<Course> createCourse(
             @RequestBody CreateCourseRequest request
     ) {
-        var course = courseService.create(
-                request.name(),
-                request.description(),
-                request.maxParticipants(),
-                request.instructorId(),
-                request.instructorName(),
-                request.startDate(),
-                request.endDate(),
-                request.status()
-        );
+        Course course;
+        if (request.status() == null) {
+            course = courseService.createWithDefaults(
+                    request.name(),
+                    request.description(),
+                    request.maxParticipants(),
+                    request.instructorId(),
+                    request.instructorName(),
+                    request.startDate(),
+                    request.endDate()
+            );
+        } else {
+            course = courseService.create(
+                    request.name(),
+                    request.description(),
+                    request.maxParticipants(),
+                    request.instructorId(),
+                    request.instructorName(),
+                    request.startDate(),
+                    request.endDate(),
+                    request.status()
+            );
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(course);
     }
 
@@ -131,7 +144,25 @@ public class CourseController {
             OffsetDateTime startDate,
             OffsetDateTime endDate,
             String status
-    ) {}
+    ) {
+        public CreateCourseRequest {
+            if (name == null) {
+                throw new IllegalArgumentException("name must not be null");
+            }
+            if (maxParticipants < 1) {
+                throw new IllegalArgumentException("maxParticipants must be positive");
+            }
+            if (instructorId == null) {
+                throw new IllegalArgumentException("instructorId must not be null");
+            }
+            if (startDate == null) {
+                throw new IllegalArgumentException("startDate must not be null");
+            }
+            if (endDate == null) {
+                throw new IllegalArgumentException("endDate must not be null");
+            }
+        }
+    }
 
     public record UpdateCourseRequest(
             String name,
