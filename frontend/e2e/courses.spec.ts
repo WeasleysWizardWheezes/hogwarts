@@ -3,11 +3,12 @@ import { test, expect } from "@playwright/test"
 test.describe("Courses Management E2E Tests", () => {
   test.beforeEach(async ({ page }) => {
     // Mock API responses for the tests
-    await page.route("**/api/v1/courses", async (route) => {
+    await page.route("**/api/v1/courses*", async (route) => {
       const url = new URL(route.request().url())
       const method = route.request().method()
       
       if (method === "GET") {
+        // Mock GET /api/v1/courses
         const json = {
           data: [
             {
@@ -30,6 +31,7 @@ test.describe("Courses Management E2E Tests", () => {
         }
         await route.fulfill({ json })
       } else if (method === "POST") {
+        // Mock POST /api/v1/courses
         const json = {
           id: "2",
           name: "Neuer Lehrgang",
@@ -46,10 +48,11 @@ test.describe("Courses Management E2E Tests", () => {
       }
     })
 
-    await page.route("**/api/v1/courses/1", async (route) => {
+    await page.route("**/api/v1/courses/1*", async (route) => {
       const method = route.request().method()
       
       if (method === "GET") {
+        // Mock GET /api/v1/courses/1
         const json = {
           id: "1",
           name: "Atemschutzgeräteträger",
@@ -64,6 +67,7 @@ test.describe("Courses Management E2E Tests", () => {
         }
         await route.fulfill({ json })
       } else if (method === "PUT") {
+        // Mock PUT /api/v1/courses/1
         const json = {
           id: "1",
           name: "Atemschutzgeräteträger (aktualisiert)",
@@ -78,14 +82,16 @@ test.describe("Courses Management E2E Tests", () => {
         }
         await route.fulfill({ json })
       } else if (method === "DELETE") {
+        // Mock DELETE /api/v1/courses/1
         await route.fulfill({ status: 204 })
       }
     })
 
-    await page.route("**/api/v1/courses/1/enrollments", async (route) => {
+    await page.route("**/api/v1/courses/1/enrollments*", async (route) => {
       const method = route.request().method()
       
       if (method === "GET") {
+        // Mock GET /api/v1/courses/1/enrollments
         const json = {
           data: [
             {
@@ -102,6 +108,7 @@ test.describe("Courses Management E2E Tests", () => {
         }
         await route.fulfill({ json })
       } else if (method === "POST") {
+        // Mock POST /api/v1/courses/1/enrollments
         const json = {
           id: "enrollment-2",
           memberId: "member-2",
@@ -116,6 +123,7 @@ test.describe("Courses Management E2E Tests", () => {
       const method = route.request().method()
       
       if (method === "DELETE") {
+        // Mock DELETE /api/v1/courses/1/enrollments/enrollment-1
         await route.fulfill({ status: 204 })
       }
     })
@@ -204,7 +212,7 @@ test.describe("Courses Management E2E Tests", () => {
 test.describe("Course Enrollments E2E Tests", () => {
   test.beforeEach(async ({ page }) => {
     // Mock API responses for enrollments tests
-    await page.route("**/api/v1/courses/1", async (route) => {
+    await page.route("**/api/v1/courses/1*", async (route) => {
       const method = route.request().method()
       
       if (method === "GET") {
@@ -224,7 +232,7 @@ test.describe("Course Enrollments E2E Tests", () => {
       }
     })
 
-    await page.route("**/api/v1/courses/1/enrollments", async (route) => {
+    await page.route("**/api/v1/courses/1/enrollments*", async (route) => {
       const method = route.request().method()
       
       if (method === "GET") {
@@ -322,7 +330,7 @@ test.describe("Course Enrollments E2E Tests", () => {
 
   test("should show confirm button for PENDING enrollments", async ({ page }) => {
     // Update one enrollment to PENDING status
-    await page.route("**/api/v1/courses/1/enrollments", async (route) => {
+    await page.route("**/api/v1/courses/1/enrollments*", async (route) => {
       const json = {
         data: [
           {
