@@ -1,8 +1,14 @@
 import type { components } from "@/shared/api"
 import { api } from "@/shared/api"
 
-export async function getDeviceList() {
-  const { data, error } = await api.GET("/api/v1/equipment/devices")
+export async function getDeviceList(search?: string, location?: string) {
+  const searchParams = new URLSearchParams()
+  if (search) searchParams.set("search", search)
+  if (location) searchParams.set("location", location)
+
+  const url = `/api/v1/equipment/devices${searchParams.size > 0 ? `?${searchParams.toString()}` : ""}`
+
+  const { data, error } = await api.GET(url)
   if (error) throw error
   return data
 }
