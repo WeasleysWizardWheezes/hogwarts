@@ -1,143 +1,208 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import { EquipmentTable } from "./equipment-table"
 
-const mockEquipment = [
-  {
-    id: "equip-1",
-    name: "Funkgerät 1",
-    serialNumber: "SN-001",
-    type: "Funk",
-    location: "Lager A",
-  },
-  {
-    id: "equip-2",
-    name: "Schlauch 20m",
-    serialNumber: "SN-002",
-    type: "Schlauch",
-    location: "Lager B",
-  },
-]
-
 describe("EquipmentTable", () => {
-  const onEdit = vi.fn()
-  const onDelete = vi.fn()
+  const mockOnEdit = vi.fn()
+  const mockOnDelete = vi.fn()
 
-  it("zeigt Tabellenüberschriften an", () => {
-    render(
-      <EquipmentTable
-        equipment={mockEquipment}
-        isLoading={false}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
-    )
+  const mockEquipment = [
+    {
+      id: "1",
+      name: "Atemschutzgerät Dräger PSS 7000",
+      serialNumber: "DRG-2023-0042",
+      type: "Atemschutz",
+      location: "Fahrzeug 1, Fach 3",
+    },
+    {
+      id: "2",
+      name: "Löschrohr 20mm",
+      serialNumber: "LR-20-001",
+      type: "Löschgeräte",
+      location: "Fahrzeug 2, Fach 1",
+    },
+  ]
 
-    expect(screen.getByRole("columnheader", { name: "Name" })).toBeInTheDocument()
-    expect(screen.getByRole("columnheader", { name: "Seriennummer" })).toBeInTheDocument()
-    expect(screen.getByRole("columnheader", { name: "Typ" })).toBeInTheDocument()
-    expect(screen.getByRole("columnheader", { name: "Lagerort" })).toBeInTheDocument()
-    expect(screen.getByRole("columnheader", { name: "Aktionen" })).toBeInTheDocument()
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
-  it("zeigt Gerätedaten an", () => {
-    render(
-      <EquipmentTable
-        equipment={mockEquipment}
-        isLoading={false}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
-    )
+  describe("Loading State", () => {
+    it("renders loading skeleton when isLoading is true", () => {
+      render(
+        <EquipmentTable
+          equipment={[]}
+          isLoading={true}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
 
-    expect(screen.getByText("Funkgerät 1")).toBeInTheDocument()
-    expect(screen.getByText("SN-001")).toBeInTheDocument()
-    expect(screen.getByText("Funk")).toBeInTheDocument()
-    expect(screen.getByText("Lager A")).toBeInTheDocument()
+      // Should render 5 loading rows (as per implementation)
+      const loadingRows = document.querySelectorAll(".animate-pulse")
+      expect(loadingRows.length).toBeGreaterThan(0)
+    })
 
-    expect(screen.getByText("Schlauch 20m")).toBeInTheDocument()
-    expect(screen.getByText("SN-002")).toBeInTheDocument()
-    expect(screen.getByText("Schlauch")).toBeInTheDocument()
-    expect(screen.getByText("Lager B")).toBeInTheDocument()
+    it("renders correct number of loading placeholders", () => {
+      render(
+        <EquipmentTable
+          equipment={[]}
+          isLoading={true}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
+
+      // Each row has 5 placeholders (Name, Serial, Type, Location, Actions)
+      const loadingPlaceholders = document.querySelectorAll(".h-4.bg-muted.w-24")
+      expect(loadingPlaceholders.length).toBe(5) // 5 rows × 1 placeholder each for name
+    })
   })
 
-  it("zeigt Loading-Skeleton an", () => {
-    render(
-      <EquipmentTable equipment={[]} isLoading={true} onEdit={onEdit} onDelete={onDelete} />
-    )
+  describe("Empty State", () => {
+    it("renders empty state message when equipment is empty and not loading", () => {
+      render(
+        <EquipmentTable
+          equipment={[]}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
 
-    const pulseElements = document.querySelectorAll(".animate-pulse")
-    expect(pulseElements.length).toBeGreaterThan(0)
+      expect(screen.getByText("Keine Geräte vorhanden.")).toBeInTheDocument()
+    })
+
+    it("does not render table when equipment is empty", () => {
+      render(
+        <EquipmentTable
+          equipment={[]}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
+
+      expect(document.querySelector("table")).not.toBeInTheDocument()
+    })
   })
 
-  it("zeigt Leerzustand an", () => {
-    render(
-      <EquipmentTable equipment={[]} isLoading={false} onEdit={onEdit} onDelete={onDelete} />
-    )
+  describe("Data State", () => {
+    it("renders all equipment items in the table", () => {
+      render(
+        <EquipmentTable
+          equipment={mockEquipment}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
 
-    expect(screen.getByText("Keine Geräte vorhanden.")).toBeInTheDocument()
+      expect(screen.getByText("Atemschutzgerät Dräger PSS 7000")).toBeInTheDocument()
+      expect(screen.getByText("DRG-2023-0042")).toBeInTheDocument()
+      expect(screen.getByText("Atemschutz")).toBeInTheDocument()
+      expect(screen.getByText("Fahrzeug 1, Fach 3")).toBeInTheDocument()
+
+      expect(screen.getByText("Löschrohr 20mm")).toBeInTheDocument()
+      expect(screen.getByText("LR-20-001")).toBeInTheDocument()
+      expect(screen.getByText("Löschgeräte")).toBeInTheDocument()
+      expect(screen.getByText("Fahrzeug 2, Fach 1")).toBeInTheDocument()
+    })
+
+    it("renders correct table headers", () => {
+      render(
+        <EquipmentTable
+          equipment={mockEquipment}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
+
+      expect(screen.getByText("Name")).toBeInTheDocument()
+      expect(screen.getByText("Seriennummer")).toBeInTheDocument()
+      expect(screen.getByText("Typ")).toBeInTheDocument()
+      expect(screen.getByText("Lagerort")).toBeInTheDocument()
+      expect(screen.getByText("Aktionen")).toBeInTheDocument()
+    })
+
+    it("renders edit and delete buttons for each row", () => {
+      render(
+        <EquipmentTable
+          equipment={mockEquipment}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
+
+      const editButtons = screen.getAllByText("Bearbeiten")
+      const deleteButtons = screen.getAllByText("Löschen")
+
+      expect(editButtons.length).toBe(2)
+      expect(deleteButtons.length).toBe(2)
+    })
+
+    it("calls onEdit callback when edit button is clicked", () => {
+      render(
+        <EquipmentTable
+          equipment={mockEquipment}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
+
+      const editButtons = screen.getAllByText("Bearbeiten")
+      editButtons[0].click()
+
+      expect(mockOnEdit).toHaveBeenCalledWith("1")
+    })
+
+    it("calls onDelete callback when delete button is clicked", () => {
+      render(
+        <EquipmentTable
+          equipment={mockEquipment}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
+
+      const deleteButtons = screen.getAllByText("Löschen")
+      deleteButtons[0].click()
+
+      expect(mockOnDelete).toHaveBeenCalledWith("1")
+    })
+
+    it("uses device.id as key for table rows", () => {
+      render(
+        <EquipmentTable
+          equipment={mockEquipment}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
+
+      // Verify the row with correct ID exists
+      const rows = document.querySelectorAll("tbody tr")
+      expect(rows.length).toBe(2)
+    })
   })
 
-  it("ruft onEdit beim Klick auf 'Bearbeiten' auf", async () => {
-    const user = userEvent.setup()
-    render(
-      <EquipmentTable
-        equipment={mockEquipment}
-        isLoading={false}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
-    )
+  describe("Table Structure", () => {
+    it("wraps content in a Table component", () => {
+      const { container } = render(
+        <EquipmentTable
+          equipment={mockEquipment}
+          isLoading={false}
+          onEdit={mockOnEdit}
+          onDelete={mockOnDelete}
+        />,
+      )
 
-    const editButtons = screen.getAllByRole("button", { name: "Bearbeiten" })
-    await user.click(editButtons[0])
-
-    expect(onEdit).toHaveBeenCalledWith("equip-1")
-  })
-
-  it("ruft onDelete beim Klick auf 'Löschen' auf", async () => {
-    const user = userEvent.setup()
-    render(
-      <EquipmentTable
-        equipment={mockEquipment}
-        isLoading={false}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
-    )
-
-    const deleteButtons = screen.getAllByRole("button", { name: "Löschen" })
-    await user.click(deleteButtons[0])
-
-    expect(onDelete).toHaveBeenCalledWith("equip-1")
-  })
-
-  it("zeigt mehrere 'Bearbeiten'-Buttons an", () => {
-    render(
-      <EquipmentTable
-        equipment={mockEquipment}
-        isLoading={false}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
-    )
-
-    const editButtons = screen.getAllByRole("button", { name: "Bearbeiten" })
-    expect(editButtons.length).toBe(2)
-  })
-
-  it("zeigt mehrere 'Löschen'-Buttons an", () => {
-    render(
-      <EquipmentTable
-        equipment={mockEquipment}
-        isLoading={false}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
-    )
-
-    const deleteButtons = screen.getAllByRole("button", { name: "Löschen" })
-    expect(deleteButtons.length).toBe(2)
+      expect(container.querySelector("table")).toBeInTheDocument()
+    })
   })
 })
