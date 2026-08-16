@@ -92,6 +92,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alle Lehrgänge auflisten */
+        get: operations["listCourses"];
+        put?: never;
+        /** Neuen Lehrgang anlegen */
+        post: operations["createCourse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{courseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lehrgang im Detail laden */
+        get: operations["getCourse"];
+        /** Lehrgang aktualisieren */
+        put: operations["updateCourse"];
+        post?: never;
+        /** Lehrgang löschen */
+        delete: operations["deleteCourse"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{courseId}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alle Anmeldungen für einen Lehrgang */
+        get: operations["listEnrollmentsByCourse"];
+        put?: never;
+        /** Anmeldung für Lehrgang erstellen */
+        post: operations["createEnrollment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{courseId}/enrollments/{enrollmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Anmeldung stornieren */
+        delete: operations["cancelEnrollment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -121,6 +193,211 @@ export interface components {
             totalElements?: number;
             /** @example 5 */
             totalPages?: number;
+        };
+        /**
+         * @description Status des Lehrgangs
+         * @example OPEN_FOR_REGISTRATION
+         * @enum {string}
+         */
+        CourseStatus: "PLANNED" | "OPEN_FOR_REGISTRATION" | "FULL" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+        CreateCourseRequest: {
+            /**
+             * @description Name des Lehrgangs
+             * @example Truppmann Modul 1
+             */
+            name: string;
+            /**
+             * @description Beschreibung des Lehrgangsinhalts
+             * @example Grundlehrgang für alle Einsatzkräfte
+             */
+            description?: string;
+            /**
+             * @description Maximale Teilnehmerzahl
+             * @example 20
+             */
+            maxParticipants: number;
+            /**
+             * Format: uuid
+             * @description ID des Lehrgangsleiters (Member)
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            instructorId: string;
+            /**
+             * Format: date-time
+             * @description Startdatum und -zeit des Lehrgangs
+             * @example 2026-09-01T08:00:00Z
+             */
+            startDate: string;
+            /**
+             * Format: date-time
+             * @description Enddatum und -zeit des Lehrgangs
+             * @example 2026-09-05T17:00:00Z
+             */
+            endDate: string;
+        };
+        UpdateCourseRequest: {
+            /**
+             * @description Name des Lehrgangs
+             * @example Truppmann Modul 1
+             */
+            name?: string;
+            /**
+             * @description Beschreibung des Lehrgangsinhalts
+             * @example Grundlehrgang für alle Einsatzkräfte
+             */
+            description?: string;
+            /**
+             * @description Maximale Teilnehmerzahl
+             * @example 20
+             */
+            maxParticipants?: number;
+            /**
+             * Format: uuid
+             * @description ID des Lehrgangsleiters (Member)
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            instructorId?: string;
+            /**
+             * Format: date-time
+             * @description Startdatum und -zeit des Lehrgangs
+             * @example 2026-09-01T08:00:00Z
+             */
+            startDate?: string;
+            /**
+             * Format: date-time
+             * @description Enddatum und -zeit des Lehrgangs
+             * @example 2026-09-05T17:00:00Z
+             */
+            endDate?: string;
+            status?: components["schemas"]["CourseStatus"];
+        };
+        CourseResponse: {
+            /**
+             * Format: uuid
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            id?: string;
+            /** @example Truppmann Modul 1 */
+            name?: string;
+            /** @example Grundlehrgang für alle Einsatzkräfte */
+            description?: string;
+            /** @example 20 */
+            maxParticipants?: number;
+            /**
+             * @description Aktuelle Anzahl bestätigter Teilnehmer
+             * @example 15
+             */
+            currentParticipants?: number;
+            /**
+             * @description Anzahl der Teilnehmer auf der Warteliste
+             * @example 3
+             */
+            waitingListCount?: number;
+            /**
+             * Format: uuid
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            instructorId?: string;
+            /**
+             * @description Name des Lehrgangsleiters
+             * @example Max Mustermann
+             */
+            instructorName?: string;
+            /**
+             * Format: date-time
+             * @example 2026-09-01T08:00:00Z
+             */
+            startDate?: string;
+            /**
+             * Format: date-time
+             * @example 2026-09-05T17:00:00Z
+             */
+            endDate?: string;
+            status?: components["schemas"]["CourseStatus"];
+            /**
+             * Format: date-time
+             * @example 2026-08-01T10:00:00Z
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @example 2026-08-10T14:30:00Z
+             */
+            updatedAt?: string;
+        };
+        /**
+         * @description Status der Anmeldung
+         * @example CONFIRMED
+         * @enum {string}
+         */
+        EnrollmentStatus: "PENDING" | "WAITING_LIST" | "CONFIRMED" | "CANCELLED";
+        CreateEnrollmentRequest: {
+            /**
+             * Format: uuid
+             * @description ID des Mitglieds das sich anmeldet
+             * @example 660e8400-e29b-41d4-a716-446655440001
+             */
+            memberId: string;
+            /**
+             * @description Optionale Bemerkung zur Anmeldung
+             * @example Bitte um Bestätigung da Einsatzrelevant
+             */
+            comment?: string;
+        };
+        EnrollmentResponse: {
+            /**
+             * Format: uuid
+             * @example 770e8400-e29b-41d4-a716-446655440002
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            courseId?: string;
+            /**
+             * @description Name des Lehrgangs
+             * @example Truppmann Modul 1
+             */
+            courseName?: string;
+            /**
+             * Format: uuid
+             * @example 660e8400-e29b-41d4-a716-446655440001
+             */
+            memberId?: string;
+            /**
+             * @description Name des Mitglieds
+             * @example Erika Musterfrau
+             */
+            memberName?: string;
+            status?: components["schemas"]["EnrollmentStatus"];
+            /**
+             * @description Bemerkung zur Anmeldung
+             * @example Bitte um Bestätigung da Einsatzrelevant
+             */
+            comment?: string;
+            /**
+             * Format: date-time
+             * @description Zeitpunkt der Anmeldung
+             * @example 2026-08-12T09:00:00Z
+             */
+            enrolledAt?: string;
+            /**
+             * Format: date-time
+             * @description Zeitpunkt der Bestätigung (null wenn nicht bestätigt)
+             * @example 2026-08-13T10:00:00Z
+             */
+            confirmedAt?: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-08-12T09:00:00Z
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @example 2026-08-13T10:00:00Z
+             */
+            updatedAt?: string;
         };
         LocationResponse: {
             /**
@@ -449,6 +726,227 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listCourses: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                size?: components["parameters"]["SizeParam"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Liste aller Lehrgänge */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data?: components["schemas"]["CourseResponse"][];
+                        page?: components["schemas"]["PaginationMeta"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    createCourse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCourseRequest"];
+            };
+        };
+        responses: {
+            /** @description Lehrgang erstellt */
+            201: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    getCourse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lehrgang gefunden */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateCourse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCourseRequest"];
+            };
+        };
+        responses: {
+            /** @description Lehrgang aktualisiert */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    deleteCourse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lehrgang gelöscht */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    listEnrollmentsByCourse: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                size?: components["parameters"]["SizeParam"];
+            };
+            header?: never;
+            path: {
+                courseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Liste aller Anmeldungen */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data?: components["schemas"]["EnrollmentResponse"][];
+                        page?: components["schemas"]["PaginationMeta"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createEnrollment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEnrollmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Anmeldung erstellt */
+            201: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    cancelEnrollment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                enrollmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Anmeldung storniert */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
         };
     };

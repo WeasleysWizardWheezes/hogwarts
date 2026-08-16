@@ -1,0 +1,237 @@
+paths:
+  /api/v1/courses:
+    get:
+      tags: [Courses]
+      summary: Alle Lehrgänge auflisten
+      operationId: listCourses
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+      responses:
+        '200':
+          description: Liste aller Lehrgänge
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/courses.yaml#/CourseResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+
+    post:
+      tags: [Courses]
+      summary: Neuen Lehrgang anlegen
+      operationId: createCourse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/courses.yaml#/CreateCourseRequest'
+      responses:
+        '201':
+          description: Lehrgang erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/courses.yaml#/CourseResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+
+  /api/v1/courses/{courseId}:
+    get:
+      tags: [Courses]
+      summary: Lehrgang im Detail laden
+      operationId: getCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lehrgang gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/courses.yaml#/CourseResponse'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    put:
+      tags: [Courses]
+      summary: Lehrgang aktualisieren
+      operationId: updateCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/courses.yaml#/UpdateCourseRequest'
+      responses:
+        '200':
+          description: Lehrgang aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/courses.yaml#/CourseResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+    delete:
+      tags: [Courses]
+      summary: Lehrgang löschen
+      operationId: deleteCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Lehrgang gelöscht
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/courses/{courseId}/enrollments:
+    post:
+      tags: [CourseEnrollments]
+      summary: Anmeldung für Lehrgang erstellen
+      operationId: createEnrollment
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/course-enrollments.yaml#/CreateEnrollmentRequest'
+      responses:
+        '201':
+          description: Anmeldung erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/course-enrollments.yaml#/EnrollmentResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+    get:
+      tags: [CourseEnrollments]
+      summary: Alle Anmeldungen für einen Lehrgang
+      operationId: listEnrollmentsByCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+      responses:
+        '200':
+          description: Liste aller Anmeldungen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/course-enrollments.yaml#/EnrollmentResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+  /api/v1/courses/{courseId}/enrollments/{enrollmentId}:
+    delete:
+      tags: [CourseEnrollments]
+      summary: Anmeldung stornieren
+      operationId: cancelEnrollment
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: enrollmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Anmeldung storniert
+        '401':
+          $ref: '../components/responses/errors.yaml#/Unauthorized'
+        '403':
+          $ref: '../components/responses/errors.yaml#/Forbidden'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'

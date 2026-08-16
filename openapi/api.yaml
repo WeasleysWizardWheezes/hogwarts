@@ -13,6 +13,10 @@ tags:
     description: Verwaltung von Feuerwehrmitgliedern
   - name: Locations
     description: Verwaltung von Standorten
+  - name: Courses
+    description: Verwaltung von Lehrgängen und Kursen
+  - name: CourseEnrollments
+    description: Verwaltung von Lehrgangs-Anmeldungen
 
 paths:
   /api/v1/members:
@@ -25,6 +29,14 @@ paths:
     $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations~1{locationId}'
   /api/v1/members/{memberId}/locations:
     $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations'
+  /api/v1/courses:
+    $ref: './paths/courses.yaml#/paths/~1api~1v1~1courses'
+  /api/v1/courses/{courseId}:
+    $ref: './paths/courses.yaml#/paths/~1api~1v1~1courses~1{courseId}'
+  /api/v1/courses/{courseId}/enrollments:
+    $ref: './paths/courses.yaml#/paths/~1api~1v1~1courses~1{courseId}~1enrollments'
+  /api/v1/courses/{courseId}/enrollments/{enrollmentId}:
+    $ref: './paths/courses.yaml#/paths/~1api~1v1~1courses~1{courseId}~1enrollments~1{enrollmentId}'
 
 components:
   schemas:
@@ -32,6 +44,20 @@ components:
       $ref: './components/schemas/common.yaml#/ErrorResponse'
     PaginationMeta:
       $ref: './components/schemas/common.yaml#/PaginationMeta'
+    CourseStatus:
+      $ref: './components/schemas/courses.yaml#/CourseStatus'
+    CreateCourseRequest:
+      $ref: './components/schemas/courses.yaml#/CreateCourseRequest'
+    UpdateCourseRequest:
+      $ref: './components/schemas/courses.yaml#/UpdateCourseRequest'
+    CourseResponse:
+      $ref: './components/schemas/courses.yaml#/CourseResponse'
+    EnrollmentStatus:
+      $ref: './components/schemas/course-enrollments.yaml#/EnrollmentStatus'
+    CreateEnrollmentRequest:
+      $ref: './components/schemas/course-enrollments.yaml#/CreateEnrollmentRequest'
+    EnrollmentResponse:
+      $ref: './components/schemas/course-enrollments.yaml#/EnrollmentResponse'
   responses:
     BadRequest:
       $ref: './components/responses/errors.yaml#/BadRequest'
