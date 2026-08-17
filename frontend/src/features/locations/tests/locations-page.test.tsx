@@ -1,6 +1,6 @@
 import { render } from '@/test/render'
 import { screen, within } from '@testing-library/react'
-import { LocationResponse, CreateLocationRequest, UpdateLocationRequest } from '@/features/locations/api/locations-api'
+import type { LocationResponse } from '@/features/locations/api/locations-api'
 import { useLocations, useCreateLocation, useUpdateLocation, useDeleteLocation } from '@/features/locations/api/locations-api'
 import LocationsPage from '@/features/locations/pages/locations-page'
 import userEvent from '@testing-library/user-event'
@@ -113,8 +113,10 @@ describe('LocationsPage', () => {
     await userEvent.click(deleteButton)
 
     // Warten, bis der Alert-Dialog erscheint
-    expect(await screen.findByText('Standort löschen')).toBeInTheDocument()
-    expect(await screen.findByText('Möchten Sie "Feuerwache Köln" wirklich löschen?')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Standort löschen' })).toBeInTheDocument()
+    const dialog = screen.getByRole('alertdialog')
+    expect(within(dialog).getByText(/Feuerwache Köln/)).toBeInTheDocument()
+    expect(within(dialog).getByText(/wirklich löschen/)).toBeInTheDocument()
   })
 
   it('schließt das Dialogfenster beim Klicken auf "Abbrechen"', async () => {

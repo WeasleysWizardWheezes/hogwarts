@@ -1,6 +1,6 @@
-import { renderWithProviders, render } from '@/test/render'
+import { render } from '@/test/render'
 import { screen, within } from '@testing-library/react'
-import { MemberResponse, MemberLocationAssignmentRequest } from '@/features/members/api/members-api'
+import type { MemberResponse } from '@/features/members/api/members-api'
 import { useMembers, useAssignMemberToLocation } from '@/features/members/api/members-api'
 import { useLocations } from '@/features/locations/api/locations-api'
 import MembersPage from '@/features/members/pages/members-page'
@@ -103,41 +103,47 @@ describe('MembersPage', () => {
     })
 
     it('zeigt die Aktionen für Zuweisen korrekt', () => {
-      const firstRow = screen.getAllByRole('row')[1]
-      const assignButton = within(firstRow).getByRole('button', { name: 'Standort zuweisen' })
-      expect(assignButton).toBeInTheDocument()
+      const firstRow = screen.getByRole('row', { name: /Hans Müller/ });
+      const assignButton = within(firstRow).getByRole('button', { name: 'Standort zuweisen' });
+      expect(assignButton).toBeInTheDocument();
     })
 
     it('öffnet das Dialogfenster beim Klicken auf "Standort zuweisen"', async () => {
-      const assignButton = screen.getByRole('button', { name: 'Standort zuweisen' })
+      const firstRow = screen.getByRole('row', { name: /Hans Müller/ });
+      const assignButton = within(firstRow).getByRole('button', { name: 'Standort zuweisen' });
       await userEvent.click(assignButton)
 
-      expect(screen.getByText('Standort zuweisen')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Standort zuweisen' })).toBeInTheDocument()
     })
 
     it('schließt das Dialogfenster beim Klicken auf "Abbrechen"', async () => {
-      const assignButton = screen.getByRole('button', { name: 'Standort zuweisen' })
+      const firstRow = screen.getByRole('row', { name: /Hans Müller/ });
+      const assignButton = within(firstRow).getByRole('button', { name: 'Standort zuweisen' });
       await userEvent.click(assignButton)
 
       const cancelButton = screen.getByRole('button', { name: 'Abbrechen' })
       await userEvent.click(cancelButton)
 
-      expect(screen.queryByText('Standort zuweisen')).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Standort zuweisen' })).not.toBeInTheDocument()
     })
 
-    it('erzeugt eine neue Zuweisung beim Klicken auf "Zuweisen"', async () => {
-      const assignButton = screen.getByRole('button', { name: 'Standort zuweisen' })
+    it('ruft die Mutation mit korrekten Daten auf beim Zuweisen', async () => {
+      const firstRow = screen.getByRole('row', { name: /Hans Müller/ });
+      const assignButton = within(firstRow).getByRole('button', { name: 'Standort zuweisen' });
       await userEvent.click(assignButton)
 
-      const locationSelect = screen.getByRole('combobox', { name: 'Standort auswählen' })
-      const submitButton = screen.getByRole('button', { name: 'Zuweisen' })
+      // Standort-Select im Dialog öffnen und Option wählen
+      const dialogCombobox = screen.getByRole('combobox', { name: 'Standort' })
+      await userEvent.click(dialogCombobox)
+      await userEvent.click(await screen.findByRole('option', { name: 'Feuerwache Köln' }))
 
-      await userEvent.selectOptions(locationSelect, '')
+      // Zuweisen klicken
+      const submitButton = screen.getByRole('button', { name: 'Zuweisen' })
       await userEvent.click(submitButton)
 
       expect(mockAssignMemberToLocation).toHaveBeenCalledWith({
         memberId: 'mem-1',
-        body: { locationId: '' },
+        body: { locationId: 'loc-1' },
       })
     })
   })
