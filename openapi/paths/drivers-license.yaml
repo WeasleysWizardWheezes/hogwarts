@@ -1,0 +1,109 @@
+paths:
+  /api/v1/members/{memberId}/drivers-license-inspections:
+    post:
+      tags: [DriversLicense]
+      summary: Neue Führerscheinprüfung erfassen
+      operationId: createDriversLicenseInspection
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/drivers-license.yaml#/CreateDriversLicenseInspectionRequest'
+      responses:
+        '201':
+          description: Prüfung erfolgreich erfasst
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/drivers-license.yaml#/DriversLicenseInspectionResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    get:
+      tags: [DriversLicense]
+      summary: Historie aller Führerscheinprüfungen eines Mitglieds
+      operationId: listDriversLicenseInspections
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+      responses:
+        '200':
+          description: Liste aller Prüfungen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/drivers-license.yaml#/DriversLicenseInspectionResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+  /api/v1/members/{memberId}/drivers-license-inspections/latest:
+    get:
+      tags: [DriversLicense]
+      summary: Neueste Führerscheinprüfung eines Mitglieds
+      operationId: getLatestDriversLicenseInspection
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Neueste Prüfung gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/drivers-license.yaml#/DriversLicenseInspectionResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+  /api/v1/members/drivers-license/expired:
+    get:
+      tags: [DriversLicense]
+      summary: Alle Mitglieder mit abgelaufener Führerscheinprüfung
+      operationId: listMembersWithExpiredDriversLicense
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+      responses:
+        '200':
+          description: Liste aller Mitglieder mit abgelaufener Prüfung
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/drivers-license.yaml#/MemberDriversLicenseStatusResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'

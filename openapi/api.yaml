@@ -13,6 +13,8 @@ tags:
     description: Verwaltung von Feuerwehrmitgliedern
   - name: Locations
     description: Verwaltung von Standorten
+  - name: DriversLicense
+    description: Verwaltung von Führerscheinprüfungen
 
 paths:
   /api/v1/members:
@@ -25,6 +27,12 @@ paths:
     $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations~1{locationId}'
   /api/v1/members/{memberId}/locations:
     $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations'
+  /api/v1/members/{memberId}/drivers-license-inspections:
+    $ref: './paths/drivers-license.yaml#/paths/~1api~1v1~1members~1{memberId}~1drivers-license-inspections'
+  /api/v1/members/{memberId}/drivers-license-inspections/latest:
+    $ref: './paths/drivers-license.yaml#/paths/~1api~1v1~1members~1{memberId}~1drivers-license-inspections~1latest'
+  /api/v1/members/drivers-license/expired:
+    $ref: './paths/drivers-license.yaml#/paths/~1api~1v1~1members~1drivers-license~1expired'
 
 components:
   schemas:

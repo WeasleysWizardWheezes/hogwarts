@@ -1,0 +1,79 @@
+CreateDriversLicenseInspectionRequest:
+  type: object
+  required:
+    - inspectionDate
+  properties:
+    inspectionDate:
+      type: string
+      format: date
+      description: Datum der Prüfung
+      example: "2024-08-17"
+    inspectorId:
+      type: string
+      format: uuid
+      description: "ID des Prüfers (optional, default: aktueller User)"
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+DriversLicenseInspectionResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    memberId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440001"
+    inspectionDate:
+      type: string
+      format: date
+      example: "2024-08-17"
+    nextInspectionDate:
+      type: string
+      format: date
+      description: Nächste Prüfung (inspectionDate + 180 Tage)
+      example: "2025-02-13"
+    status:
+      type: string
+      enum: [VALID, EXPIRING_SOON, EXPIRED]
+      description: VALID=grün, EXPIRING_SOON=gelb (<30 Tage), EXPIRED=rot (>180 Tage)
+      example: "VALID"
+    inspectorId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440002"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-08-17T10:30:00Z"
+
+MemberDriversLicenseStatusResponse:
+  type: object
+  properties:
+    memberId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440001"
+    firstName:
+      type: string
+      example: "Max"
+    lastName:
+      type: string
+      example: "Mustermann"
+    lastInspectionDate:
+      type: string
+      format: date
+      example: "2024-02-15"
+    nextInspectionDate:
+      type: string
+      format: date
+      example: "2024-08-13"
+    status:
+      type: string
+      enum: [VALID, EXPIRING_SOON, EXPIRED]
+      example: "EXPIRED"
+    daysUntilExpiry:
+      type: integer
+      description: Negative Zahl wenn abgelaufen
+      example: -4
