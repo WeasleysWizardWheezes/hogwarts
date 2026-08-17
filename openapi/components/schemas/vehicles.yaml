@@ -1,0 +1,101 @@
+VehicleResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+    name:
+      type: string
+      example: "01-HLF20-01"
+    funkrufname:
+      type: string
+      example: "Florian Monheim 01-HLF20-01"
+    kennzeichen:
+      type: string
+      example: "ME-FM 219"
+    baujahr:
+      type: integer
+      example: 2019
+    beschreibung:
+      type: string
+      example: "Hilfeleistungsloeschgruppenfahrzeug 20"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IM_EINSATZ, WARTUNG, DEFEKT]
+      example: "VERFUEGBAR"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    vehicleGroupName:
+      type: string
+      example: "Loeschfahrzeuge"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+CreateVehicleRequest:
+  type: object
+  required:
+    - name
+    - funkrufname
+    - kennzeichen
+    - vehicleGroupId
+  properties:
+    name:
+      type: string
+      example: "01-HLF20-01"
+    funkrufname:
+      type: string
+      example: "Florian Monheim 01-HLF20-01"
+    kennzeichen:
+      type: string
+      example: "ME-FM 219"
+    baujahr:
+      type: integer
+      example: 2019
+    beschreibung:
+      type: string
+      example: "Hilfeleistungsloeschgruppenfahrzeug 20"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IM_EINSATZ, WARTUNG, DEFEKT]
+      default: "VERFUEGBAR"
+      example: "VERFUEGBAR"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
+UpdateVehicleRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "01-HLF20-01"
+    funkrufname:
+      type: string
+      example: "Florian Monheim 01-HLF20-01"
+    kennzeichen:
+      type: string
+      example: "ME-FM 219"
+    baujahr:
+      type: integer
+      example: 2019
+    beschreibung:
+      type: string
+      example: "Hilfeleistungsloeschgruppenfahrzeug 20"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IM_EINSATZ, WARTUNG, DEFEKT]
+      example: "VERFUEGBAR"
+    vehicleGroupId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"

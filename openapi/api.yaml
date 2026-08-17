@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 info:
   title: Hogwarts Firemanager API
-  version: "0.0.0-issue-165"
+  version: "0.0.0-issue-219"
   description: REST-API für die Feuerwehr-Geräteverwaltung
 
 servers:
@@ -13,6 +13,10 @@ tags:
     description: Verwaltung von Feuerwehrmitgliedern
   - name: Locations
     description: Verwaltung von Standorten
+  - name: VehicleGroups
+    description: Verwaltung von Fahrzeuggruppen
+  - name: Vehicles
+    description: Verwaltung von Fahrzeugen
 
 paths:
   /api/v1/members:
@@ -25,6 +29,14 @@ paths:
     $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations~1{locationId}'
   /api/v1/members/{memberId}/locations:
     $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations'
+  /api/v1/vehicle-groups:
+    $ref: './paths/vehicle-groups.yaml#/paths/~1api~1v1~1vehicle-groups'
+  /api/v1/vehicle-groups/{vehicleGroupId}:
+    $ref: './paths/vehicle-groups.yaml#/paths/~1api~1v1~1vehicle-groups~1{vehicleGroupId}'
+  /api/v1/vehicles:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles'
+  /api/v1/vehicles/{vehicleId}:
+    $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles~1{vehicleId}'
 
 components:
   schemas:
