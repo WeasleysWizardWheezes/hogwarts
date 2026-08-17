@@ -21,6 +21,11 @@ MemberResponse:
       type: array
       items:
         $ref: './locations.yaml#/LocationResponse'
+    assignments:
+      type: array
+      items:
+        $ref: './member-assignments.yaml#/MemberAssignmentResponse'
+      description: Führungsfunktionen und Zuweisungen zu Organisationseinheiten
 
 MemberLocationAssignmentRequest:
   type: object

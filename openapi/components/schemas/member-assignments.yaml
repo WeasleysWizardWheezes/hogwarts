@@ -1,0 +1,80 @@
+MemberAssignmentResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    memberId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440001"
+    organizationUnitId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440002"
+      description: Organisationseinheit (Zug/Gruppe)
+    function:
+      type: string
+      enum:
+        - UNIT_LEADER
+        - DEPUTY_UNIT_LEADER
+        - FIRE_DEPARTMENT_LEADER
+        - DEPUTY_FIRE_DEPARTMENT_LEADER
+        - YOUTH_FIRE_BRIGADE_LEADER
+        - DEPUTY_YOUTH_FIRE_BRIGADE_LEADER
+        - CHILDREN_FIRE_BRIGADE_LEADER
+        - DEPUTY_CHILDREN_FIRE_BRIGADE_LEADER
+        - TECHNICAL_ADVISOR
+      example: "UNIT_LEADER"
+    technicalAdvisorType:
+      type: string
+      enum: [ABC, MEDICAL, PSYCHOLOGICAL_SUPPORT]
+      nullable: true
+      description: Nur gesetzt wenn function=TECHNICAL_ADVISOR
+      example: "ABC"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-08-17T10:00:00Z"
+
+CreateMemberAssignmentRequest:
+  type: object
+  required:
+    - organizationUnitId
+    - function
+  properties:
+    organizationUnitId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440002"
+    function:
+      type: string
+      enum:
+        - UNIT_LEADER
+        - DEPUTY_UNIT_LEADER
+        - FIRE_DEPARTMENT_LEADER
+        - DEPUTY_FIRE_DEPARTMENT_LEADER
+        - YOUTH_FIRE_BRIGADE_LEADER
+        - DEPUTY_YOUTH_FIRE_BRIGADE_LEADER
+        - CHILDREN_FIRE_BRIGADE_LEADER
+        - DEPUTY_CHILDREN_FIRE_BRIGADE_LEADER
+        - TECHNICAL_ADVISOR
+      description: |
+        Funktionstypen:
+        - UNIT_LEADER: Einheitsführer (Zugführer/Gruppenführer)
+        - DEPUTY_UNIT_LEADER: Stv. Einheitsführer
+        - FIRE_DEPARTMENT_LEADER: Leiter der Feuerwehr
+        - DEPUTY_FIRE_DEPARTMENT_LEADER: Stv. Leiter der Feuerwehr
+        - YOUTH_FIRE_BRIGADE_LEADER: Jugendfeuerwehrwart
+        - DEPUTY_YOUTH_FIRE_BRIGADE_LEADER: Stv. Jugendfeuerwehrwart
+        - CHILDREN_FIRE_BRIGADE_LEADER: Kinderfeuerwehrwart
+        - DEPUTY_CHILDREN_FIRE_BRIGADE_LEADER: Stv. Kinderfeuerwehrwart
+        - TECHNICAL_ADVISOR: Fachberater
+      example: "UNIT_LEADER"
+    technicalAdvisorType:
+      type: string
+      enum: [ABC, MEDICAL, PSYCHOLOGICAL_SUPPORT]
+      nullable: true
+      description: Nur erforderlich wenn function=TECHNICAL_ADVISOR
+      example: "ABC"

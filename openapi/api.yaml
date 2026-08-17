@@ -13,18 +13,36 @@ tags:
     description: Verwaltung von Feuerwehrmitgliedern
   - name: Locations
     description: Verwaltung von Standorten
+  - name: OrganizationUnits
+    description: Verwaltung von Organisationseinheiten (Löschzüge und Löschgruppen)
+  - name: MemberAssignments
+    description: Zuweisung von Mitgliedern zu Organisationseinheiten mit Führungsfunktionen
 
 paths:
   /api/v1/members:
     $ref: './paths/members.yaml#/paths/~1api~1v1~1members'
   /api/v1/members/{memberId}:
     $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}'
+  /api/v1/members/{memberId}/locations:
+    $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations'
+  /api/v1/members/{memberId}/assignments:
+    $ref: './paths/member-assignments.yaml#/paths/~1api~1v1~1members~1{memberId}~1assignments'
+  /api/v1/members/{memberId}/assignments/{assignmentId}:
+    $ref: './paths/member-assignments.yaml#/paths/~1api~1v1~1members~1{memberId}~1assignments~1{assignmentId}'
   /api/v1/locations:
     $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations'
   /api/v1/locations/{locationId}:
     $ref: './paths/locations.yaml#/paths/~1api~1v1~1locations~1{locationId}'
-  /api/v1/members/{memberId}/locations:
-    $ref: './paths/members.yaml#/paths/~1api~1v1~1members~1{memberId}~1locations'
+  /api/v1/organization-units:
+    $ref: './paths/organization-units.yaml#/paths/~1api~1v1~1organization-units'
+  /api/v1/organization-units/{unitId}:
+    $ref: './paths/organization-units.yaml#/paths/~1api~1v1~1organization-units~1{unitId}'
+  /api/v1/organization-units/{unitId}/children:
+    $ref: './paths/organization-units.yaml#/paths/~1api~1v1~1organization-units~1{unitId}~1children'
+  /api/v1/organization-units/{unitId}/parent:
+    $ref: './paths/organization-units.yaml#/paths/~1api~1v1~1organization-units~1{unitId}~1parent'
+  /api/v1/organization-units/{unitId}/members:
+    $ref: './paths/member-assignments.yaml#/paths/~1api~1v1~1organization-units~1{unitId}~1members'
 
 components:
   schemas:

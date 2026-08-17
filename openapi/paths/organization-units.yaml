@@ -1,0 +1,186 @@
+paths:
+  /api/v1/organization-units:
+    get:
+      tags: [OrganizationUnits]
+      summary: Alle Organisationseinheiten auflisten
+      operationId: listOrganizationUnits
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [FIRE_BRIGADE, FIRE_GROUP]
+          description: Filter nach Einheitentyp
+      responses:
+        '200':
+          description: Liste aller Organisationseinheiten
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/organization-units.yaml#/OrganizationUnitResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+
+    post:
+      tags: [OrganizationUnits]
+      summary: Neue Organisationseinheit erstellen
+      operationId: createOrganizationUnit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/organization-units.yaml#/CreateOrganizationUnitRequest'
+      responses:
+        '201':
+          description: Organisationseinheit erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/organization-units.yaml#/OrganizationUnitResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/organization-units/{unitId}:
+    get:
+      tags: [OrganizationUnits]
+      summary: Organisationseinheit anhand der ID laden
+      operationId: getOrganizationUnit
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Organisationseinheit gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/organization-units.yaml#/OrganizationUnitResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    put:
+      tags: [OrganizationUnits]
+      summary: Organisationseinheit vollständig aktualisieren
+      operationId: updateOrganizationUnit
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/organization-units.yaml#/UpdateOrganizationUnitRequest'
+      responses:
+        '200':
+          description: Organisationseinheit aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/organization-units.yaml#/OrganizationUnitResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+    delete:
+      tags: [OrganizationUnits]
+      summary: Organisationseinheit löschen
+      operationId: deleteOrganizationUnit
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Organisationseinheit erfolgreich gelöscht
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/organization-units/{unitId}/children:
+    get:
+      tags: [OrganizationUnits]
+      summary: Kind-Einheiten einer Organisationseinheit auflisten
+      operationId: getOrganizationUnitChildren
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste der Kind-Einheiten
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../components/schemas/organization-units.yaml#/OrganizationUnitResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+  /api/v1/organization-units/{unitId}/parent:
+    put:
+      tags: [OrganizationUnits]
+      summary: Parent-Einheit zuweisen (für Hierarchie)
+      operationId: assignOrganizationUnitParent
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/organization-units.yaml#/AssignParentRequest'
+      responses:
+        '200':
+          description: Parent-Einheit zugewiesen
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/organization-units.yaml#/OrganizationUnitResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'

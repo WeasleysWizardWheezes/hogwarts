@@ -1,0 +1,88 @@
+OrganizationUnitResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      example: "Löschzug Mitte"
+    type:
+      type: string
+      enum: [FIRE_BRIGADE, FIRE_GROUP]
+      example: "FIRE_BRIGADE"
+      description: "FIRE_BRIGADE=Löschzug, FIRE_GROUP=Löschgruppe"
+    locationId:
+      type: string
+      format: uuid
+      nullable: true
+      description: Referenz auf Standort (optional)
+    parentId:
+      type: string
+      format: uuid
+      nullable: true
+      description: Parent-Einheit (nur für Löschgruppen/FIRE_GROUP)
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+CreateOrganizationUnitRequest:
+  type: object
+  required:
+    - name
+    - type
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+      example: "Löschzug Mitte"
+    type:
+      type: string
+      enum: [FIRE_BRIGADE, FIRE_GROUP]
+      description: "FIRE_BRIGADE=Löschzug, FIRE_GROUP=Löschgruppe"
+    locationId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    parentId:
+      type: string
+      format: uuid
+      nullable: true
+      description: Nur erlaubt wenn type=FIRE_GROUP. Verhindert zyklische Referenzen.
+      example: "550e8400-e29b-41d4-a716-446655440001"
+
+UpdateOrganizationUnitRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+      example: "Löschzug Mitte"
+    locationId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    parentId:
+      type: string
+      format: uuid
+      nullable: true
+      description: Nur erlaubt wenn type=FIRE_GROUP. Verhindert zyklische Referenzen.
+      example: "550e8400-e29b-41d4-a716-446655440001"
+
+AssignParentRequest:
+  type: object
+  properties:
+    parentId:
+      type: string
+      format: uuid
+      nullable: true
+      description: Parent-Einheit zuweisen. null entfernt Parent-Zuweisung.
+      example: "550e8400-e29b-41d4-a716-446655440001"
