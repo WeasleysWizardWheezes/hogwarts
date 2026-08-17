@@ -37,6 +37,8 @@ jobs:
       - uses: ./.github/actions/setup-openapi
 
       - name: Validate OpenAPI Spec
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: openapi-generator-cli validate -i openapi/api.yaml
 
   # ═══════════════════════════════════════════════
@@ -154,6 +156,8 @@ jobs:
       - uses: ./.github/actions/setup-java
 
       - name: Generate Backend API Lib (Java/Spring)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           openapi-generator-cli generate \
             -i openapi/api.yaml \
