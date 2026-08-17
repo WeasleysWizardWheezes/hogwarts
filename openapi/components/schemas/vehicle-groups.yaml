@@ -1,0 +1,43 @@
+VehicleGroupResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    name:
+      type: string
+      example: "Loeschfahrzeuge"
+    beschreibung:
+      type: string
+      example: "Alle Loeschfahrzeuge des Loeschzugs"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+CreateVehicleGroupRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      example: "Loeschfahrzeuge"
+    beschreibung:
+      type: string
+      example: "Alle Loeschfahrzeuge des Loeschzugs"
+
+UpdateVehicleGroupRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "Loeschfahrzeuge"
+    beschreibung:
+      type: string
+      example: "Alle Loeschfahrzeuge des Loeschzugs"
