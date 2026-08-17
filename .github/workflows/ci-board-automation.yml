@@ -82,7 +82,7 @@ jobs:
         if: steps.label.outputs.has_label == 'true'
         id: paths
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
         run: |
           ISSUE_NUMBER=${{ steps.label.outputs.issue_number }}
 
