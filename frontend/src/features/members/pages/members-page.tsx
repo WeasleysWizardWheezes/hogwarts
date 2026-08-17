@@ -27,7 +27,8 @@ const EMPTY_FORM: FormState = {
 }
 
 export default function MembersPage() {
-  const { data: membersData, isLoading: isMembersLoading, isError: isMembersError } = useMembers()
+  const [filterLocationId, setFilterLocationId] = useState("")
+  const { data: membersData, isLoading: isMembersLoading, isError: isMembersError } = useMembers({ locationId: filterLocationId || undefined })
   const { data: locationsData, isLoading: isLocationsLoading, isError: isLocationsError } = useLocations()
   const assignMutation = useAssignMemberToLocation()
 
@@ -85,7 +86,7 @@ export default function MembersPage() {
 
       {/* Filter */}
       <div className="flex items-center gap-2">
-        <Select value={formState.locationId} onValueChange={(value) => setFormState((prev) => ({ ...prev, locationId: value ?? "" }))}>
+        <Select value={filterLocationId} onValueChange={(value) => setFilterLocationId(value ?? "")}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Alle Standorte" />
           </SelectTrigger>
