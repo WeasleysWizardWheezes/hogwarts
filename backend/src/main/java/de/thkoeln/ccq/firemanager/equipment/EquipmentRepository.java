@@ -20,7 +20,7 @@ public interface EquipmentRepository extends JpaRepository<Equipment, UUID> {
             AND (:categoryId IS NULL OR e.category.id = :categoryId)
             AND (:vehicleId IS NULL OR e.vehicle.id = :vehicleId)
             AND (:status IS NULL OR e.status = :status)
-            AND (:dueBefore IS NULL
+            AND (CAST(:dueBefore AS LocalDate) IS NULL
                 OR e.nextInspectionDate <= :dueBefore
                 OR e.nextMaintenanceDate <= :dueBefore)
             """)
