@@ -8,6 +8,15 @@ const VehicleGroupsPage = lazy(
 const VehiclesPage = lazy(
   () => import("@/features/vehicles/pages/vehicles-page")
 )
+const EquipmentListPage = lazy(
+  () => import("@/features/equipment/pages/equipment-list-page")
+)
+const EquipmentDetailPage = lazy(
+  () => import("@/features/equipment/pages/equipment-detail-page")
+)
+const EquipmentCategoriesPage = lazy(
+  () => import("@/features/equipment/pages/equipment-categories-page")
+)
 
 // Placeholder: Wird durch echte Feature-Pages ersetzt
 function DashboardPage() {
@@ -26,6 +35,9 @@ export const router = createBrowserRouter([
       { index: true, Component: DashboardPage },
       { path: "vehicle-groups", Component: VehicleGroupsPage },
       { path: "vehicles", Component: VehiclesPage },
+      { path: "equipment", Component: EquipmentListPage },
+      { path: "equipment/:id", Component: EquipmentDetailPage },
+      { path: "equipment-categories", Component: EquipmentCategoriesPage },
     ],
   },
 ])
