@@ -10,12 +10,19 @@ import java.util.UUID;
 
 public interface EquipmentCategoryRepository extends JpaRepository<EquipmentCategory, UUID> {
 
-    @Query("""
-            SELECT ec FROM EquipmentCategory ec
+    @Query(value = """
+            SELECT * FROM equipment_category ec
             WHERE ec.archived = false
-            AND (CAST(:search AS string) IS NULL
-                OR LOWER(ec.name) LIKE LOWER(CONCAT('%', :search, '%')))
-            """)
+            AND (CAST(:search AS text) IS NULL
+                OR LOWER(ec.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
+            """,
+            countQuery = """
+            SELECT count(*) FROM equipment_category ec
+            WHERE ec.archived = false
+            AND (CAST(:search AS text) IS NULL
+                OR LOWER(ec.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
+            """,
+            nativeQuery = true)
     Page<EquipmentCategory> findAllWithSearch(
             @Param("search") String search,
             Pageable pageable
