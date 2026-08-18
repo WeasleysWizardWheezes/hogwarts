@@ -166,6 +166,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/equipment-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alle Gerätekategorien auflisten */
+        get: operations["listEquipmentCategories"];
+        put?: never;
+        /** Neue Gerätekategorie anlegen */
+        post: operations["createEquipmentCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment-categories/{categoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gerätekategorie anhand der ID laden */
+        get: operations["getEquipmentCategory"];
+        /** Gerätekategorie aktualisieren */
+        put: operations["updateEquipmentCategory"];
+        post?: never;
+        /** Gerätekategorie archivieren (Soft Delete) */
+        delete: operations["deleteEquipmentCategory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alle Geräte auflisten */
+        get: operations["listEquipment"];
+        put?: never;
+        /** Neues Gerät anlegen */
+        post: operations["createEquipment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/{equipmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gerät anhand der ID laden */
+        get: operations["getEquipment"];
+        /** Gerät aktualisieren */
+        put: operations["updateEquipment"];
+        post?: never;
+        /** Gerät archivieren (Soft Delete) */
+        delete: operations["deleteEquipment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/{equipmentId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Änderungshistorie eines Geräts laden */
+        get: operations["getEquipmentHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -373,6 +464,185 @@ export interface components {
              * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
              */
             vehicleGroupId?: string;
+        };
+        EquipmentCategoryResponse: {
+            /**
+             * Format: uuid
+             * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+             */
+            id?: string;
+            /** @example Atemschutz */
+            name?: string;
+            /** @example Atemschutzgeräte und Zubehör */
+            description?: string;
+            /**
+             * Format: date-time
+             * @example 2026-01-15T10:30:00Z
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @example 2026-01-15T10:30:00Z
+             */
+            updatedAt?: string;
+        };
+        CreateEquipmentCategoryRequest: {
+            /** @example Atemschutz */
+            name: string;
+            /** @example Atemschutzgeräte und Zubehör */
+            description?: string;
+        };
+        UpdateEquipmentCategoryRequest: {
+            /** @example Atemschutz */
+            name?: string;
+            /** @example Atemschutzgeräte und Zubehör */
+            description?: string;
+        };
+        EquipmentResponse: {
+            /**
+             * Format: uuid
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            id?: string;
+            /** @example Pressluftatmer PA 300 */
+            name?: string;
+            /** @example AGT-2024-0042 */
+            inventoryNumber?: string;
+            /** @example Pressluftatmer mit 300 bar Flasche */
+            description?: string;
+            /**
+             * @example VERFUEGBAR
+             * @enum {string}
+             */
+            status?: "VERFUEGBAR" | "IN_GEBRAUCH" | "DEFEKT" | "WARTUNG" | "ARCHIVIERT";
+            /**
+             * Format: uuid
+             * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+             */
+            categoryId?: string;
+            /** @example Atemschutz */
+            categoryName?: string;
+            /**
+             * Format: uuid
+             * @example f1e2d3c4-b5a6-7890-abcd-ef1234567890
+             */
+            vehicleId?: string | null;
+            /** @example 01-HLF20-01 */
+            vehicleName?: string | null;
+            /**
+             * Format: date
+             * @example 2026-06-15
+             */
+            nextInspectionDate?: string | null;
+            /**
+             * Format: date
+             * @example 2026-09-01
+             */
+            nextMaintenanceDate?: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-01-15T10:30:00Z
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @example 2026-01-15T10:30:00Z
+             */
+            updatedAt?: string;
+        };
+        CreateEquipmentRequest: {
+            /** @example Pressluftatmer PA 300 */
+            name: string;
+            /** @example AGT-2024-0042 */
+            inventoryNumber: string;
+            /** @example Pressluftatmer mit 300 bar Flasche */
+            description?: string;
+            /**
+             * @default VERFUEGBAR
+             * @example VERFUEGBAR
+             * @enum {string}
+             */
+            status: "VERFUEGBAR" | "IN_GEBRAUCH" | "DEFEKT" | "WARTUNG";
+            /**
+             * Format: uuid
+             * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+             */
+            categoryId: string;
+            /**
+             * Format: uuid
+             * @example f1e2d3c4-b5a6-7890-abcd-ef1234567890
+             */
+            vehicleId?: string | null;
+            /**
+             * Format: date
+             * @example 2026-06-15
+             */
+            nextInspectionDate?: string | null;
+            /**
+             * Format: date
+             * @example 2026-09-01
+             */
+            nextMaintenanceDate?: string | null;
+        };
+        UpdateEquipmentRequest: {
+            /** @example Pressluftatmer PA 300 */
+            name?: string;
+            /** @example AGT-2024-0042 */
+            inventoryNumber?: string;
+            /** @example Pressluftatmer mit 300 bar Flasche */
+            description?: string;
+            /**
+             * @example VERFUEGBAR
+             * @enum {string}
+             */
+            status?: "VERFUEGBAR" | "IN_GEBRAUCH" | "DEFEKT" | "WARTUNG";
+            /**
+             * Format: uuid
+             * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+             */
+            categoryId?: string;
+            /**
+             * Format: uuid
+             * @example f1e2d3c4-b5a6-7890-abcd-ef1234567890
+             */
+            vehicleId?: string | null;
+            /**
+             * Format: date
+             * @example 2026-06-15
+             */
+            nextInspectionDate?: string | null;
+            /**
+             * Format: date
+             * @example 2026-09-01
+             */
+            nextMaintenanceDate?: string | null;
+        };
+        EquipmentHistoryResponse: {
+            /**
+             * Format: uuid
+             * @example 660e8400-e29b-41d4-a716-446655440000
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            equipmentId?: string;
+            /**
+             * @example VERFUEGBAR
+             * @enum {string|null}
+             */
+            previousStatus?: "VERFUEGBAR" | "IN_GEBRAUCH" | "DEFEKT" | "WARTUNG" | "ARCHIVIERT" | null;
+            /**
+             * @example WARTUNG
+             * @enum {string}
+             */
+            newStatus?: "VERFUEGBAR" | "IN_GEBRAUCH" | "DEFEKT" | "WARTUNG" | "ARCHIVIERT";
+            /**
+             * Format: date-time
+             * @example 2026-03-10T14:22:00Z
+             */
+            changedAt?: string;
         };
     };
     responses: {
@@ -892,6 +1162,294 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listEquipmentCategories: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                size?: components["parameters"]["SizeParam"];
+                /** @description Freitextsuche über Kategoriename */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Liste aller Gerätekategorien */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data?: components["schemas"]["EquipmentCategoryResponse"][];
+                        page?: components["schemas"]["PaginationMeta"];
+                    };
+                };
+            };
+        };
+    };
+    createEquipmentCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEquipmentCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Kategorie erstellt */
+            201: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentCategoryResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getEquipmentCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kategorie gefunden */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentCategoryResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateEquipmentCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEquipmentCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Kategorie aktualisiert */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentCategoryResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    deleteEquipmentCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kategorie erfolgreich archiviert */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listEquipment: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["PageParam"];
+                size?: components["parameters"]["SizeParam"];
+                /** @description Freitextsuche über Name und Inventarnummer */
+                search?: string;
+                /** @description Filtert Geräte nach Kategorie */
+                categoryId?: string;
+                /** @description Filtert Geräte nach Fahrzeug */
+                vehicleId?: string;
+                /** @description Filtert Geräte nach Status */
+                status?: "VERFUEGBAR" | "IN_GEBRAUCH" | "DEFEKT" | "WARTUNG";
+                /** @description Filtert Geräte mit Prüf- oder Wartungstermin vor diesem Datum */
+                dueBefore?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Liste aller Geräte */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data?: components["schemas"]["EquipmentResponse"][];
+                        page?: components["schemas"]["PaginationMeta"];
+                    };
+                };
+            };
+        };
+    };
+    createEquipment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEquipmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Gerät erstellt */
+            201: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getEquipment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gerät gefunden */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateEquipment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEquipmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Gerät aktualisiert */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    deleteEquipment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gerät erfolgreich archiviert */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getEquipmentHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Änderungshistorie */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentHistoryResponse"][];
+                };
             };
             404: components["responses"]["NotFound"];
         };
