@@ -1,0 +1,77 @@
+paths:
+  /api/v1/members/{memberId}/driver-license-checks:
+    post:
+      tags: [DriverLicenseChecks]
+      summary: Neue Führerscheinprüfung erfassen
+      operationId: createDriverLicenseCheck
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/driver-license-checks.yaml#/CreateDriverLicenseCheckRequest'
+      responses:
+        '201':
+          description: Führerscheinprüfung erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/driver-license-checks.yaml#/DriverLicenseCheckResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    get:
+      tags: [DriverLicenseChecks]
+      summary: Historie aller Führerscheinprüfungen eines Mitglieds
+      operationId: listDriverLicenseChecks
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste aller Führerscheinprüfungen
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../components/schemas/driver-license-checks.yaml#/DriverLicenseCheckResponse'
+
+  /api/v1/members/{memberId}/driver-license-checks/latest:
+    get:
+      tags: [DriverLicenseChecks]
+      summary: Neueste Führerscheinprüfung eines Mitglieds
+      operationId: getLatestDriverLicenseCheck
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Neueste Führerscheinprüfung
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/driver-license-checks.yaml#/DriverLicenseCheckResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'

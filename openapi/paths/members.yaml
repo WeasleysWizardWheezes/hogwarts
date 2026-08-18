@@ -13,6 +13,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: driver-license-status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [expired, warning, valid]
+          description: Filter nach Führerschein-Status (expired=ROT, warning=GELB, valid=GRUEN)
       responses:
         '200':
           description: Liste aller Mitglieder

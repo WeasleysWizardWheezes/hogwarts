@@ -1,0 +1,50 @@
+CreateDriverLicenseCheckRequest:
+  type: object
+  required:
+    - checkDate
+    - examinerId
+  properties:
+    checkDate:
+      type: string
+      format: date
+      example: "2026-08-18"
+      description: Datum der Führerscheinprüfung
+    examinerId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+      description: ID des Prüfers (Wehrführer)
+
+DriverLicenseCheckResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    memberId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    checkDate:
+      type: string
+      format: date
+      example: "2026-08-18"
+    nextCheckDate:
+      type: string
+      format: date
+      example: "2027-02-15"
+      description: Nächster Prüftermin (checkDate + 180 Tage)
+    status:
+      type: string
+      enum: [GREEN, YELLOW, RED]
+      example: "GREEN"
+      description: GREEN=gültig, YELLOW=warnt in 30 Tagen, RED=abgelaufen
+    examinerId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-08-18T12:00:00Z"
