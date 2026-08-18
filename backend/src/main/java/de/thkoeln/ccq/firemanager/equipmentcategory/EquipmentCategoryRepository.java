@@ -13,7 +13,8 @@ public interface EquipmentCategoryRepository extends JpaRepository<EquipmentCate
     @Query("""
             SELECT ec FROM EquipmentCategory ec
             WHERE ec.archived = false
-            AND (:search IS NULL OR LOWER(ec.name) LIKE LOWER(CONCAT('%', :search, '%')))
+            AND (CAST(:search AS string) IS NULL
+                OR LOWER(ec.name) LIKE LOWER(CONCAT('%', :search, '%')))
             """)
     Page<EquipmentCategory> findAllWithSearch(
             @Param("search") String search,
