@@ -17,6 +17,8 @@ tags:
     description: Verwaltung von Fahrzeuggruppen
   - name: Vehicles
     description: Verwaltung von Fahrzeugen
+  - name: DriversLicenseInspections
+    description: Verwaltung der Führerschein-Sichtprüfung für Maschinisten
 
 paths:
   /api/v1/members:
@@ -37,6 +39,12 @@ paths:
     $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles'
   /api/v1/vehicles/{vehicleId}:
     $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles~1{vehicleId}'
+  /api/v1/drivers-license-inspections:
+    $ref: './paths/drivers-license-inspections.yaml#/paths/~1api~1v1~1drivers-license-inspections'
+  /api/v1/drivers-license-inspections/{inspectionId}:
+    $ref: './paths/drivers-license-inspections.yaml#/paths/~1api~1v1~1drivers-license-inspections~1{inspectionId}'
+  /api/v1/members/{memberId}/drivers-license-inspections:
+    $ref: './paths/drivers-license-inspections.yaml#/paths/~1api~1v1~1members~1{memberId}~1drivers-license-inspections'
 
 components:
   schemas:
@@ -44,6 +52,12 @@ components:
       $ref: './components/schemas/common.yaml#/ErrorResponse'
     PaginationMeta:
       $ref: './components/schemas/common.yaml#/PaginationMeta'
+    CreateDriversLicenseInspectionRequest:
+      $ref: './components/schemas/drivers-license-inspections.yaml#/CreateDriversLicenseInspectionRequest'
+    DriversLicenseInspectionResponse:
+      $ref: './components/schemas/drivers-license-inspections.yaml#/DriversLicenseInspectionResponse'
+    PagedDriversLicenseInspectionResponse:
+      $ref: './components/schemas/drivers-license-inspections.yaml#/PagedDriversLicenseInspectionResponse'
   responses:
     BadRequest:
       $ref: './components/responses/errors.yaml#/BadRequest'
