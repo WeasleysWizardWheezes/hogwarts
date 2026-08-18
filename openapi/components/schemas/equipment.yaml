@@ -1,0 +1,156 @@
+EquipmentResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      example: "Pressluftatmer PA 300"
+    inventoryNumber:
+      type: string
+      example: "AGT-2024-0042"
+    description:
+      type: string
+      example: "Pressluftatmer für Atemschutzeinsätze"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IN_GEBRAUCH, DEFEKT, WARTUNG, ARCHIVIERT]
+      example: "VERFUEGBAR"
+    categoryId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    categoryName:
+      type: string
+      example: "Atemschutz"
+    vehicleId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+    vehicleName:
+      type: string
+      nullable: true
+      example: "01-HLF20-01"
+    nextInspectionDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2027-03-15"
+    nextMaintenanceDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-09-01"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+CreateEquipmentRequest:
+  type: object
+  required:
+    - name
+    - inventoryNumber
+    - categoryId
+  properties:
+    name:
+      type: string
+      example: "Pressluftatmer PA 300"
+    inventoryNumber:
+      type: string
+      example: "AGT-2024-0042"
+    description:
+      type: string
+      example: "Pressluftatmer für Atemschutzeinsätze"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IN_GEBRAUCH, DEFEKT, WARTUNG, ARCHIVIERT]
+      default: "VERFUEGBAR"
+      example: "VERFUEGBAR"
+    categoryId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    vehicleId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+    nextInspectionDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2027-03-15"
+    nextMaintenanceDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-09-01"
+
+UpdateEquipmentRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "Pressluftatmer PA 300"
+    inventoryNumber:
+      type: string
+      example: "AGT-2024-0042"
+    description:
+      type: string
+      example: "Pressluftatmer für Atemschutzeinsätze"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IN_GEBRAUCH, DEFEKT, WARTUNG, ARCHIVIERT]
+      example: "VERFUEGBAR"
+    categoryId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    vehicleId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+    nextInspectionDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2027-03-15"
+    nextMaintenanceDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-09-01"
+
+EquipmentHistoryResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "c1d2e3f4-a5b6-7890-abcd-ef1234567890"
+    equipmentId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    previousStatus:
+      type: string
+      enum: [VERFUEGBAR, IN_GEBRAUCH, DEFEKT, WARTUNG, ARCHIVIERT]
+      nullable: true
+      example: "VERFUEGBAR"
+    newStatus:
+      type: string
+      enum: [VERFUEGBAR, IN_GEBRAUCH, DEFEKT, WARTUNG, ARCHIVIERT]
+      example: "WARTUNG"
+    changedAt:
+      type: string
+      format: date-time
+      example: "2026-06-10T08:15:00Z"

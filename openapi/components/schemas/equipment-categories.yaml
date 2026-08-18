@@ -1,0 +1,45 @@
+EquipmentCategoryResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    name:
+      type: string
+      example: "Atemschutz"
+    description:
+      type: string
+      example: "Geräte und Ausrüstung für den Atemschutzeinsatz"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+CreateEquipmentCategoryRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      maxLength: 100
+      example: "Atemschutz"
+    description:
+      type: string
+      example: "Geräte und Ausrüstung für den Atemschutzeinsatz"
+
+UpdateEquipmentCategoryRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      maxLength: 100
+      example: "Atemschutz"
+    description:
+      type: string
+      example: "Geräte und Ausrüstung für den Atemschutzeinsatz"
