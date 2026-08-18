@@ -1,5 +1,5 @@
 import { useLocation, Link } from "react-router"
-import { LayoutDashboard, FolderOpen, Truck, Flame } from "lucide-react"
+import { LayoutDashboard, FolderOpen, Truck, Flame, Boxes, Tags } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,8 @@ const navigationItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Fahrzeuggruppen", url: "/vehicle-groups", icon: FolderOpen },
   { title: "Fahrzeuge", url: "/vehicles", icon: Truck },
+  { title: "Geräte", url: "/equipment", icon: Boxes },
+  { title: "Gerätekategorien", url: "/equipment-categories", icon: Tags },
 ]
 
 export function AppSidebar() {
