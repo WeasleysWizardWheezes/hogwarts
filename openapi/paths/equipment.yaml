@@ -1,0 +1,135 @@
+paths:
+  /api/v1/equipment:
+    get:
+      tags: [Equipment]
+      summary: Alle Geräte auflisten
+      operationId: listEquipment
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [VERFUEGBAR, IM_EINSATZ, WARTUNG, DEFEKT]
+          description: Filtert Geräte nach Status
+        - name: vehicleId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filtert Geräte nach Fahrzeug
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filtert Geräte nach Kategorie
+      responses:
+        '200':
+          description: Liste aller Geräte
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/equipment.yaml#/EquipmentResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+
+    post:
+      tags: [Equipment]
+      summary: Neues Gerät anlegen
+      operationId: createEquipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/equipment.yaml#/CreateEquipmentRequest'
+      responses:
+        '201':
+          description: Gerät erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/equipment.yaml#/EquipmentResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+
+  /api/v1/equipment/{equipmentId}:
+    get:
+      tags: [Equipment]
+      summary: Gerät anhand der ID laden
+      operationId: getEquipment
+      parameters:
+        - name: equipmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Gerät gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/equipment.yaml#/EquipmentResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    put:
+      tags: [Equipment]
+      summary: Gerät aktualisieren
+      operationId: updateEquipment
+      parameters:
+        - name: equipmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/equipment.yaml#/UpdateEquipmentRequest'
+      responses:
+        '200':
+          description: Gerät aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/equipment.yaml#/EquipmentResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    delete:
+      tags: [Equipment]
+      summary: Gerät archivieren (Soft Delete)
+      operationId: deleteEquipment
+      parameters:
+        - name: equipmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Gerät erfolgreich archiviert
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'

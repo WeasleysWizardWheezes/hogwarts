@@ -1,0 +1,124 @@
+EquipmentResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      example: "Atemschutzgerät PA 300"
+    serialNumber:
+      type: string
+      example: "AS-2024-0042"
+    inventoryNumber:
+      type: string
+      example: "INV-0042"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IM_EINSATZ, WARTUNG, DEFEKT]
+      example: "VERFUEGBAR"
+    vehicleId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    vehicleName:
+      type: string
+      nullable: true
+      example: "01-HLF20-01"
+    category:
+      type: string
+      example: "Atemschutz"
+    nextInspectionDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-12-31"
+    lastMaintenanceDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-06-15"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+CreateEquipmentRequest:
+  type: object
+  required:
+    - name
+    - serialNumber
+  properties:
+    name:
+      type: string
+      example: "Atemschutzgerät PA 300"
+    serialNumber:
+      type: string
+      example: "AS-2024-0042"
+    inventoryNumber:
+      type: string
+      example: "INV-0042"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IM_EINSATZ, WARTUNG, DEFEKT]
+      default: "VERFUEGBAR"
+      example: "VERFUEGBAR"
+    vehicleId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    category:
+      type: string
+      example: "Atemschutz"
+    nextInspectionDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-12-31"
+    lastMaintenanceDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-06-15"
+
+UpdateEquipmentRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "Atemschutzgerät PA 300"
+    serialNumber:
+      type: string
+      example: "AS-2024-0042"
+    inventoryNumber:
+      type: string
+      example: "INV-0042"
+    status:
+      type: string
+      enum: [VERFUEGBAR, IM_EINSATZ, WARTUNG, DEFEKT]
+      example: "VERFUEGBAR"
+    vehicleId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    category:
+      type: string
+      example: "Atemschutz"
+    nextInspectionDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-12-31"
+    lastMaintenanceDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-06-15"
