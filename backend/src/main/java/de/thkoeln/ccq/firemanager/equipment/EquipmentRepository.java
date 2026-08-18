@@ -11,25 +11,54 @@ import java.util.UUID;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, UUID> {
 
-    @Query("""
-            SELECT e FROM Equipment e
+    @Query(value = """
+            SELECT e.* FROM equipment e
             WHERE e.archived = false
-            AND (:search IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(e.inventoryNumber) LIKE LOWER(CONCAT('%', :search, '%')))
-            AND (:categoryId IS NULL OR e.category.id = :categoryId)
-            AND (:vehicleId IS NULL OR e.vehicle.id = :vehicleId)
-            AND (:status IS NULL OR e.status = :status)
-            AND (:dueBefore IS NULL OR e.nextInspectionDate <= :dueBefore
-                OR e.nextMaintenanceDate <= :dueBefore)
-            """)
-    Page<Equipment> findAllWithFilters(
+            AND (CAST(:search AS text) IS NULL
+                OR LOWER(e.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
+                OR LOWER(e.inventory_number) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
+            AND (CAST(:categoryId AS uuid) IS NULL OR e.category_id = CAST(:categoryId AS uuid))
+            AND (CAST(:vehicleId AS uuid) IS NULL OR e.vehicle_id = CAST(:vehicleId AS uuid))
+            AND (CAST(:status AS text) IS NULL OR e.status = CAST(:status AS text))
+            AND (CAST(:dueBefore AS date) IS NULL
+                OR e.next_inspection_date <= CAST(:dueBefore AS date)
+                OR e.next_maintenance_date <= CAST(:dueBefore AS date))
+            """,
+            countQuery = """
+            SELECT count(*) FROM equipment e
+            WHERE e.archived = false
+            AND (CAST(:search AS text) IS NULL
+                OR LOWER(e.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
+                OR LOWER(e.inventory_number) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
+            AND (CAST(:categoryId AS uuid) IS NULL OR e.category_id = CAST(:categoryId AS uuid))
+            AND (CAST(:vehicleId AS uuid) IS NULL OR e.vehicle_id = CAST(:vehicleId AS uuid))
+            AND (CAST(:status AS text) IS NULL OR e.status = CAST(:status AS text))
+            AND (CAST(:dueBefore AS date) IS NULL
+                OR e.next_inspection_date <= CAST(:dueBefore AS date)
+                OR e.next_maintenance_date <= CAST(:dueBefore AS date))
+            """,
+            nativeQuery = true)
+        Page<Equipment> findAllWithFiltersByStatusName(
             @Param("search") String search,
             @Param("categoryId") UUID categoryId,
             @Param("vehicleId") UUID vehicleId,
-            @Param("status") EquipmentStatus status,
+            @Param("status") String status,
             @Param("dueBefore") LocalDate dueBefore,
             Pageable pageable
     );
+
+    default Page<Equipment> findAllWithFilters(
+                    String search,
+                    UUID categoryId,
+                    UUID vehicleId,
+                    EquipmentStatus status,
+                    LocalDate dueBefore,
+                    Pageable pageable
+    ) {
+        String statusName = status == null ? null : status.name();
+        return this.findAllWithFiltersByStatusName(
+            search, categoryId, vehicleId, statusName, dueBefore, pageable);
+    }
 
     boolean existsByInventoryNumber(String inventoryNumber);
 
