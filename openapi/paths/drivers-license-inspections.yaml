@@ -1,0 +1,125 @@
+paths:
+  /api/v1/drivers-license-inspections:
+    get:
+      tags: [DriversLicenseInspections]
+      summary: Alle Führerschein-Sichtprüfungen auflisten
+      operationId: listDriversLicenseInspections
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+        - name: memberId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter nach Mitglied-ID
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [VALID, PENDING_REVIEW, EXPIRED, NOT_APPLICABLE]
+          description: Filter nach Gültigkeitsstatus
+        - name: dueBefore
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter nach Fälligkeitsdatum (ISO-8601 date)
+      responses:
+        '200':
+          description: Liste aller Sichtprüfungen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/drivers-license-inspections.yaml#/DriversLicenseInspectionResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+
+  /api/v1/drivers-license-inspections/{inspectionId}:
+    get:
+      tags: [DriversLicenseInspections]
+      summary: Sichtprüfung anhand der ID laden
+      operationId: getDriversLicenseInspection
+      parameters:
+        - name: inspectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Sichtprüfung gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/drivers-license-inspections.yaml#/DriversLicenseInspectionResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+  /api/v1/members/{memberId}/drivers-license-inspections:
+    post:
+      tags: [DriversLicenseInspections]
+      summary: Neue Führerschein-Sichtprüfung erfassen
+      operationId: createDriversLicenseInspection
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/drivers-license-inspections.yaml#/CreateDriversLicenseInspectionRequest'
+      responses:
+        '201':
+          description: Sichtprüfung erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/drivers-license-inspections.yaml#/DriversLicenseInspectionResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    get:
+      tags: [DriversLicenseInspections]
+      summary: Alle Sichtprüfungen eines Mitglieds auflisten (Historie)
+      operationId: listMembersDriversLicenseInspections
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste aller Sichtprüfungen des Mitglieds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../components/schemas/drivers-license-inspections.yaml#/DriversLicenseInspectionResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'

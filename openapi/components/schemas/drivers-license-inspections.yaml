@@ -1,0 +1,53 @@
+CreateDriversLicenseInspectionRequest:
+  type: object
+  required:
+    - inspectionDate
+  properties:
+    inspectionDate:
+      type: string
+      format: date
+      description: Datum der Sichtprüfung (ISO-8601 date)
+      example: "2024-06-15"
+
+DriversLicenseInspectionResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Eindeutige ID der Sichtprüfung
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    memberId:
+      type: string
+      format: uuid
+      description: ID des Mitglieds
+      example: "650e8400-e29b-41d4-a716-446655440000"
+    inspectionDate:
+      type: string
+      format: date
+      description: Datum der Sichtprüfung
+      example: "2024-06-15"
+    status:
+      type: string
+      enum: [VALID, PENDING_REVIEW, EXPIRED, NOT_APPLICABLE]
+      description: |
+        VALID (Grün) – Prüfung ist gültig (< 150 Tage alt)
+        PENDING_REVIEW (Gelb) – Prüfung wird bald fällig (150–180 Tage alt)
+        EXPIRED (Rot) – Prüfung ist abgelaufen (>= 180 Tage alt)
+        NOT_APPLICABLE – Mitglied hat keine Maschinisten-Position
+      example: "VALID"
+    daysRemaining:
+      type: integer
+      description: Verbleibende Tage bis zur nächsten Prüfung (null wenn NOT_APPLICABLE)
+      nullable: true
+      example: 45
+
+PagedDriversLicenseInspectionResponse:
+  type: object
+  properties:
+    data:
+      type: array
+      items:
+        $ref: './drivers-license-inspections.yaml#/DriversLicenseInspectionResponse'
+    page:
+      $ref: './common.yaml#/PaginationMeta'
