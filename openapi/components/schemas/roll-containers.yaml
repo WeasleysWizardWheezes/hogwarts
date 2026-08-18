@@ -1,0 +1,107 @@
+CreateRollContainerRequest:
+  type: object
+  required:
+    - name
+    - serialNumber
+    - type
+  properties:
+    name:
+      type: string
+      example: "AB-Atemschutz"
+      description: Name des Abrollbehälters
+    serialNumber:
+      type: string
+      example: "AB-2024-001"
+      description: Eindeutige Inventar-/Seriennummer
+    type:
+      type: string
+      enum:
+        - ATEM_SCHUTZ
+        - SCHLAUCH
+        - FUNK
+        - MEDIZIN
+        - ABC
+        - ALLGEMEIN
+      example: "ATEM_SCHUTZ"
+      description: Typ des Abrollbehälters
+    description:
+      type: string
+      example: "Abrollbehälter mit Atemschutzgeräten"
+    vehicleId:
+      type: string
+      format: uuid
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+      description: ID des Fahrzeugs, dem der AB zugeordnet ist (optional)
+
+RollContainerResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      example: "AB-Atemschutz"
+    serialNumber:
+      type: string
+      example: "AB-2024-001"
+    type:
+      type: string
+      enum:
+        - ATEM_SCHUTZ
+        - SCHLAUCH
+        - FUNK
+        - MEDIZIN
+        - ABC
+        - ALLGEMEIN
+      example: "ATEM_SCHUTZ"
+    description:
+      type: string
+      example: "Abrollbehälter mit Atemschutzgeräten"
+    vehicleId:
+      type: string
+      format: uuid
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+    vehicleName:
+      type: string
+      example: "01-HLF20-01"
+    equipmentCount:
+      type: integer
+      example: 8
+      description: Anzahl der Geräte im AB
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+UpdateRollContainerRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "AB-Atemschutz"
+    serialNumber:
+      type: string
+      example: "AB-2024-001"
+    type:
+      type: string
+      enum:
+        - ATEM_SCHUTZ
+        - SCHLAUCH
+        - FUNK
+        - MEDIZIN
+        - ABC
+        - ALLGEMEIN
+      example: "ATEM_SCHUTZ"
+    description:
+      type: string
+      example: "Abrollbehälter mit Atemschutzgeräten"
+    vehicleId:
+      type: string
+      format: uuid
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"

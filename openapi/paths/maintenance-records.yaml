@@ -1,0 +1,169 @@
+paths:
+  /api/v1/maintenance-records:
+    get:
+      tags: [MaintenanceRecords]
+      summary: Alle Wartungs-/Prüfungsrecord auflisten
+      operationId: listMaintenanceRecords
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [GEPLANT, IN_ARBEIT, VERBIERT, ERLEDIGT, AUSGESETZT]
+          description: Filtert Wartungsrecord nach Status
+        - name: overdue
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filtert überfällige Wartungen (true/false)
+        - name: dueWithinDays
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filtert Wartungen innerhalb der nächsten X Tage
+        - name: equipmentId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filtert Wartungsrecord nach Gerät
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [JAEHRLICHE_PRUEFUNG, WARTUNG, REPARATUR, INSPEKTION, ZERTIFIZIERUNG]
+          description: Filtert Wartungsrecord nach Typ
+
+    post:
+      tags: [MaintenanceRecords]
+      summary: Neuen Wartungs-/Prüfungsrecord anlegen
+      operationId: createMaintenanceRecord
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/maintenance-records.yaml#/CreateMaintenanceRecordRequest'
+      responses:
+        '201':
+          description: Wartungsrecord erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/maintenance-records.yaml#/MaintenanceRecordResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/maintenance-records/{maintenanceId}:
+    get:
+      tags: [MaintenanceRecords]
+      summary: Wartungs-/Prüfungsrecord anhand der ID laden
+      operationId: getMaintenanceRecord
+      parameters:
+        - name: maintenanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Wartungsrecord gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/maintenance-records.yaml#/MaintenanceRecordResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    put:
+      tags: [MaintenanceRecords]
+      summary: Wartungs-/Prüfungsrecord aktualisieren
+      operationId: updateMaintenanceRecord
+      parameters:
+        - name: maintenanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/maintenance-records.yaml#/UpdateMaintenanceRecordRequest'
+      responses:
+        '200':
+          description: Wartungsrecord aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/maintenance-records.yaml#/MaintenanceRecordResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+    delete:
+      tags: [MaintenanceRecords]
+      summary: Wartungs-/Prüfungsrecord löschen
+      operationId: deleteMaintenanceRecord
+      parameters:
+        - name: maintenanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Wartungsrecord erfolgreich gelöscht
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+  /api/v1/maintenance-records/summary/overdue:
+    get:
+      tags: [MaintenanceRecords]
+      summary: Übersicht über überfällige Wartungen
+      operationId: getOverdueMaintenanceRecords
+      responses:
+        '200':
+          description: Liste aller überfälligen Wartungsrecord
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/maintenance-records.yaml#/MaintenanceRecordSummary'
+                  totalOverdue:
+                    type: integer
+                    example: 5
+                    description: Gesamtanzahl überfälliger Wartungen
+          responses:
+            '200':
+              description: Übersicht überfällig Wartungen
+              content:
+                application/json:
+                  schema:
+                    $ref: '../components/schemas/maintenance-records.yaml#/MaintenanceRecordSummary'
+            '404':
+              $ref: '../components/responses/errors.yaml#/NotFound'

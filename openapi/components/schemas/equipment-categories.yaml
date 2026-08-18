@@ -1,0 +1,75 @@
+CreateEquipmentCategoryRequest:
+  type: object
+  required:
+    - name
+    - code
+  properties:
+    name:
+      type: string
+      example: "Atemschutzgeräte"
+      description: Menschlesbarer Name der Kategorie
+    code:
+      type: string
+      example: "AS"
+      description: Eindeutiger Code für die Kategorie (Großbuchstaben)
+    description:
+      type: string
+      example: "Alle Geräte rund um den Atemschutz"
+    parentCategoryId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+      description: ID der übergeordneten Kategorie für hierarchische Struktur
+
+EquipmentCategoryResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      example: "Atemschutzgeräte"
+    code:
+      type: string
+      example: "AS"
+    description:
+      type: string
+      example: "Alle Geräte rund um den Atemschutz"
+    parentCategoryId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    parentCategoryName:
+      type: string
+      example: "Geräte"
+    equipmentCount:
+      type: integer
+      example: 15
+      description: Anzahl der Geräte in dieser Kategorie
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+UpdateEquipmentCategoryRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "Atemschutzgeräte"
+    code:
+      type: string
+      example: "AS"
+    description:
+      type: string
+      example: "Alle Geräte rund um den Atemschutz"
+    parentCategoryId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
