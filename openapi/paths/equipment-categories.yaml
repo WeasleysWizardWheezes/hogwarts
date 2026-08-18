@@ -1,0 +1,119 @@
+paths:
+  /api/v1/equipment-categories:
+    get:
+      tags: [EquipmentCategories]
+      summary: Alle Gerätekategorien auflisten
+      operationId: listEquipmentCategories
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+      responses:
+        '200':
+          description: Liste aller Gerätekategorien
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/equipment-categories.yaml#/EquipmentCategoryResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+
+    post:
+      tags: [EquipmentCategories]
+      summary: Neue Gerätekategorie anlegen
+      operationId: createEquipmentCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/equipment-categories.yaml#/CreateEquipmentCategoryRequest'
+      responses:
+        '201':
+          description: Gerätekategorie erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/equipment-categories.yaml#/EquipmentCategoryResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/equipment-categories/{categoryId}:
+    get:
+      tags: [EquipmentCategories]
+      summary: Gerätekategorie anhand der ID laden
+      operationId: getEquipmentCategory
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Gerätekategorie gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/equipment-categories.yaml#/EquipmentCategoryResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    put:
+      tags: [EquipmentCategories]
+      summary: Gerätekategorie aktualisieren
+      operationId: updateEquipmentCategory
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/equipment-categories.yaml#/UpdateEquipmentCategoryRequest'
+      responses:
+        '200':
+          description: Gerätekategorie aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/equipment-categories.yaml#/EquipmentCategoryResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+    delete:
+      tags: [EquipmentCategories]
+      summary: Gerätekategorie löschen (Soft Delete)
+      operationId: deleteEquipmentCategory
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Gerätekategorie erfolgreich archiviert
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'

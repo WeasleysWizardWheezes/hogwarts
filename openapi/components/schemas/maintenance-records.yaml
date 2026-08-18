@@ -1,0 +1,197 @@
+MaintenanceType:
+  type: string
+  enum:
+    - JAEHRLICHE_PRUEFUNG
+    - WARTUNG
+    - REPARATUR
+    - INSPEKTION
+    - ZERTIFIZIERUNG
+  description: |
+    Art der Wartung/Prüfung:
+    - JAEHRLICHE_PRUEFUNG: Jährliche Prüfung
+    - WARTUNG: Regelmäßige Wartung
+    - REPARATUR: Reparatur
+    - INSPEKTION: Inspektion
+    - ZERTIFIZIERUNG: Zertifizierung
+
+MaintenanceStatus:
+  type: string
+  enum:
+    - GEPLANT
+    - IN_ARBEIT
+    - VERBIERT
+    - ERLEDIGT
+    - AUSGESETZT
+  description: |
+    Status der Wartung/Prüfung:
+    - GEPLANT: Geplant, noch nicht begonnen
+    - IN_ARBEIT: In Bearbeitung
+    - VERBIERT: Verzogen (nicht mehr gültig)
+    - ERLEDIGT: Abgeschlossen
+    - AUSGESETZT: Ausgesetzt
+
+CreateMaintenanceRecordRequest:
+  type: object
+  required:
+    - equipmentId
+    - type
+    - scheduledDate
+  properties:
+    equipmentId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+      description: ID des Geräts
+    type:
+      $ref: '#/MaintenanceType'
+      example: "JAEHRLICHE_PRUEFUNG"
+    scheduledDate:
+      type: string
+      format: date
+      example: "2027-01-15"
+      description: Geplantes Datum der Wartung/Prüfung
+    description:
+      type: string
+      example: "Jährliche Druckprüfung des Atemschutzgeräts"
+    priority:
+      type: string
+      enum:
+        - NIEDRIG
+        - MITTEL
+        - HOCH
+        - KRITISCH
+      example: "MITTEL"
+      description: Priorität der Wartung/Prüfung
+
+MaintenanceRecordResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    equipmentId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    equipmentName:
+      type: string
+      example: "Atemschutzgerät PA 300"
+    type:
+      $ref: '#/MaintenanceType'
+      example: "JAEHRLICHE_PRUEFUNG"
+    scheduledDate:
+      type: string
+      format: date
+      example: "2027-01-15"
+    description:
+      type: string
+      example: "Jährliche Druckprüfung des Atemschutzgeräts"
+    priority:
+      type: string
+      enum:
+        - NIEDRIG
+        - MITTEL
+        - HOCH
+        - KRITISCH
+      example: "MITTEL"
+    status:
+      $ref: '#/MaintenanceStatus'
+      example: "GEPLANT"
+    actualDate:
+      type: string
+      format: date
+      example: "2027-01-15"
+      description: Tatsächliches Datum der Durchführung (nur bei ERLEDIGT)
+    result:
+      type: string
+      enum:
+        - ERFOLG
+        - MIT_VORBEHALT
+        - MANGELHAFT
+        - NICHT_DURCHGEFUEHRT
+      example: "ERFOLG"
+      description: Ergebnis der Wartung/Prüfung (nur bei ERLEDIGT)
+    performedBy:
+      type: string
+      format: uuid
+      example: "123e4567-e89b-12d3-a456-426614174000"
+      description: ID des durchführenden Users (nur bei ERLEDIGT)
+    performedByName:
+      type: string
+      example: "Max Mustermann"
+      description: Name des durchführenden Users (nur bei ERLEDIGT)
+    nextMaintenanceDate:
+      type: string
+      format: date
+      example: "2028-01-15"
+      description: Datum der nächsten voraussichtlichen Wartung
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+UpdateMaintenanceRecordRequest:
+  type: object
+  properties:
+    scheduledDate:
+      type: string
+      format: date
+      example: "2027-01-15"
+    description:
+      type: string
+      example: "Jährliche Druckprüfung des Atemschutzgeräts"
+    priority:
+      type: string
+      enum:
+        - NIEDRIG
+        - MITTEL
+        - HOCH
+        - KRITISCH
+      example: "MITTEL"
+    status:
+      $ref: '#/MaintenanceStatus'
+      example: "IN_ARBEIT"
+
+MaintenanceRecordSummary:
+  type: object
+  description: Zusammenfassung für Wartungsübersichten
+  properties:
+    equipmentId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    equipmentName:
+      type: string
+      example: "Atemschutzgerät PA 300"
+    serialNumber:
+      type: string
+      example: "AS-2024-0042"
+    categoryId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    categoryName:
+      type: string
+      example: "Atemschutzgeräte"
+    nextMaintenanceDate:
+      type: string
+      format: date
+      example: "2027-01-15"
+      description: Nächste fällige Wartung/Prüfung
+    overdue:
+      type: boolean
+      example: false
+      description: Ist die Wartung überfällig?
+    maintenanceType:
+      type: string
+      example: "JAEHRLICHE_PRUEFUNG"
+      description: Typ der nächsten Wartung
+    priority:
+      type: string
+      example: "MITTEL"
+      description: Priorität der nächsten Wartung

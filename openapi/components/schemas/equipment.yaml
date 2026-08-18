@@ -1,0 +1,235 @@
+EquipmentStatus:
+  type: string
+  enum:
+    - VERFUEGBAR
+    - IM_EINSATZ
+    - IN_WARTUNG
+    - DEFEKT
+    - ARCHIVIERT
+  description: |
+    Status des Geräts:
+    - VERFUEGBAR: Einsatzbereit
+    - IM_EINSATZ: Aktuell im Einsatz
+    - IN_WARTUNG: In Wartung oder Prüfung
+    - DEFEKT: Defekt, nicht einsatzbereit
+    - ARCHIVIERT: Ausgemustert/archiviert
+
+CreateEquipmentRequest:
+  type: object
+  required:
+    - name
+    - serialNumber
+    - categoryId
+  properties:
+    name:
+      type: string
+      example: "Atemschutzgerät PA 300"
+      description: Name des Geräts
+    serialNumber:
+      type: string
+      example: "AS-2024-0042"
+      description: Eindeutige Inventar-/Seriennummer
+    categoryId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+      description: ID der Gerätekategorie
+    description:
+      type: string
+      example: "Pressluftatmer für 2 Personen, 300 bar"
+      description: Zusätzliche Beschreibung
+    manufacturer:
+      type: string
+      example: "Dräger"
+      description: Hersteller
+    model:
+      type: string
+      example: "PA 300"
+      description: Modellbezeichnung
+    purchaseDate:
+      type: string
+      format: date
+      example: "2024-01-15"
+      description: Kaufdatum
+    location:
+      type: string
+      example: "Geräteraum 1, Fach G3"
+      description: Aktueller Lagerort
+    status:
+      $ref: '#/EquipmentStatus'
+      default: "VERFUEGBAR"
+    vehicleId:
+      type: string
+      format: uuid
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+      description: ID des Fahrzeugs, dem das Gerät zugeordnet ist (optional)
+    rollContainerId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      description: ID des Abrollbehälters, dem das Gerät zugeordnet ist (optional)
+
+EquipmentResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    name:
+      type: string
+      example: "Atemschutzgerät PA 300"
+    serialNumber:
+      type: string
+      example: "AS-2024-0042"
+    categoryId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    categoryName:
+      type: string
+      example: "Atemschutzgeräte"
+    description:
+      type: string
+      example: "Pressluftatmer für 2 Personen, 300 bar"
+    manufacturer:
+      type: string
+      example: "Dräger"
+    model:
+      type: string
+      example: "PA 300"
+    purchaseDate:
+      type: string
+      format: date
+      example: "2024-01-15"
+    location:
+      type: string
+      example: "Geräteraum 1, Fach G3"
+    status:
+      $ref: '#/EquipmentStatus'
+      example: "VERFUEGBAR"
+    vehicleId:
+      type: string
+      format: uuid
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+    vehicleName:
+      type: string
+      example: "01-HLF20-01"
+    rollContainerId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    rollContainerName:
+      type: string
+      example: "AB-Atemschutz"
+    nextMaintenanceDate:
+      type: string
+      format: date
+      example: "2027-01-15"
+      description: Datum der nächsten fälligen Wartung/Prüfung
+    lastMaintenanceDate:
+      type: string
+      format: date
+      example: "2026-01-15"
+      description: Datum der letzten durchgeführten Wartung/Prüfung
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-01-15T10:30:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"
+
+UpdateEquipmentRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "Atemschutzgerät PA 300"
+    serialNumber:
+      type: string
+      example: "AS-2024-0042"
+    categoryId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    description:
+      type: string
+      example: "Pressluftatmer für 2 Personen, 300 bar"
+    manufacturer:
+      type: string
+      example: "Dräger"
+    model:
+      type: string
+      example: "PA 300"
+    purchaseDate:
+      type: string
+      format: date
+      example: "2024-01-15"
+    location:
+      type: string
+      example: "Geräteraum 1, Fach G3"
+    status:
+      $ref: '#/EquipmentStatus'
+      example: "VERFUEGBAR"
+    vehicleId:
+      type: string
+      format: uuid
+      example: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+    rollContainerId:
+      type: string
+      format: uuid
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
+EquipmentHistoryEntry:
+  type: object
+  description: Ein Eintrag in der Verlaufshistorie eines Geräts
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    equipmentId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    changeType:
+      type: string
+      enum:
+        - CREATED
+        - UPDATED
+        - STATUS_CHANGED
+        - LOCATION_CHANGED
+        - ASSIGNED
+        - UNASSIGNED
+        - MAINTENANCE
+      example: "STATUS_CHANGED"
+      description: Art der Änderung
+    changedField:
+      type: string
+      example: "status"
+      description: Geändertes Feld (bei UPDATED/STATUS_CHANGED)
+    oldValue:
+      type: string
+      example: "VERFUEGBAR"
+      description: Vorheriger Wert
+    newValue:
+      type: string
+      example: "IN_WARTUNG"
+      description: Neuer Wert
+    changedBy:
+      type: string
+      format: uuid
+      example: "123e4567-e89b-12d3-a456-426614174000"
+      description: ID des Users der die Änderung vorgenommen hat
+    changedByName:
+      type: string
+      example: "Max Mustermann"
+    comment:
+      type: string
+      example: "Jährliche Prüfung durchgeführt"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-01-15T10:30:00Z"

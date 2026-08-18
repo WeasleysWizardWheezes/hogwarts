@@ -1,0 +1,150 @@
+paths:
+  /api/v1/roll-containers:
+    get:
+      tags: [RollContainers]
+      summary: Alle Abrollbehälter auflisten
+      operationId: listRollContainers
+      parameters:
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ATEM_SCHUTZ, SCHLAUCH, FUNK, MEDIZIN, ABC, ALLGEMEIN]
+          description: Filtert Abrollbehälter nach Typ
+        - name: vehicleId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filtert Abrollbehälter nach Fahrzeug
+
+    post:
+      tags: [RollContainers]
+      summary: Neuen Abrollbehälter anlegen
+      operationId: createRollContainer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/roll-containers.yaml#/CreateRollContainerRequest'
+      responses:
+        '201':
+          description: Abrollbehälter erstellt
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/roll-containers.yaml#/RollContainerResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+  /api/v1/roll-containers/{rollContainerId}:
+    get:
+      tags: [RollContainers]
+      summary: Abrollbehälter anhand der ID laden
+      operationId: getRollContainer
+      parameters:
+        - name: rollContainerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Abrollbehälter gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/roll-containers.yaml#/RollContainerResponse'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+    put:
+      tags: [RollContainers]
+      summary: Abrollbehälter aktualisieren
+      operationId: updateRollContainer
+      parameters:
+        - name: rollContainerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/roll-containers.yaml#/UpdateRollContainerRequest'
+      responses:
+        '200':
+          description: Abrollbehälter aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '../components/schemas/roll-containers.yaml#/RollContainerResponse'
+        '400':
+          $ref: '../components/responses/errors.yaml#/BadRequest'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+        '409':
+          $ref: '../components/responses/errors.yaml#/Conflict'
+
+    delete:
+      tags: [RollContainers]
+      summary: Abrollbehälter archivieren (Soft Delete)
+      operationId: deleteRollContainer
+      parameters:
+        - name: rollContainerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Abrollbehälter erfolgreich archiviert
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'
+
+  /api/v1/roll-containers/{rollContainerId}/equipment:
+    get:
+      tags: [RollContainers]
+      summary: Alle Geräte eines Abrollbehälters auflisten
+      operationId: listRollContainerEquipment
+      parameters:
+        - name: rollContainerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '../components/parameters/common.yaml#/PageParam'
+        - $ref: '../components/parameters/common.yaml#/SizeParam'
+      responses:
+        '200':
+          description: Liste aller Geräte im Abrollbehälter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/equipment.yaml#/EquipmentResponse'
+                  page:
+                    $ref: '../components/schemas/common.yaml#/PaginationMeta'
+        '404':
+          $ref: '../components/responses/errors.yaml#/NotFound'

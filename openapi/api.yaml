@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 info:
   title: Hogwarts Firemanager API
-  version: "0.0.0-issue-219"
+  version: "0.0.0-issue-224"
   description: REST-API für die Feuerwehr-Geräteverwaltung
 
 servers:
@@ -17,6 +17,14 @@ tags:
     description: Verwaltung von Fahrzeuggruppen
   - name: Vehicles
     description: Verwaltung von Fahrzeugen
+  - name: Equipment
+    description: Verwaltung von Feuerwehrgeräten
+  - name: EquipmentCategories
+    description: Verwaltung von Gerätekategorien
+  - name: RollContainers
+    description: Verwaltung von Abrollbehältern
+  - name: MaintenanceRecords
+    description: Verwaltung von Wartungs- und Prüfungsrecord
 
 paths:
   /api/v1/members:
@@ -37,6 +45,28 @@ paths:
     $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles'
   /api/v1/vehicles/{vehicleId}:
     $ref: './paths/vehicles.yaml#/paths/~1api~1v1~1vehicles~1{vehicleId}'
+  /api/v1/equipment:
+    $ref: './paths/equipment.yaml#/paths/~1api~1v1~1equipment'
+  /api/v1/equipment/{equipmentId}:
+    $ref: './paths/equipment.yaml#/paths/~1api~1v1~1equipment~1{equipmentId}'
+  /api/v1/equipment/{equipmentId}/history:
+    $ref: './paths/equipment.yaml#/paths/~1api~1v1~1equipment~1{equipmentId}~1history'
+  /api/v1/equipment-categories:
+    $ref: './paths/equipment-categories.yaml#/paths/~1api~1v1~1equipment-categories'
+  /api/v1/equipment-categories/{categoryId}:
+    $ref: './paths/equipment-categories.yaml#/paths/~1api~1v1~1equipment-categories~1{categoryId}'
+  /api/v1/roll-containers:
+    $ref: './paths/roll-containers.yaml#/paths/~1api~1v1~1roll-containers'
+  /api/v1/roll-containers/{rollContainerId}:
+    $ref: './paths/roll-containers.yaml#/paths/~1api~1v1~1roll-containers~1{rollContainerId}'
+  /api/v1/roll-containers/{rollContainerId}/equipment:
+    $ref: './paths/roll-containers.yaml#/paths/~1api~1v1~1roll-containers~1{rollContainerId}~1equipment'
+  /api/v1/maintenance-records:
+    $ref: './paths/maintenance-records.yaml#/paths/~1api~1v1~1maintenance-records'
+  /api/v1/maintenance-records/{maintenanceId}:
+    $ref: './paths/maintenance-records.yaml#/paths/~1api~1v1~1maintenance-records~1{maintenanceId}'
+  /api/v1/maintenance-records/summary/overdue:
+    $ref: './paths/maintenance-records.yaml#/paths/~1api~1v1~1maintenance-records~1summary~1overdue'
 
 components:
   schemas:
