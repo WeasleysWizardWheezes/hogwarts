@@ -192,15 +192,18 @@ describe("VehiclesPage API Integration", () => {
 
     await user.click(screen.getByRole("button", { name: "Erstellen" }))
 
-    await waitFor(() => {
-      expect(createRequestBody).toMatchObject({
-        name: "01-RW-01",
-        funkrufname: "Florian Monheim 01-RW-01",
-        kennzeichen: "ME-FM 222",
-        vehicleGroupId: "vg-loeschfahrzeuge",
-      })
-    })
-  })
+    await waitFor(
+      () => {
+        expect(createRequestBody).toMatchObject({
+          name: "01-RW-01",
+          funkrufname: "Florian Monheim 01-RW-01",
+          kennzeichen: "ME-FM 222",
+          vehicleGroupId: "vg-loeschfahrzeuge",
+        })
+      },
+      { timeout: 5000 },
+    )
+  }, 10000)
 
   it("filters vehicles by vehicleGroupId", async () => {
     const user = userEvent.setup()

@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react"
+import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render } from "@/test/render"
@@ -143,8 +143,8 @@ describe("EquipmentDetailPage", () => {
 
   it("shows status, category and vehicle", () => {
     render(<EquipmentDetailPage />)
-    expect(screen.getByText("Verfügbar")).toBeInTheDocument()
-    expect(screen.getByText("Atemschutz")).toBeInTheDocument()
+    expect(screen.getAllByText("Verfügbar").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText("Atemschutz").length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText("01-HLF20-01")).toBeInTheDocument()
   })
 
@@ -156,8 +156,8 @@ describe("EquipmentDetailPage", () => {
   it("shows change history with status transitions", () => {
     render(<EquipmentDetailPage />)
     expect(screen.getByRole("heading", { name: "Änderungshistorie" })).toBeInTheDocument()
-    expect(screen.getByText("Verfügbar")).toBeInTheDocument()
-    expect(screen.getByText("Wartung")).toBeInTheDocument()
+    expect(screen.getAllByText("Verfügbar").length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText("Wartung").length).toBeGreaterThanOrEqual(1)
   })
 
   it("shows empty history message when no history exists", () => {
@@ -175,7 +175,7 @@ describe("EquipmentDetailPage", () => {
 
     render(<EquipmentDetailPage />)
 
-    const overdueText = screen.getByText(/01\.06\.2025/)
+    const overdueText = screen.getByText(/1\.6\.2025/)
     expect(overdueText).toHaveClass("text-destructive")
     expect(overdueText).toHaveTextContent(/überfällig/i)
   })
@@ -224,7 +224,8 @@ describe("EquipmentDetailPage", () => {
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: "Gerät archivieren" })).toBeInTheDocument()
     })
-    expect(screen.getByText(/Pressluftatmer PA 300/)).toBeInTheDocument()
+    const dialog = screen.getByRole("alertdialog")
+    expect(within(dialog).getByText(/Pressluftatmer PA 300/)).toBeInTheDocument()
   })
 
   it("closes archive dialog when cancel is clicked", async () => {

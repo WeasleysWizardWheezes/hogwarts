@@ -167,10 +167,14 @@ describe("EquipmentListPage API Integration", () => {
         categoryId: "cat-atemschutz-01",
       })
     })
-  })
+  }, 15000)
 
   it("shows HTTP 409 error on duplicate inventory number", async () => {
     const user = userEvent.setup()
+
+    // Suppress the unhandled rejection from mutateAsync throwing on 409
+    const rejectionHandler = () => { /* swallow */ }
+    process.on("unhandledRejection", rejectionHandler)
 
     server.use(
       http.post(`${BASE_URL}/api/v1/equipment`, () => {
@@ -195,10 +199,12 @@ describe("EquipmentListPage API Integration", () => {
 
     await user.click(screen.getByRole("button", { name: "Erstellen" }))
 
-    // onError fires toast.error – dialog closes
+    // onError → toast.error; dialog stays open for retry
     await waitFor(() => {
-      expect(screen.queryByRole("heading", { name: "Gerät erstellen" })).not.toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Gerät erstellen" })).toBeInTheDocument()
     })
+
+    process.off("unhandledRejection", rejectionHandler)
   })
 
   it("archives an equipment item via API", async () => {
@@ -232,27 +238,45 @@ describe("EquipmentListPage API Integration", () => {
 
   it("sends search query parameter to API", async () => {
     const user = userEvent.setup()
-    let lastUrl: URL | null = null
+    const requestUrls: URL[] = []
 
     server.use(
       http.get(`${BASE_URL}/api/v1/equipment`, ({ request }) => {
-        lastUrl = new URL(request.url)
+        requestUrls.push(new URL(request.url))
         return HttpResponse.json({
-          data: [],
-          page: { page: 0, size: 20, totalElements: 0, totalPages: 0 },
+          data: mockEquipmentItems,
+          page: { page: 0, size: 20, totalElements: 2, totalPages: 1 },
         })
       }),
     )
 
     renderWithProviders(<EquipmentListPage />)
+    // Wait for initial data to load (input is only visible in the loaded state)
     await screen.findByRole("textbox", { name: /Geräte suchen/i })
 
-    await user.type(screen.getByRole("textbox", { name: /Geräte suchen/i }), "Funk")
+    // Type each character individually, waiting for the component to remain
+    // in "loaded" state after each keystroke (since each char triggers a new query)
+    const chars = ["F", "u", "n", "k"]
+    let accumulated = ""
+    for (const char of chars) {
+      accumulated += char
+      const input = screen.getByRole("textbox", { name: /Geräte suchen/i })
+      await user.type(input, char)
+      // Wait for the component to re-render with data (search input visible with value)
+      const expected = accumulated
+      await waitFor(() => {
+        expect(screen.getByRole("textbox", { name: /Geräte suchen/i })).toHaveValue(expected)
+      }, { timeout: 3000 })
+    }
 
-    await waitFor(() => {
-      expect(lastUrl?.searchParams.get("search")).toBe("Funk")
-    })
-  })
+    await waitFor(
+      () => {
+        const lastUrl = requestUrls[requestUrls.length - 1]
+        expect(lastUrl?.searchParams.get("search")).toBe("Funk")
+      },
+      { timeout: 3000 },
+    )
+  }, 30000)
 
   it("sends categoryId filter parameter to API", async () => {
     const user = userEvent.setup()

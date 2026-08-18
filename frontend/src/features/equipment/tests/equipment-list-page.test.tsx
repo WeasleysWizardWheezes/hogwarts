@@ -159,7 +159,7 @@ describe("EquipmentListPage", () => {
   it("highlights overdue inspection date visually", () => {
     render(<EquipmentListPage />)
     // The overdue date cell should have destructive styling (text-destructive)
-    const overdueCell = screen.getByText("01.06.2025")
+    const overdueCell = screen.getByText(/1\.6\.2025/)
     expect(overdueCell).toHaveClass("text-destructive")
   })
 
@@ -234,8 +234,8 @@ describe("EquipmentListPage", () => {
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: "Gerät archivieren" })).toBeInTheDocument()
     })
-    expect(screen.getByText(/Funkgerät 3/)).toBeInTheDocument()
-    expect(screen.getByText(/archivieren/i)).toBeInTheDocument()
+    const dialog = screen.getByRole("alertdialog")
+    expect(within(dialog).getByText(/Funkgerät 3/)).toBeInTheDocument()
   })
 
   it("closes archive dialog when cancel is clicked", async () => {

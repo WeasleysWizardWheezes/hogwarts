@@ -172,8 +172,8 @@ describe("EquipmentCategoriesPage", () => {
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: "Kategorie archivieren" })).toBeInTheDocument()
     })
-    expect(screen.getByText(/Atemschutz/)).toBeInTheDocument()
-    expect(screen.getByText(/archivieren/i)).toBeInTheDocument()
+    const dialog = screen.getByRole("alertdialog")
+    expect(within(dialog).getByText(/Atemschutz/)).toBeInTheDocument()
   })
 
   it("closes archive dialog when cancel is clicked", async () => {

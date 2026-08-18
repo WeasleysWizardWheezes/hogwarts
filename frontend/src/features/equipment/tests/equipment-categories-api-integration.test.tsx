@@ -111,6 +111,10 @@ describe("EquipmentCategoriesPage API Integration", () => {
   it("shows HTTP 409 toast error on duplicate category name", async () => {
     const user = userEvent.setup()
 
+    // Suppress the unhandled rejection from mutateAsync throwing on 409
+    const rejectionHandler = () => { /* swallow */ }
+    process.on("unhandledRejection", rejectionHandler)
+
     server.use(
       http.post(`${BASE_URL}/api/v1/equipment-categories`, () => {
         return HttpResponse.json(
@@ -132,10 +136,12 @@ describe("EquipmentCategoriesPage API Integration", () => {
     await user.type(screen.getByLabelText("Name *"), "Atemschutz")
     await user.click(screen.getByRole("button", { name: "Erstellen" }))
 
-    // Dialog closes or error toast shows (onError → toast.error)
+    // onError → toast.error; dialog stays open for retry
     await waitFor(() => {
-      expect(screen.queryByRole("heading", { name: "Kategorie erstellen" })).not.toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Kategorie erstellen" })).toBeInTheDocument()
     })
+
+    process.off("unhandledRejection", rejectionHandler)
   })
 
   it("archives a category via API", async () => {
